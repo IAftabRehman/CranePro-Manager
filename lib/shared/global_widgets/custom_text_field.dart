@@ -53,13 +53,13 @@ class CraneInput extends StatelessWidget {
           onChanged: onChanged,
           readOnly: readOnly,
           onTap: onTap,
-          style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+          style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white),
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle: theme.textTheme.labelSmall?.copyWith(color: Colors.white.withValues(alpha: 0.3)),
+            hintStyle: theme.textTheme.labelSmall?.copyWith(color: Colors.white.withValues(alpha: 0.5)),
             prefixIcon: prefixIcon != null ? IconTheme(data: const IconThemeData(color: Colors.white70), child: prefixIcon!) : null,
             prefixText: prefixText,
-            prefixStyle: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold),
+            prefixStyle: const TextStyle(color: Colors.white70),
             suffixIcon: suffixIcon != null ? IconTheme(data: const IconThemeData(color: Colors.white70), child: suffixIcon!) : null,
           ),
         );

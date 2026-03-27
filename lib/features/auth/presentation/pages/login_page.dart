@@ -31,7 +31,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _handleLogin() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (_formKey.currentState!.validate()) return; // !
 
     setState(() => _isLoading = true);
     await Future.delayed(const Duration(seconds: 2));

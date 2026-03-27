@@ -4,7 +4,7 @@ import 'package:extend_crane_services/core/themes/app_theme.dart';
 import 'package:extend_crane_services/features/quotation/presentation/pages/add_quotation_page.dart';
 import 'package:extend_crane_services/features/dashboard/presentation/pages/main_dashboard.dart';
 import 'package:extend_crane_services/features/operations/presentation/pages/daily_log_page.dart';
-import 'package:extend_crane_services/features/maintenance/presentation/pages/add_expense_page.dart';
+import 'package:extend_crane_services/features/maintenance/presentation/pages/maintenance_history_page.dart';
 import 'package:extend_crane_services/features/reports/presentation/pages/earnings_report_page.dart';
 
 class CustomDrawer extends StatelessWidget {
@@ -35,13 +35,10 @@ class CustomDrawer extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 children: [
                   _buildNavItem(context, Icons.dashboard_outlined, 'Dashboard', theme),
-                  _buildNavItem(context, Icons.file_copy_outlined, 'Quotation Manager', theme),
-                  _buildNavItem(context, Icons.calendar_today_outlined, 'Daily Work Logs', theme),
-                  _buildNavItem(context, Icons.settings_suggest_outlined, 'Expense & Maintenance', theme),
+                  _buildNavItem(context, Icons.file_copy_outlined, 'Generate Quotation', theme),
+                  _buildNavItem(context, Icons.flash_on_outlined, 'Direct Work Entry', theme),
+                  _buildNavItem(context, Icons.build_circle_outlined, 'Maintenance & Expenses', theme),
                   _buildNavItem(context, Icons.bar_chart_outlined, 'Reports & Analytics', theme),
-                  
-                  // Role-based Admin Link (Conditional)
-                  _buildNavItem(context, Icons.admin_panel_settings_outlined, 'Admin Panel', theme, isAdminOnly: true),
                 ],
               ),
             ),
@@ -101,14 +98,16 @@ class CustomDrawer extends StatelessWidget {
             case 'Dashboard':
               destination = const MainDashboard();
               break;
-            case 'Quotation Manager':
+            case 'Generate Quotation':
               destination = const AddQuotationPage();
               break;
-            case 'Daily Work Logs':
-              destination = const DailyLogPage();
+            case 'Direct Work Entry':
+              // This is usually a modal, but for drawer menu we can link to a list or the modal trigger
+              // For now, let's keep it simple or redirect to dashboard with modal trigger
+              destination = const MainDashboard(); 
               break;
-            case 'Expense & Maintenance':
-              destination = const AddExpensePage();
+            case 'Maintenance & Expenses':
+              destination = const MaintenanceHistoryPage();
               break;
             case 'Reports & Analytics':
               destination = const EarningsReportPage();

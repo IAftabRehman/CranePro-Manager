@@ -284,10 +284,14 @@ class _EarningsReportPageState extends State<EarningsReportPage> {
 
   Widget _buildSummaryGrid(ThemeData theme, double width) {
     final tiles = [
-      _buildSummaryTile('Total Invoiced', 'AED 45,000', theme.colorScheme.primary, theme, isBold: true),
-      _buildSummaryTile('Total Commission', '(-) AED 8,500', Colors.redAccent, theme),
-      _buildSummaryTile('Total Expenses', '(-) AED 4,200', theme.colorScheme.tertiary, theme),
-      _buildSummaryTile('Net Balance', 'AED 32,300', Colors.green, theme, isBold: true, fontSize: 22),
+      _buildSummaryTile('Quotation Income', 'AED 35,000', Colors.white, theme),
+      _buildSummaryTile('Direct Work Income', 'AED 10,000', Colors.white, theme),
+      const Divider(color: Colors.white10),
+      _buildSummaryTile('Partner Commission', '(-) AED 8,500', Colors.redAccent, theme),
+      _buildSummaryTile('Fuel Expenses', '(-) AED 3,200', Colors.orangeAccent, theme),
+      _buildSummaryTile('Maintenance Costs', '(-) AED 1,000', Colors.orangeAccent, theme),
+      const Divider(color: Colors.white24, thickness: 1.5, height: 32),
+      _buildSummaryTile('ESTIMATED NET PROFIT', 'AED 32,300', Colors.green, theme, isBold: true, fontSize: 22),
     ];
 
     if (width > 600) {

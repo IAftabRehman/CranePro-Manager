@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
@@ -11,6 +10,7 @@ import 'package:extend_crane_services/features/quotation/data/models/quotation_m
 
 class PdfPreviewPage extends StatefulWidget {
   final QuotationData data;
+
   const PdfPreviewPage({super.key, required this.data});
 
   @override
@@ -25,18 +25,18 @@ class _PdfPreviewPageState extends State<PdfPreviewPage> {
     final logo = await rootBundle.load('assets/images/logo.png');
     final logoImage = pw.MemoryImage(logo.buffer.asUint8List());
     final primaryColor = PdfColors.blue900;
-    final accentColor = PdfColor.fromInt(0xFF00ACC1); // Cyan-ish for table header matching reference
-    
+
     // Derived Date
     final quoteDateStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    final startDateStr = widget.data.entries.isNotEmpty 
-        ? DateFormat('yyyy-MM-dd').format(widget.data.entries.first.startDate) 
+    final startDateStr = widget.data.entries.isNotEmpty
+        ? DateFormat('yyyy-MM-dd').format(widget.data.entries.first.startDate)
         : quoteDateStr;
 
     pdf.addPage(
       pw.Page(
         pageFormat: format,
-        margin: const pw.EdgeInsets.all(40),
+        margin: const pw.EdgeInsets.all(55),
+        // Increased margins for breathing room
         build: (pw.Context context) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -58,101 +58,260 @@ class _PdfPreviewPageState extends State<PdfPreviewPage> {
                       ),
                     ),
                   ),
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.end,
-                    children: [
-                      pw.Text('Quote Date: $quoteDateStr', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
-                      pw.SizedBox(height: 4),
-                      pw.Text('Starting Date: $startDateStr', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
-                    ],
-                  ),
                 ],
               ),
-              pw.SizedBox(height: 40),
-              
-              // TASK 2: Service Provider & Recipient Info
+              pw.SizedBox(height: 50),
               pw.Row(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                  pw.Expanded(
-                    child: pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: [
-                        pw.Text('Quotation From:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
-                        pw.Text('Bahadar Transport and Crane Services', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: primaryColor)),
-                        pw.Text('Address: Musaffah-M26 Abu Dhabi, UAE', style: const pw.TextStyle(fontSize: 10)),
-                        pw.Row(children: [
-                          pw.Text('Email: ', style: const pw.TextStyle(fontSize: 10)),
-                          pw.UrlLink(
-                            destination: 'mailto:info@bahadartransport.com',
-                            child: pw.Text('info@bahadartransport.com', style: pw.TextStyle(fontSize: 10, color: PdfColors.blue, decoration: pw.TextDecoration.underline)),
-                          ),
-                        ]),
-                        pw.Row(children: [
-                          pw.Text('Web: ', style: const pw.TextStyle(fontSize: 10)),
-                          pw.UrlLink(
-                            destination: 'https://bahadartransport.com',
-                            child: pw.Text('bahadartransport.com', style: pw.TextStyle(fontSize: 10, color: PdfColors.blue, decoration: pw.TextDecoration.underline)),
-                          ),
-                        ]),
-                      ],
+                  pw.Text(
+                    'Quotation Date: $quoteDateStr',
+                    style: const pw.TextStyle(
+                      fontSize: 13,
+                      color: PdfColors.grey900,
                     ),
                   ),
-                  if (widget.data.clientName.isNotEmpty)
-                    pw.Expanded(
-                      child: pw.Column(
-                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                        children: [
-                          pw.Text('Quotation To:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
-                          pw.Text(widget.data.clientName, style: pw.TextStyle(fontSize: 11, color: primaryColor, fontWeight: pw.FontWeight.bold)),
-                        ],
-                      ),
+                  pw.Text(
+                    'Starting Date: $startDateStr',
+                    style: const pw.TextStyle(
+                      fontSize: 13,
+                      color: PdfColors.grey900,
                     ),
+                  ),
                 ],
               ),
               pw.SizedBox(height: 30),
 
-              // TASK 3: Main Table (Entries)
+              // TASK 2: Service Provider & Recipient Info
+              pw.Expanded(child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  if (widget.data.clientName.trim().isNotEmpty)
+                    pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.RichText(
+                          text: pw.TextSpan(
+                            children: [
+                              pw.TextSpan(
+                                text: 'Quotation To: ',
+                                style: pw.TextStyle(
+                                  fontWeight: pw.FontWeight.bold,
+                                  fontSize: 13,
+                                  color: PdfColors.black,
+                                ),
+                              ),
+                              pw.TextSpan(
+                                text: widget.data.clientName.trim(),
+                                style: pw.TextStyle(
+                                  fontSize: 13,
+                                  color: PdfColors.black,
+                                  fontWeight: pw.FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  pw.SizedBox(height: 4),
+                  pw.Row(
+                    children: [
+                      pw.Text(
+                        'Quotation From: ',
+                        style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                      pw.Text(
+                        'Bahadar Transport and Crane Services',
+                        style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold,
+                          fontSize: 13,
+                          color: PdfColors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                  pw.SizedBox(height: 4),
+                  pw.Row(
+                    children: [
+                      pw.Text(
+                        'Address: ',
+                        style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                      pw.Text(
+                        'Musaffah-M26 Abu Dhabi, UAE',
+                        style: pw.TextStyle(
+                          fontSize: 12,
+                          color: PdfColors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                  pw.SizedBox(height: 4),
+                  pw.Row(
+                    children: [
+                      pw.Text(
+                        'Email: ',
+                        style: const pw.TextStyle(fontSize: 12),
+                      ),
+                      pw.UrlLink(
+                        destination: 'mailto:info@bahadartransport.com',
+                        child: pw.Text(
+                          'info@bahadartransport.com',
+                          style: pw.TextStyle(
+                            fontSize: 12,
+                            color: PdfColors.blue,
+                            decoration: pw.TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  pw.SizedBox(height: 4),
+                  pw.Row(
+                    children: [
+                      pw.Text(
+                        'Web: ',
+                        style: const pw.TextStyle(fontSize: 12),
+                      ),
+                      pw.UrlLink(
+                        destination: 'https://bahadartransport.com',
+                        child: pw.Text(
+                          'bahadartransport.com',
+                          style: pw.TextStyle(
+                            fontSize: 12,
+                            color: PdfColors.blue,
+                            decoration: pw.TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),),
+
+              pw.SizedBox(height: 30),
+
+              // TASK 3: Main Table (Entries) with Dynamic Columns
               pw.Table(
-                border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
-                columnWidths: {
-                  0: const pw.FlexColumnWidth(3),
-                  1: const pw.FlexColumnWidth(1.5),
-                  2: const pw.FlexColumnWidth(2),
-                  3: const pw.FlexColumnWidth(1.5),
-                },
+                border: pw.TableBorder.all(color: PdfColors.black, width: 1.0),
                 children: [
                   // Table Header
                   pw.TableRow(
                     decoration: pw.BoxDecoration(color: PdfColors.cyan100),
                     children: [
-                      pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text('Service', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11))),
-                      pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text('Duration', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11))),
-                      pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text('Location', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11))),
-                      pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text('Price (AED)', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11))),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(8),
+                        child: pw.Text(
+                          'Service Name',
+                          style: pw.TextStyle(
+                            fontWeight: pw.FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      if (widget.data.entries.any((e) => e.duration.isNotEmpty))
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(8),
+                          child: pw.Text(
+                            'Duration',
+                            style: pw.TextStyle(
+                              fontWeight: pw.FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      if (widget.data.entries.any((e) => e.location.isNotEmpty))
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(8),
+                          child: pw.Text(
+                            'Location',
+                            style: pw.TextStyle(
+                              fontWeight: pw.FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(8),
+                        child: pw.Text(
+                          'Price (AED)',
+                          style: pw.TextStyle(
+                            fontWeight: pw.FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                   // Table Rows
-                  ...widget.data.entries.map((e) => pw.TableRow(
-                    children: [
-                      pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text(e.serviceName.isEmpty ? '-' : e.serviceName, style: const pw.TextStyle(fontSize: 10))),
-                      pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text(e.duration, style: const pw.TextStyle(fontSize: 10))),
-                      pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text(e.location, style: const pw.TextStyle(fontSize: 10))),
-                      pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text(e.price.toStringAsFixed(0), style: const pw.TextStyle(fontSize: 10))),
-                    ],
-                  )),
+                  ...widget.data.entries.map(
+                    (e) => pw.TableRow(
+                      children: [
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(8),
+                          child: pw.Text(
+                            e.serviceName.isEmpty ? '-' : e.serviceName,
+                            style: const pw.TextStyle(fontSize: 12),
+                          ),
+                        ),
+                        if (widget.data.entries.any(
+                          (entry) => entry.duration.isNotEmpty,
+                        ))
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.all(8),
+                            child: pw.Text(
+                              e.duration,
+                              style: const pw.TextStyle(fontSize: 12),
+                            ),
+                          ),
+                        if (widget.data.entries.any(
+                          (entry) => entry.location.isNotEmpty,
+                        ))
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.all(8),
+                            child: pw.Text(
+                              e.location,
+                              style: const pw.TextStyle(fontSize: 12),
+                            ),
+                          ),
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(8),
+                          child: pw.Text(
+                            e.price.toStringAsFixed(0),
+                            style: pw.TextStyle(
+                              fontSize: 12,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-              
+
               // Grand Total Area
               pw.SizedBox(height: 10),
               pw.Align(
                 alignment: pw.Alignment.centerRight,
                 child: pw.Container(
-                  padding: const pw.EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                  padding: const pw.EdgeInsets.symmetric(
+                    vertical: 4,
+                    horizontal: 8,
+                  ),
                   child: pw.Text(
-                    'Grand Total: ${widget.data.totalPrice.toStringAsFixed(0)} AED',
-                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
+                    'Total: ${widget.data.totalPrice.toStringAsFixed(0)} AED',
+                    style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
                 ),
               ),
@@ -160,32 +319,70 @@ class _PdfPreviewPageState extends State<PdfPreviewPage> {
 
               // TASK 4: Terms & Conditions
               if (widget.data.terms.isNotEmpty) ...[
-                pw.Text('Terms & Conditions:', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, decoration: pw.TextDecoration.underline)),
-                pw.SizedBox(height: 10),
-                ...List.generate(widget.data.terms.length, (i) => pw.Padding(
-                  padding: const pw.EdgeInsets.only(bottom: 4),
-                  child: pw.Text('${i + 1}. ${widget.data.terms[i]}', style: const pw.TextStyle(fontSize: 9)),
-                )),
+                pw.Text(
+                  'Terms & Conditions:',
+                  style: pw.TextStyle(
+                    fontSize: 15,
+                    fontWeight: pw.FontWeight.bold,
+                    decoration: pw.TextDecoration.underline,
+                  ),
+                ),
+                pw.SizedBox(height: 12),
+                ...List.generate(
+                  widget.data.terms.length,
+                  (i) => pw.Padding(
+                    padding: const pw.EdgeInsets.only(bottom: 6),
+                    child: pw.RichText(
+                      text: pw.TextSpan(
+                        children: [
+                          pw.TextSpan(
+                            text: '${i + 1}. ',
+                            style: pw.TextStyle(
+                              fontWeight: pw.FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                          pw.TextSpan(
+                            text: widget.data.terms[i],
+                            style: const pw.TextStyle(fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ],
-              
+
               pw.Spacer(),
-              
+
               // TASK 4: Closing Line & Signature
               pw.Center(
                 child: pw.Text(
                   'We look forward to serving you',
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11),
+                  style: pw.TextStyle(
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 18,
+                  ),
                 ),
               ),
               pw.SizedBox(height: 30),
-              
+
               pw.Align(
                 alignment: pw.Alignment.bottomRight,
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
-                    pw.Text('Bahadar Khan', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
-                    pw.Text('Chief Executive Officer', style: const pw.TextStyle(fontSize: 9)),
+                    pw.Text(
+                      'Chief Executive Officer',
+                      style: const pw.TextStyle(fontSize: 10),
+                    ),
+                    pw.Text(
+                      'Bahadar Khan',
+                      style: pw.TextStyle(
+                        fontWeight: pw.FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -202,14 +399,19 @@ class _PdfPreviewPageState extends State<PdfPreviewPage> {
     final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (ctx) {
         return Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Share Quotation via', style: theme.textTheme.displayLarge?.copyWith(fontSize: 18)),
+              Text(
+                'Share Quotation via',
+                style: theme.textTheme.displayLarge?.copyWith(fontSize: 18),
+              ),
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -237,7 +439,10 @@ class _PdfPreviewPageState extends State<PdfPreviewPage> {
           child: Icon(icon, color: color, size: 28),
         ),
         const SizedBox(height: 8),
-        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+        ),
       ],
     );
   }
@@ -249,7 +454,10 @@ class _PdfPreviewPageState extends State<PdfPreviewPage> {
 
     return PremiumScaffold(
       appBar: AppBar(
-        title: const Text('Quotation Preview', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Quotation Preview',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -264,14 +472,19 @@ class _PdfPreviewPageState extends State<PdfPreviewPage> {
             ),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.05),
-              border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+              border: Border(
+                bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   'Include Digital Signature',
-                  style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
                 Switch(
                   value: _includeSignature,
@@ -285,7 +498,7 @@ class _PdfPreviewPageState extends State<PdfPreviewPage> {
               ],
             ),
           ),
-          
+
           // PDF Viewer utilizing InteractiveViewer internally via PdfPreview
           Expanded(
             child: Container(
@@ -293,12 +506,14 @@ class _PdfPreviewPageState extends State<PdfPreviewPage> {
               padding: isTablet ? const EdgeInsets.all(32.0) : EdgeInsets.zero,
               child: PdfPreview(
                 build: (format) => _generatePdf(format),
-                useActions: false, // Disable default printing package actions
+                useActions: false,
+                // Disable default printing package actions
                 canChangeOrientation: false,
                 canChangePageFormat: false,
                 allowPrinting: false,
                 allowSharing: false,
-                pdfFileName: 'Quotation_${widget.data.clientName.replaceAll(" ", "_")}.pdf',
+                pdfFileName:
+                    'Quotation_${widget.data.clientName.replaceAll(" ", "_")}.pdf',
               ),
             ),
           ),
@@ -312,13 +527,21 @@ class _PdfPreviewPageState extends State<PdfPreviewPage> {
           ),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.05),
-            border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+            border: Border(
+              top: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+            ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _buildActionButton(Icons.download, 'Save', theme),
-              _buildActionButton(Icons.share, 'Share', theme, isPrimary: true, onTap: _showShareSheet),
+              _buildActionButton(
+                Icons.share,
+                'Share',
+                theme,
+                isPrimary: true,
+                onTap: _showShareSheet,
+              ),
               _buildActionButton(Icons.print, 'Print', theme),
             ],
           ),
@@ -327,14 +550,24 @@ class _PdfPreviewPageState extends State<PdfPreviewPage> {
     );
   }
 
-  Widget _buildActionButton(IconData icon, String label, ThemeData theme, {bool isPrimary = false, VoidCallback? onTap}) {
+  Widget _buildActionButton(
+    IconData icon,
+    String label,
+    ThemeData theme, {
+    bool isPrimary = false,
+    VoidCallback? onTap,
+  }) {
     final color = isPrimary ? theme.colorScheme.secondary : Colors.white;
     final textColor = isPrimary ? theme.colorScheme.primary : Colors.white;
-    
+
     return InkWell(
-      onTap: onTap ?? () {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$label action triggered')));
-      },
+      onTap:
+          onTap ??
+          () {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('$label action triggered')));
+          },
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: EdgeInsets.symmetric(

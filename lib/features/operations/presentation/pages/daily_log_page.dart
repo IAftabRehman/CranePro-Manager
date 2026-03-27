@@ -5,6 +5,8 @@ import 'package:extend_crane_services/shared/global_widgets/custom_button.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_text_field.dart';
 import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
 
+import '../../../dashboard/presentation/pages/main_dashboard.dart';
+
 enum WorkStatus { working, pending, noWork }
 
 class DailyLogPage extends StatefulWidget {
@@ -271,6 +273,7 @@ class _DailyLogPageState extends State<DailyLogPage> {
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => MainDashboard())), icon: Icon(Icons.arrow_back)),
       ),
       body: SafeArea(
         child: SingleChildScrollView(

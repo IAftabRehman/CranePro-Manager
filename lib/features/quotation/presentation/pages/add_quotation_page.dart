@@ -77,45 +77,15 @@ class _AddQuotationPageState extends State<AddQuotationPage> {
     final screenHeight = Responsive.screenHeight(context);
 
     return PremiumScaffold(
+      appBar: AppBar(
+        title: Text("Quotation Generator", style: TextStyle(fontWeight: FontWeight.bold),),
+        centerTitle: true,
+        backgroundColor: Colors.blue.withAlpha(41),
+        elevation: 10,
+        shadowColor: Colors.blue,
+      ),
       body: Column(
         children: [
-          // Premium Gradient Header with Logo
-          Container(
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 20,
-              bottom: 20,
-              left: 24,
-              right: 24,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
-              border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    // Navigate to Admin Panel logic here (Simulated)
-                    Navigator.of(context).pop();
-                  },
-                  child: Image.asset(
-                    'assets/images/logo.png',
-                    height: screenHeight * 0.08,
-                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.architecture, color: Colors.white, size: 40),
-                  ),
-                ),
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('Final Quote', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-                    Text('BAHADAR TRANSPORT', style: TextStyle(color: Colors.white70, fontSize: 10, letterSpacing: 1.2)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
           Expanded(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
@@ -127,15 +97,15 @@ class _AddQuotationPageState extends State<AddQuotationPage> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // Single Full Width Client Input
-                      const _SectionLabel('CLIENT INFORMATION'),
+                      const _SectionLabel('Client Information'),
                       CraneInput(
                         controller: _clientController,
                         hintText: 'Client or Company Name (Optional)',
                         prefixIcon: const Icon(Icons.business_outlined, size: 20),
                       ),
 
-                      const SizedBox(height: 32),
-                      const _SectionLabel('SERVICE ENTRIES'),
+                      const SizedBox(height: 30),
+                      const _SectionLabel('Service Entries'),
                       ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
@@ -154,19 +124,22 @@ class _AddQuotationPageState extends State<AddQuotationPage> {
                           );
                         },
                       ),
-
                       TextButton.icon(
                         onPressed: _addEntry,
                         icon: const Icon(Icons.add_circle, size: 24),
-                        label: const Text('Add Another Service', style: TextStyle(fontWeight: FontWeight.bold)),
+                        label: const Text('Add Another Services', style: TextStyle(fontWeight: FontWeight.bold)),
                         style: TextButton.styleFrom(
-                          foregroundColor: theme.colorScheme.secondary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15)
+                          ),
+                          backgroundColor: theme.colorScheme.secondary,
+                          foregroundColor: theme.colorScheme.primary,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
                       ),
 
-                      const SizedBox(height: 32),
-                      const _SectionLabel('TERMS & CONDITIONS'),
+                      const SizedBox(height: 50),
+                      const _SectionLabel('Terms and Conditions'),
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
@@ -201,35 +174,35 @@ class _AddQuotationPageState extends State<AddQuotationPage> {
                                 minimumSize: const Size(double.infinity, 48),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
                               ),
-                              child: const Text('MANAGE TERMS & CONDITIONS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 48),
-                      // Grand Total Card (AED)
-                      Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.secondary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: theme.colorScheme.secondary.withValues(alpha: 0.3)),
-                          boxShadow: [BoxShadow(color: theme.colorScheme.secondary.withValues(alpha: 0.05), blurRadius: 15, offset: const Offset(0, 8))],
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Estimated Total', style: TextStyle(color: Colors.white70, fontSize: 16)),
-                            Text(
-                              'AED ${_totalPrice.toStringAsFixed(0)}',
-                              style: TextStyle(color: theme.colorScheme.secondary, fontSize: 26, fontWeight: FontWeight.bold),
+                              child: Text('Manage Terms and Conditions', style: TextStyle(fontWeight: FontWeight.w400, fontSize: 15, letterSpacing: 0.2, wordSpacing: 2)),
                             ),
                           ],
                         ),
                       ),
 
                       const SizedBox(height: 40),
+                      // Grand Total Card (AED)
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 18),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.secondary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: theme.colorScheme.secondary.withValues(alpha: 0.5)),
+                          boxShadow: [BoxShadow(color: theme.colorScheme.secondary.withValues(alpha: 0.05), blurRadius: 15, offset: const Offset(0, 8))],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Estimated Total', style: TextStyle(color: theme.colorScheme.secondary, fontSize: 15)),
+                            Text(
+                              'AED ${_totalPrice.toStringAsFixed(0)}',
+                              style: TextStyle(color: theme.colorScheme.secondary, fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 30),
                       ElevatedButton(
                         onPressed: () {
                           final data = QuotationData(
@@ -245,11 +218,11 @@ class _AddQuotationPageState extends State<AddQuotationPage> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: theme.colorScheme.secondary,
                           foregroundColor: theme.colorScheme.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 20),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                           elevation: 4,
                         ),
-                        child: const Text('GENERATE PDF QUOTATION', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.1)),
+                        child: const Text('Generate PDF', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, letterSpacing: 1.1)),
                       ),
                       const SizedBox(height: 60),
                     ],
@@ -271,7 +244,7 @@ class _SectionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16, left: 4),
+      padding: const EdgeInsets.only(bottom: 10, left: 4),
       child: Text(text, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.5, color: Colors.white70)),
     );
   }
@@ -297,14 +270,14 @@ class _ServiceCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 24),
+      margin: const EdgeInsets.only(top: 20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: Colors.white.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.blue.withValues(alpha: 0.07), blurRadius: 10, offset: const Offset(7, 7)),
         ],
       ),
       child: Column(
@@ -313,8 +286,8 @@ class _ServiceCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('ENTRY #${index + 1}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 1.0)),
-              IconButton(onPressed: onRemove, icon: const Icon(Icons.delete_forever_outlined, color: Colors.redAccent, size: 22)),
+              Text('Entry No. ${index + 1}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 1.0)),
+              IconButton(onPressed: onRemove, icon: const Icon(Icons.delete_forever_outlined, color: Colors.redAccent, size: 26)),
             ],
           ),
           const Divider(color: Colors.white10),
@@ -384,7 +357,7 @@ class _FieldLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8, left: 2),
-      child: Text(text.toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white38, letterSpacing: 0.5)),
+      child: Text(text, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white38, letterSpacing: 0.5)),
     );
   }
 }

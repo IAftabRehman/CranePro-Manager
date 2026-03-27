@@ -1,5 +1,7 @@
 import 'package:intl/intl.dart';
 
+enum QuotationStatus { pending, completed, cancelled }
+
 class QuotationServiceEntry {
   String serviceName;
   String duration;
@@ -23,12 +25,14 @@ class QuotationData {
   String companyName;
   List<QuotationServiceEntry> entries;
   List<String> terms;
+  QuotationStatus status;
 
   QuotationData({
     this.clientName = '',
     this.companyName = '',
     List<QuotationServiceEntry>? entries,
     List<String>? terms,
+    this.status = QuotationStatus.pending,
   })  : entries = entries ?? [QuotationServiceEntry()],
         terms = terms ?? [];
 
