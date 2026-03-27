@@ -6,6 +6,7 @@ import 'package:extend_crane_services/features/auth/presentation/pages/register_
 import 'package:extend_crane_services/features/dashboard/presentation/pages/main_dashboard.dart';
 import 'package:extend_crane_services/features/dashboard/presentation/pages/viewer_dashboard.dart';
 import 'package:extend_crane_services/features/admin/presentation/pages/admin_control_page.dart';
+import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
 
 class LoginPage extends StatefulWidget {
   final String roleTitle;
@@ -65,10 +66,12 @@ class _LoginPageState extends State<LoginPage> {
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
+      child: PremiumScaffold(
         appBar: AppBar(
-          title: const Text('Login'),
+          title: const Text('Login', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
           centerTitle: true,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
         ),
         body: SafeArea(
           child: Align(
@@ -91,14 +94,15 @@ class _LoginPageState extends State<LoginPage> {
                       Icon(
                         Icons.precision_manufacturing,
                         size: Responsive.scale(context, 60).clamp(40.0, 80.0),
-                        color: theme.colorScheme.primary,
+                        color: Colors.white,
                       ),
                       SizedBox(height: Responsive.screenHeight(context) * 0.02),
                       Text(
                         'Welcome Back, Officer',
                         style: theme.textTheme.displayLarge?.copyWith(
-                              fontSize: Responsive.scale(context, 24).clamp(20.0, 32.0),
-                            ),
+                          fontSize: Responsive.scale(context, 24).clamp(20.0, 32.0),
+                          color: Colors.white,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                       SizedBox(height: Responsive.screenHeight(context) * 0.01),
@@ -111,22 +115,22 @@ class _LoginPageState extends State<LoginPage> {
                             vertical: Responsive.scale(context, 8).clamp(6.0, 12.0),
                           ),
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                            color: Colors.white.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3)),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.badge, size: 16, color: theme.colorScheme.primary),
+                              const Icon(Icons.badge, size: 16, color: Colors.white70),
                               const SizedBox(width: 8),
                               Text(
                                 'Logging in as: ${widget.roleTitle}',
                                 style: theme.textTheme.bodyMedium?.copyWith(
-                                      color: theme.colorScheme.primary,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: Responsive.scale(context, 12).clamp(10.0, 14.0),
-                                    ),
+                                  color: Colors.white70,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: Responsive.scale(context, 12).clamp(10.0, 14.0),
+                                ),
                               ),
                             ],
                           ),
@@ -198,7 +202,7 @@ class _LoginPageState extends State<LoginPage> {
                         children: [
                           Text(
                             'New to CranePro?',
-                            style: theme.textTheme.bodyMedium,
+                            style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70),
                           ),
                           TextButton(
                             onPressed: () {

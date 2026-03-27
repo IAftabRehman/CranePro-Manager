@@ -16,20 +16,20 @@ class CraneButton extends StatelessWidget {
     this.isOutlined = false,
     this.icon,
   });
-
   @override
   Widget build(BuildContext context) {
     // Determine dimensions responsibly
-    final width = Responsive.screenWidth(context) * 0.8; // default width if unconstrained
+    final width = Responsive.screenWidth(context) * 0.8;
     final height = Responsive.isMobile(context) ? 50.0 : 65.0;
+    final theme = Theme.of(context);
 
     Widget buttonChild = isLoading
-        ? const SizedBox(
+        ? SizedBox(
             height: 24,
             width: 24,
             child: CircularProgressIndicator(
               strokeWidth: 2.5,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              valueColor: AlwaysStoppedAnimation<Color>(isOutlined ? theme.colorScheme.secondary : theme.colorScheme.primary),
             ),
           )
         : FittedBox(
@@ -53,16 +53,20 @@ class CraneButton extends StatelessWidget {
           ? OutlinedButton(
               onPressed: isLoading ? null : onPressed,
               style: OutlinedButton.styleFrom(
-                side: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
-                foregroundColor: Theme.of(context).colorScheme.primary,
+                side: BorderSide(color: theme.colorScheme.secondary, width: 2),
+                foregroundColor: theme.colorScheme.secondary,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                textStyle: const TextStyle(fontWeight: FontWeight.bold),
               ),
               child: buttonChild,
             )
           : ElevatedButton(
               onPressed: isLoading ? null : onPressed,
               style: ElevatedButton.styleFrom(
+                backgroundColor: theme.colorScheme.secondary,
+                foregroundColor: theme.colorScheme.primary,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 4,
               ),
               child: buttonChild,
             ),

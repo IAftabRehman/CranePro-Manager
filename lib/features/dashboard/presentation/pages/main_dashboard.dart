@@ -1,66 +1,65 @@
 import 'package:flutter/material.dart';
-import 'package:extend_crane_services/core/utils/responsive.dart';
-import 'package:extend_crane_services/features/quotation/presentation/pages/add_quotation_step1.dart';
+import 'package:extend_crane_services/features/quotation/presentation/pages/add_quotation_page.dart';
 import 'package:extend_crane_services/features/operations/presentation/pages/daily_log_page.dart';
 import 'package:extend_crane_services/features/maintenance/presentation/pages/add_expense_page.dart';
 import 'package:extend_crane_services/features/reports/presentation/pages/earnings_report_page.dart';
 import 'package:extend_crane_services/features/notifications/presentation/pages/notification_screen.dart';
 import 'package:extend_crane_services/features/settings/presentation/pages/settings_page.dart';
 import 'package:extend_crane_services/core/presentation/widgets/custom_drawer.dart';
+import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
+
+import '../../../../core/utils/responsive.dart';
 
 class MainDashboard extends StatelessWidget {
   const MainDashboard({super.key});
 
   Widget _buildSummaryCard(BuildContext context, String title, String value, IconData icon, Color color, [Widget? destination]) {
+    final theme = Theme.of(context);
     return Card(
-      elevation: 4,
-      shadowColor: color.withValues(alpha: 0.3),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 0,
+      color: Colors.transparent,
       child: InkWell(
         onTap: destination != null ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => destination)) : null,
         borderRadius: BorderRadius.circular(16),
         child: AspectRatio(
-        aspectRatio: 1.0,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              colors: [color.withValues(alpha: 0.8), color],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+          aspectRatio: 1.0,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            ),
+            padding: EdgeInsets.all(Responsive.scale(context, 16).clamp(12.0, 24.0)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Icon(icon, color: Colors.white, size: Responsive.scale(context, 28).clamp(24.0, 36.0)),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      value,
+                      style: theme.textTheme.displayLarge?.copyWith(
+                        color: Colors.white,
+                        fontSize: Responsive.scale(context, 24).clamp(20.0, 32.0),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      title,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.white70,
+                        fontSize: Responsive.scale(context, 12).clamp(10.0, 14.0),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          padding: EdgeInsets.all(Responsive.scale(context, 16).clamp(12.0, 24.0)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(icon, color: Colors.white, size: Responsive.scale(context, 28).clamp(24.0, 36.0)),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    value,
-                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                          color: Colors.white,
-                          fontSize: Responsive.scale(context, 24).clamp(20.0, 32.0),
-                        ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.white70,
-                          fontSize: Responsive.scale(context, 12).clamp(10.0, 14.0),
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                ],
-              ),
-            ],
-          ),
         ),
-      ),
       ),
     );
   }
@@ -68,9 +67,12 @@ class MainDashboard extends StatelessWidget {
   Widget _buildRecentQuoteTile(BuildContext context, String client, String site, String amount, String date) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
-      shadowColor: Colors.black.withValues(alpha: 0.05),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      color: Colors.white.withValues(alpha: 0.05),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+      ),
       child: ListTile(
         contentPadding: EdgeInsets.symmetric(
           horizontal: Responsive.scale(context, 16).clamp(16.0, 24.0),
@@ -79,18 +81,18 @@ class MainDashboard extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
-          child: Icon(Icons.precision_manufacturing, color: Theme.of(context).colorScheme.primary),
+          child: const Icon(Icons.precision_manufacturing, color: Colors.white),
         ),
         title: Text(
           client,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         subtitle: Text(
           site,
-          style: Theme.of(context).textTheme.labelSmall,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Colors.white70),
         ),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -99,14 +101,14 @@ class MainDashboard extends StatelessWidget {
             Text(
               amount,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.green[700],
+                    color: Theme.of(context).colorScheme.secondary,
                     fontWeight: FontWeight.bold,
                   ),
             ),
             const SizedBox(height: 4),
             Text(
               date,
-              style: Theme.of(context).textTheme.labelSmall,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Colors.white60),
             ),
           ],
         ),
@@ -120,13 +122,13 @@ class MainDashboard extends StatelessWidget {
     final screenWidth = Responsive.screenWidth(context);
     final useSidebar = screenWidth > 900;
 
-    return Scaffold(
+    return PremiumScaffold(
       drawer: useSidebar ? null : const CustomDrawer(activeRoute: 'Dashboard'),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const AddQuotationStep1()),
+            MaterialPageRoute(builder: (_) => const AddQuotationPage()),
           );
         },
         backgroundColor: theme.colorScheme.secondary,
@@ -149,7 +151,8 @@ class MainDashboard extends StatelessWidget {
                     expandedHeight: Responsive.scale(context, 120).clamp(100.0, 160.0),
                     floating: true,
                     pinned: true,
-                    backgroundColor: theme.colorScheme.primary,
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
                     actions: [
                       IconButton(
                         onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationScreen())),
@@ -175,11 +178,8 @@ class MainDashboard extends StatelessWidget {
                       ),
                       background: Container(
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [theme.colorScheme.primary, theme.colorScheme.primary.withValues(alpha: 0.8)],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                          ),
+                          color: Colors.white.withValues(alpha: 0.05),
+                          border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
                         ),
                       ),
                     ),
@@ -214,6 +214,7 @@ class MainDashboard extends StatelessWidget {
                           'Recent Quotations',
                           style: theme.textTheme.displayLarge?.copyWith(
                             fontSize: Responsive.scale(context, 20).clamp(18.0, 24.0),
+                            color: Colors.white,
                           ),
                         ),
                         const SizedBox(height: 16),

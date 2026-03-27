@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
+import 'package:extend_crane_services/core/themes/app_theme.dart';
+import 'package:extend_crane_services/features/quotation/presentation/pages/add_quotation_page.dart';
+import 'package:extend_crane_services/features/dashboard/presentation/pages/main_dashboard.dart';
+import 'package:extend_crane_services/features/operations/presentation/pages/daily_log_page.dart';
+import 'package:extend_crane_services/features/maintenance/presentation/pages/add_expense_page.dart';
+import 'package:extend_crane_services/features/reports/presentation/pages/earnings_report_page.dart';
 
 class CustomDrawer extends StatelessWidget {
   final String activeRoute;
@@ -12,9 +18,14 @@ class CustomDrawer extends StatelessWidget {
 
     return Drawer(
       width: drawerWidth,
-      child: SafeArea(
-        child: Column(
-          children: [
+      backgroundColor: Colors.transparent,
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: AppTheme.premiumGradient,
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
             // Drawer Header
             _buildHeader(theme, context),
 
@@ -41,7 +52,7 @@ class CustomDrawer extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildHeader(ThemeData theme, BuildContext context) {
@@ -49,18 +60,8 @@ class CustomDrawer extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [theme.colorScheme.primary, theme.colorScheme.primary.withValues(alpha: 0.8)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.primary.withValues(alpha: 0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: Colors.white.withValues(alpha: 0.05),
+        border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,18 +94,44 @@ class CustomDrawer extends StatelessWidget {
       child: ListTile(
         onTap: () {
           Navigator.pop(context); // Close drawer first
-          // Navigation logic would go here
+          if (isSelected) return;
+
+          Widget destination;
+          switch (title) {
+            case 'Dashboard':
+              destination = const MainDashboard();
+              break;
+            case 'Quotation Manager':
+              destination = const AddQuotationPage();
+              break;
+            case 'Daily Work Logs':
+              destination = const DailyLogPage();
+              break;
+            case 'Expense & Maintenance':
+              destination = const AddExpensePage();
+              break;
+            case 'Reports & Analytics':
+              destination = const EarningsReportPage();
+              break;
+            default:
+              return;
+          }
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => destination),
+          );
         },
         leading: Icon(
           icon,
-          color: isSelected ? theme.colorScheme.secondary : theme.colorScheme.primary,
+          color: isSelected ? theme.colorScheme.secondary : Colors.white70,
           size: 24,
         ),
         title: Text(
           title,
           style: theme.textTheme.bodyMedium?.copyWith(
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            color: isSelected ? theme.colorScheme.secondary : theme.colorScheme.primary,
+            color: isSelected ? theme.colorScheme.secondary : Colors.white,
           ),
         ),
         selected: isSelected,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
+import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -17,10 +18,12 @@ class _SettingsPageState extends State<SettingsPage> {
     final theme = Theme.of(context);
     final isTablet = Responsive.isTablet(context);
 
-    return Scaffold(
+    return PremiumScaffold(
       appBar: AppBar(
-        title: const Text('Settings & Profile'),
+        title: const Text('Settings & Profile', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -74,8 +77,9 @@ class _SettingsPageState extends State<SettingsPage> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary,
+        color: Colors.white.withValues(alpha: 0.08),
         borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Column(
         children: [
@@ -132,15 +136,17 @@ class _SettingsPageState extends State<SettingsPage> {
           SwitchListTile(
             value: _isDarkMode,
             onChanged: (v) => setState(() => _isDarkMode = v),
-            title: Text('Dark Mode', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
-            secondary: Icon(Icons.dark_mode_outlined, color: theme.colorScheme.primary),
+            title: Text('Dark Mode', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: Colors.white)),
+            secondary: Icon(Icons.dark_mode_outlined, color: theme.colorScheme.secondary),
+            activeColor: theme.colorScheme.secondary,
             contentPadding: const EdgeInsets.symmetric(horizontal: 16),
           ),
           SwitchListTile(
             value: _notificationsOn,
             onChanged: (v) => setState(() => _notificationsOn = v),
-            title: Text('Notifications', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
-            secondary: Icon(Icons.notifications_outlined, color: theme.colorScheme.primary),
+            title: Text('Notifications', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: Colors.white)),
+            secondary: Icon(Icons.notifications_outlined, color: theme.colorScheme.secondary),
+            activeColor: theme.colorScheme.secondary,
             contentPadding: const EdgeInsets.symmetric(horizontal: 16),
           ),
           _buildItem(Icons.translate, 'Language (English)', theme),
@@ -219,7 +225,7 @@ class _SettingsPageState extends State<SettingsPage> {
       child: Text(
         title.toUpperCase(),
         style: theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.primary.withValues(alpha: 0.6),
+          color: Colors.white60,
           letterSpacing: 1.2,
           fontWeight: FontWeight.bold,
         ),
@@ -230,9 +236,10 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget _buildGroup(List<Widget> children) {
     return Card(
       elevation: 0,
+      color: Colors.white.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey[200]!),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Column(children: children),
     );
@@ -242,13 +249,13 @@ class _SettingsPageState extends State<SettingsPage> {
     return Column(
       children: [
         ListTile(
-          leading: Icon(icon, color: theme.colorScheme.primary),
-          title: Text(title, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
-          trailing: showChevron ? const Icon(Icons.chevron_right, size: 20) : null,
+          leading: Icon(icon, color: theme.colorScheme.secondary),
+          title: Text(title, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: Colors.white)),
+          trailing: showChevron ? const Icon(Icons.chevron_right, size: 20, color: Colors.white38) : null,
           onTap: () {},
           contentPadding: const EdgeInsets.symmetric(horizontal: 16),
         ),
-        if (showChevron) Divider(height: 1, indent: 56, color: Colors.grey[100]),
+        if (showChevron) Divider(height: 1, indent: 56, color: Colors.white.withValues(alpha: 0.05)),
       ],
     );
   }
@@ -259,21 +266,21 @@ class _SettingsPageState extends State<SettingsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Business Logo (for PDF)', style: theme.textTheme.labelSmall),
+          Text('Business Logo (for PDF)', style: theme.textTheme.labelSmall?.copyWith(color: Colors.white60)),
           const SizedBox(height: 12),
           Container(
             height: 100,
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.05),
+              color: Colors.white.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey[200]!),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.add_photo_alternate_outlined, color: theme.colorScheme.primary),
+                Icon(Icons.add_photo_alternate_outlined, color: theme.colorScheme.secondary),
                 const SizedBox(width: 12),
-                Text('Upload Logo', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
+                Text('Upload Logo', style: TextStyle(color: theme.colorScheme.secondary, fontWeight: FontWeight.bold)),
               ],
             ),
           ),

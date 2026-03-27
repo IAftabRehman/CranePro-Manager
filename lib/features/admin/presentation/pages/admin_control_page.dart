@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_button.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_text_field.dart';
+import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
 
 class AdminControlPage extends StatefulWidget {
   const AdminControlPage({super.key});
@@ -136,9 +137,13 @@ class _AdminControlPageState extends State<AdminControlPage> {
     final avatarSize = (Responsive.screenWidth(context) * 0.1).clamp(40.0, 70.0);
 
     return Card(
-      elevation: 2,
+      elevation: 0,
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: Colors.white.withValues(alpha: 0.05),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+      ),
       child: ListTile(
         contentPadding: EdgeInsets.symmetric(
           horizontal: Responsive.scale(context, 16).clamp(16.0, 24.0),
@@ -160,13 +165,14 @@ class _AdminControlPageState extends State<AdminControlPage> {
           user['name'],
           style: theme.textTheme.displayLarge?.copyWith(
             fontSize: Responsive.scale(context, 16).clamp(14.0, 18.0),
+            color: Colors.white,
           ),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 4),
-            Text(user['company'], style: theme.textTheme.bodyMedium),
+            Text(user['company'], style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70)),
             const SizedBox(height: 6),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -188,7 +194,7 @@ class _AdminControlPageState extends State<AdminControlPage> {
           ],
         ),
         trailing: IconButton(
-          icon: Icon(Icons.settings, color: theme.colorScheme.primary),
+          icon: const Icon(Icons.settings, color: Colors.white70),
           onPressed: () => _showRoleUpdateSheet(context, user),
         ),
         isThreeLine: true,
@@ -202,7 +208,7 @@ class _AdminControlPageState extends State<AdminControlPage> {
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
+      child: PremiumScaffold(
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -215,8 +221,8 @@ class _AdminControlPageState extends State<AdminControlPage> {
                 SliverAppBar(
                   floating: true,
                   pinned: true,
-                  elevation: 2,
-                  backgroundColor: theme.colorScheme.surface,
+                  elevation: 0,
+                  backgroundColor: Colors.transparent,
                   title: Center(
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 500),
@@ -224,7 +230,7 @@ class _AdminControlPageState extends State<AdminControlPage> {
                         controller: _searchController,
                         hintText: 'Search Users...',
                         keyboardType: TextInputType.text,
-                        prefixIcon: Icon(Icons.search, color: theme.colorScheme.primary),
+                        prefixIcon: const Icon(Icons.search, color: Colors.white70),
                       ),
                     ),
                   ),

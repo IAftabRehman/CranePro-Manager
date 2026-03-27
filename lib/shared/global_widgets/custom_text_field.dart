@@ -13,6 +13,9 @@ class CraneInput extends StatelessWidget {
   final Widget? suffixIcon;
   final bool readOnly;
   final VoidCallback? onTap;
+  final String? prefixText;
+  final String? initialValue;
+  final Function(String)? onChanged;
 
   const CraneInput({
     super.key,
@@ -28,12 +31,16 @@ class CraneInput extends StatelessWidget {
     this.suffixIcon,
     this.readOnly = false,
     this.onTap,
+    this.prefixText,
+    this.initialValue,
+    this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final theme = Theme.of(context);
         return TextFormField(
           controller: controller,
           focusNode: focusNode,
@@ -42,14 +49,18 @@ class CraneInput extends StatelessWidget {
           validator: validator,
           maxLines: maxLines,
           autofillHints: autofillHints,
+          initialValue: initialValue,
+          onChanged: onChanged,
           readOnly: readOnly,
           onTap: onTap,
-          style: Theme.of(context).textTheme.bodyMedium,
+          style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle: Theme.of(context).textTheme.labelSmall,
-            prefixIcon: prefixIcon,
-            suffixIcon: suffixIcon,
+            hintStyle: theme.textTheme.labelSmall?.copyWith(color: Colors.white.withValues(alpha: 0.3)),
+            prefixIcon: prefixIcon != null ? IconTheme(data: const IconThemeData(color: Colors.white70), child: prefixIcon!) : null,
+            prefixText: prefixText,
+            prefixStyle: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold),
+            suffixIcon: suffixIcon != null ? IconTheme(data: const IconThemeData(color: Colors.white70), child: suffixIcon!) : null,
           ),
         );
       },

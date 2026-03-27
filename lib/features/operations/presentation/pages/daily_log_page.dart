@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_button.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_text_field.dart';
+import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
 
 enum WorkStatus { working, pending, noWork }
 
@@ -88,10 +89,10 @@ class _DailyLogPageState extends State<DailyLogPage> {
       }
     }
 
-    final cardColor = isSelected ? getActiveColor() : theme.colorScheme.surface;
+    final cardColor = isSelected ? getActiveColor() : Colors.white.withValues(alpha: 0.05);
     final textColor = isSelected 
         ? (status == WorkStatus.working || status == WorkStatus.pending ? theme.colorScheme.primary : Colors.white) 
-        : theme.colorScheme.primary;
+        : Colors.white;
 
     return InkWell(
       onTap: () {
@@ -107,11 +108,11 @@ class _DailyLogPageState extends State<DailyLogPage> {
           color: cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? getActiveColor() : theme.colorScheme.primary.withValues(alpha: 0.1),
+            color: isSelected ? getActiveColor() : Colors.white.withValues(alpha: 0.1),
             width: 2,
           ),
           boxShadow: isSelected
-              ? [BoxShadow(color: getActiveColor().withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))]
+              ? [BoxShadow(color: getActiveColor().withValues(alpha: 0.2), blurRadius: 12, offset: const Offset(0, 6))]
               : [],
         ),
         child: Column(
@@ -152,12 +153,12 @@ class _DailyLogPageState extends State<DailyLogPage> {
             const SizedBox(height: 16),
             Text(
               'Enjoy the day off!',
-              style: theme.textTheme.displayLarge?.copyWith(color: theme.colorScheme.tertiary, fontSize: 20),
+              style: theme.textTheme.displayLarge?.copyWith(color: theme.colorScheme.secondary, fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
               'No financial inputs required for today.',
-              style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+              style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70),
             ),
           ],
         ),
@@ -169,7 +170,7 @@ class _DailyLogPageState extends State<DailyLogPage> {
         key: const ValueKey('working'),
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Operations Data', style: theme.textTheme.displayLarge?.copyWith(fontSize: 18)),
+          Text('Operations Data', style: theme.textTheme.displayLarge?.copyWith(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           CraneInput(
             controller: _hoursController,
@@ -202,7 +203,7 @@ class _DailyLogPageState extends State<DailyLogPage> {
       key: const ValueKey('pending'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Delay Information', style: theme.textTheme.displayLarge?.copyWith(fontSize: 18)),
+        Text('Delay Information', style: theme.textTheme.displayLarge?.copyWith(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
         CraneInput(
           controller: _reasonController,
@@ -264,10 +265,12 @@ class _DailyLogPageState extends State<DailyLogPage> {
       ),
     );
 
-    return Scaffold(
+    return PremiumScaffold(
       appBar: AppBar(
-        title: const Text('Daily Work Log'),
+        title: const Text('Daily Work Log', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -286,11 +289,9 @@ class _DailyLogPageState extends State<DailyLogPage> {
                     margin: const EdgeInsets.symmetric(vertical: 24),
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.primary,
+                      color: Colors.white.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(color: theme.colorScheme.primary.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4)),
-                      ],
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                     ),
                     child: Row(
                       children: [
@@ -328,7 +329,7 @@ class _DailyLogPageState extends State<DailyLogPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Text('Select Status', style: theme.textTheme.displayLarge?.copyWith(fontSize: 18)),
+                              Text('Select Status', style: theme.textTheme.displayLarge?.copyWith(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
                               const SizedBox(height: 16),
                               statusSelectionContent,
                             ],
@@ -345,7 +346,7 @@ class _DailyLogPageState extends State<DailyLogPage> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text('Select Status', style: theme.textTheme.displayLarge?.copyWith(fontSize: 18)),
+                        Text('Select Status', style: theme.textTheme.displayLarge?.copyWith(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 16),
                         statusSelectionContent,
                         const SizedBox(height: 32),

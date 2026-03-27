@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
+import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
 
 class EarningsReportPage extends StatefulWidget {
   const EarningsReportPage({super.key});
@@ -47,10 +48,12 @@ class _EarningsReportPageState extends State<EarningsReportPage> {
     final isTablet = Responsive.isTablet(context);
     final screenWidth = Responsive.screenWidth(context);
 
-    return Scaffold(
+    return PremiumScaffold(
       appBar: AppBar(
-        title: const Text('Earnings & Analytics'),
+        title: const Text('Earnings & Analytics', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -95,22 +98,22 @@ class _EarningsReportPageState extends State<EarningsReportPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withValues(alpha: 0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
+            Row(
             children: [
-              Icon(Icons.calendar_today, color: theme.colorScheme.primary, size: 20),
+              Icon(Icons.calendar_today, color: theme.colorScheme.secondary, size: 20),
               const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Report Range', style: theme.textTheme.labelSmall),
-                  Text(dateStr, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                   Text('Report Range', style: theme.textTheme.labelSmall?.copyWith(color: Colors.white60)),
+                   Text(dateStr, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.white)),
                 ],
               ),
             ],
@@ -164,14 +167,18 @@ class _EarningsReportPageState extends State<EarningsReportPage> {
     );
 
     return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 0,
+      color: Colors.white.withValues(alpha: 0.05),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Earnings Distribution', style: theme.textTheme.displayLarge?.copyWith(fontSize: 18)),
+            Text('Earnings Distribution', style: theme.textTheme.displayLarge?.copyWith(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
             const SizedBox(height: 24),
             isTablet
                 ? Row(
@@ -199,21 +206,25 @@ class _EarningsReportPageState extends State<EarningsReportPage> {
       children: [
         Container(width: 16, height: 16, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
         const SizedBox(width: 12),
-        Text(label, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+        Text(label, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: Colors.white70)),
       ],
     );
   }
 
   Widget _buildBarChartCard(ThemeData theme, bool isTablet) {
     return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 0,
+      color: Colors.white.withValues(alpha: 0.05),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Weekly Growth Analysis', style: theme.textTheme.displayLarge?.copyWith(fontSize: 18)),
+            Text('Weekly Growth Analysis', style: theme.textTheme.displayLarge?.copyWith(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
             const SizedBox(height: 32),
             AspectRatio(
               aspectRatio: isTablet ? 2.5 : 1.7,
@@ -229,7 +240,7 @@ class _EarningsReportPageState extends State<EarningsReportPage> {
                         showTitles: true,
                         getTitlesWidget: (val, meta) {
                           const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-                          return Text(days[val.toInt() % 7], style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold));
+                          return Text(days[val.toInt() % 7], style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white70));
                         },
                       ),
                     ),
@@ -298,9 +309,9 @@ class _EarningsReportPageState extends State<EarningsReportPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

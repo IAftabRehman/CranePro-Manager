@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
 import 'package:extend_crane_services/features/auth/presentation/pages/login_page.dart';
+import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
 
 class RoleSelectionPage extends StatefulWidget {
   const RoleSelectionPage({super.key});
@@ -59,19 +60,19 @@ class _RoleSelectionPageState extends State<RoleSelectionPage> {
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
+          color: isSelected ? theme.colorScheme.secondary.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? theme.colorScheme.secondary : theme.colorScheme.tertiary.withValues(alpha: 0.2),
+            color: isSelected ? theme.colorScheme.secondary : Colors.white.withValues(alpha: 0.15),
             width: isSelected ? 2 : 1,
           ),
-          boxShadow: [
+          boxShadow: isSelected ? [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
+              color: theme.colorScheme.secondary.withValues(alpha: 0.2),
+              blurRadius: 15,
               offset: const Offset(0, 4),
             ),
-          ],
+          ] : null,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -80,14 +81,14 @@ class _RoleSelectionPageState extends State<RoleSelectionPage> {
             Icon(
               role['icon'],
               size: Responsive.scale(context, 32).clamp(24.0, 48.0),
-              color: isSelected ? theme.colorScheme.secondary : theme.colorScheme.primary,
+              color: isSelected ? theme.colorScheme.secondary : Colors.white70,
             ),
             const SizedBox(height: 16),
             Text(
               role['title'],
               style: theme.textTheme.displayLarge?.copyWith(
                 fontSize: Responsive.scale(context, 18).clamp(16.0, 24.0),
-                color: theme.colorScheme.primary,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 8),
@@ -95,7 +96,7 @@ class _RoleSelectionPageState extends State<RoleSelectionPage> {
               role['subtitle'],
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontSize: Responsive.scale(context, 12).clamp(11.0, 16.0),
-                color: theme.colorScheme.tertiary,
+                color: Colors.white.withValues(alpha: 0.6),
               ),
             ),
           ],
@@ -106,10 +107,12 @@ class _RoleSelectionPageState extends State<RoleSelectionPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PremiumScaffold(
       appBar: AppBar(
-        title: const Text('Select Your Role'),
+        title: const Text('Select Your Role', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
         centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: SafeArea(
         child: LayoutBuilder(
@@ -128,13 +131,14 @@ class _RoleSelectionPageState extends State<RoleSelectionPage> {
                     'Welcome to CranePro',
                     style: Theme.of(context).textTheme.displayLarge?.copyWith(
                           fontSize: Responsive.scale(context, 28).clamp(24.0, 40.0),
+                          color: Colors.white,
                         ),
                     textAlign: TextAlign.center,
                   ),
                   SizedBox(height: Responsive.screenHeight(context) * 0.02),
                   Text(
                     'Please select your role to continue onboarding.',
-                    style: Theme.of(context).textTheme.bodyMedium,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70),
                     textAlign: TextAlign.center,
                   ),
                   SizedBox(height: Responsive.screenHeight(context) * 0.05),

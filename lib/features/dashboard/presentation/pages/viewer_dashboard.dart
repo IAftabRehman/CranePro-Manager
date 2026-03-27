@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
+import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
 
 class ViewerDashboard extends StatelessWidget {
   const ViewerDashboard({super.key});
 
   Widget _buildStatusCard(BuildContext context, String title, String value, IconData icon, Color color) {
+    final theme = Theme.of(context);
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      color: Colors.white.withValues(alpha: 0.05),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+      ),
       child: Padding(
         padding: EdgeInsets.all(Responsive.scale(context, 16).clamp(16.0, 24.0)),
         child: Row(
@@ -25,16 +31,17 @@ class ViewerDashboard extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey[600],
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.white70,
                           fontSize: Responsive.scale(context, 12).clamp(11.0, 14.0),
                         ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     value,
-                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                    style: theme.textTheme.displayLarge?.copyWith(
                           fontSize: Responsive.scale(context, 18).clamp(16.0, 24.0),
+                          color: Colors.white,
                         ),
                   ),
                 ],
@@ -84,14 +91,14 @@ class ViewerDashboard extends StatelessWidget {
                     title,
                     style: theme.textTheme.displayLarge?.copyWith(
                       fontSize: Responsive.scale(context, 16).clamp(14.0, 18.0),
-                      color: isCompleted ? theme.colorScheme.primary : theme.colorScheme.tertiary,
+                      color: isCompleted ? theme.colorScheme.secondary : Colors.white24,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey[600],
+                      color: isCompleted ? Colors.white70 : Colors.white12,
                     ),
                   ),
                 ],
@@ -104,11 +111,13 @@ class ViewerDashboard extends StatelessWidget {
   }
 
   Widget _buildTimelineSection(BuildContext context) {
+    final theme = Theme.of(context);
     return Card(
       elevation: 0,
+      color: Colors.white.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey.withValues(alpha: 0.2)),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Padding(
         padding: EdgeInsets.all(Responsive.scale(context, 20).clamp(16.0, 32.0)),
@@ -118,8 +127,9 @@ class ViewerDashboard extends StatelessWidget {
             children: [
               Text(
                 'Recent Job Progress',
-                style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                style: theme.textTheme.displayLarge?.copyWith(
                       fontSize: Responsive.scale(context, 18).clamp(16.0, 22.0),
+                      color: Colors.white,
                     ),
               ),
               const SizedBox(height: 24),
@@ -138,22 +148,24 @@ class ViewerDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
+    return PremiumScaffold(
       appBar: AppBar(
-        title: const Text('Dashboard'),
+        title: const Text('Dashboard', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(40),
           child: Container(
             width: double.infinity,
-            color: theme.colorScheme.secondary.withValues(alpha: 0.2),
+            color: theme.colorScheme.secondary.withValues(alpha: 0.1),
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Center(
               child: Text(
                 'Guest / Viewer Mode',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.primary,
+                  color: theme.colorScheme.secondary,
                 ),
               ),
             ),
@@ -207,7 +219,7 @@ class ViewerDashboard extends StatelessWidget {
                           children: [
                             Text(
                               'Overview',
-                              style: theme.textTheme.displayLarge?.copyWith(fontSize: 22),
+                              style: theme.textTheme.displayLarge?.copyWith(fontSize: 22, color: Colors.white),
                             ),
                             const SizedBox(height: 16),
                             summarySection,
@@ -238,6 +250,7 @@ class ViewerDashboard extends StatelessWidget {
                     'Overview',
                     style: theme.textTheme.displayLarge?.copyWith(
                           fontSize: Responsive.scale(context, 20).clamp(18.0, 24.0),
+                          color: Colors.white,
                         ),
                   ),
                   const SizedBox(height: 16),

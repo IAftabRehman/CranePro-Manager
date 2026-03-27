@@ -5,6 +5,7 @@ import 'package:extend_crane_services/core/utils/responsive.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_button.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_text_field.dart';
 import 'package:extend_crane_services/features/reports/presentation/pages/expense_analysis_page.dart';
+import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
 
 class AddExpensePage extends StatefulWidget {
   const AddExpensePage({super.key});
@@ -82,11 +83,12 @@ class _AddExpensePageState extends State<AddExpensePage> {
     return Container(
       height: height,
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: CustomPaint(
-        painter: DashedRectPainter(color: theme.colorScheme.primary, strokeWidth: 2, gap: 5.0),
+        painter: DashedRectPainter(color: Colors.white, strokeWidth: 1, gap: 5.0),
         child: InkWell(
           onTap: () {
             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Image Picker Triggered')));
@@ -95,17 +97,17 @@ class _AddExpensePageState extends State<AddExpensePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.add_a_photo, size: 48, color: theme.colorScheme.primary.withValues(alpha: 0.6)),
+              Icon(Icons.add_a_photo, size: 48, color: theme.colorScheme.secondary.withValues(alpha: 0.8)),
               const SizedBox(height: 12),
-              Text(
+              const Text(
                 'Upload Receipt / Photo',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.primary,
+                style: TextStyle(
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 4),
-              Text('PNG, JPG up to 5MB', style: theme.textTheme.labelSmall),
+              const Text('PNG, JPG up to 5MB', style: TextStyle(color: Colors.white70, fontSize: 10)),
             ],
           ),
         ),
@@ -127,7 +129,7 @@ class _AddExpensePageState extends State<AddExpensePage> {
             children: [
               Icon(Icons.description, color: theme.colorScheme.secondary),
               const SizedBox(width: 8),
-              Text('Expense Details', style: theme.textTheme.displayLarge?.copyWith(fontSize: 18)),
+              Text('Expense Details', style: theme.textTheme.displayLarge?.copyWith(fontSize: 18, color: Colors.white)),
             ],
           ),
           const SizedBox(height: 16),
@@ -138,20 +140,20 @@ class _AddExpensePageState extends State<AddExpensePage> {
             children: [
               ActionChip(
                 label: const Text('+ Diesel Refill'),
-                backgroundColor: theme.colorScheme.tertiary.withValues(alpha: 0.1),
-                labelStyle: TextStyle(color: theme.colorScheme.tertiary, fontWeight: FontWeight.bold),
+                backgroundColor: Colors.white.withValues(alpha: 0.1),
+                labelStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 onPressed: () => _applyQuickTag('Diesel Refill', 'Fuel'),
               ),
               ActionChip(
                 label: const Text('+ Crane Service'),
-                backgroundColor: theme.colorScheme.tertiary.withValues(alpha: 0.1),
-                labelStyle: TextStyle(color: theme.colorScheme.tertiary, fontWeight: FontWeight.bold),
+                backgroundColor: Colors.white.withValues(alpha: 0.1),
+                labelStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 onPressed: () => _applyQuickTag('Crane Standard Service', 'Maintenance'),
               ),
               ActionChip(
                  label: const Text('+ RTA Permit'),
-                 backgroundColor: theme.colorScheme.tertiary.withValues(alpha: 0.1),
-                 labelStyle: TextStyle(color: theme.colorScheme.tertiary, fontWeight: FontWeight.bold),
+                 backgroundColor: Colors.white.withValues(alpha: 0.1),
+                 labelStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                  onPressed: () => _applyQuickTag('RTA Road Permit', 'Permit'),
               ),
             ],
@@ -169,12 +171,15 @@ class _AddExpensePageState extends State<AddExpensePage> {
           // Dropdown
           DropdownButtonFormField<String>(
             initialValue: _selectedCategory,
-            icon: Icon(Icons.keyboard_arrow_down, color: theme.colorScheme.primary),
+            icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white70),
+            dropdownColor: const Color(0xFF0F172A), // Match gradient
+            style: const TextStyle(color: Colors.white),
             decoration: InputDecoration(
               hintText: 'Select Category',
+              hintStyle: const TextStyle(color: Colors.white38),
               filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.colorScheme.primary)),
+              fillColor: Colors.white.withValues(alpha: 0.05),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white12)),
               focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.colorScheme.secondary, width: 2)),
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             ),
@@ -207,10 +212,12 @@ class _AddExpensePageState extends State<AddExpensePage> {
       ),
     );
 
-    return Scaffold(
+    return PremiumScaffold(
       appBar: AppBar(
-        title: const Text('Add Expense'),
+        title: const Text('Add Expense', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -227,18 +234,13 @@ class _AddExpensePageState extends State<AddExpensePage> {
                 children: [
                   // Total Expense Summary Card
                   Card(
-                    elevation: 5,
-                    shadowColor: theme.colorScheme.primary.withValues(alpha: 0.3),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    elevation: 0,
+                    color: Colors.white.withValues(alpha: 0.08),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                    ),
                     child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        gradient: LinearGradient(
-                          colors: [theme.colorScheme.primary, theme.colorScheme.primary.withValues(alpha: 0.8)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
                       padding: const EdgeInsets.all(24),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -315,10 +317,8 @@ class _AddExpensePageState extends State<AddExpensePage> {
             horizontal: Responsive.scale(context, 16).clamp(16.0, 32.0),
           ),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            boxShadow: [
-              BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -4)),
-            ],
+            color: Colors.white.withValues(alpha: 0.05),
+            border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,

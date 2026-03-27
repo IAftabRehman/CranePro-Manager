@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_button.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_text_field.dart';
+import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -63,13 +64,13 @@ class _RegisterPageState extends State<RegisterPage> {
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
         children: [
-          Icon(icon, color: theme.colorScheme.secondary, size: 20),
+          Icon(icon, color: Colors.white70, size: 20),
           const SizedBox(width: 8),
           Text(
             title,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: theme.colorScheme.primary,
+              color: Colors.white,
             ),
           ),
         ],
@@ -83,10 +84,13 @@ class _RegisterPageState extends State<RegisterPage> {
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
+      child: PremiumScaffold(
         appBar: AppBar(
-          title: const Text('Create Account'),
+          title: const Text('Create Account', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
           centerTitle: true,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: const BackButton(color: Colors.white),
         ),
         body: SafeArea(
           child: SingleChildScrollView(
@@ -125,20 +129,22 @@ class _RegisterPageState extends State<RegisterPage> {
                       
                       Text(
                         'Primary Crane Capacity',
-                        style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                        style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.white70),
                       ),
                       const SizedBox(height: 12),
                       Wrap(
                         spacing: 12,
                         runSpacing: 12,
                         children: _capacities.map((cap) => ChoiceChip(
-                          label: Text(cap, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          label: Text(cap, style: TextStyle(fontWeight: FontWeight.bold, color: _selectedCapacity == cap ? theme.colorScheme.primary : Colors.white)),
                           selected: _selectedCapacity == cap,
                           onSelected: (val) {
                             if(val) setState(() => _selectedCapacity = cap);
                           },
                           selectedColor: theme.colorScheme.secondary,
-                          backgroundColor: theme.colorScheme.surface,
+                          backgroundColor: Colors.white.withValues(alpha: 0.05),
+                          checkmarkColor: theme.colorScheme.primary,
+                          side: BorderSide(color: _selectedCapacity == cap ? theme.colorScheme.secondary : Colors.white.withValues(alpha: 0.1)),
                         )).toList(),
                       ),
 
@@ -167,13 +173,15 @@ class _RegisterPageState extends State<RegisterPage> {
                         children: [
                           Checkbox(
                             value: _acceptedTerms,
-                            activeColor: theme.colorScheme.primary,
+                            activeColor: theme.colorScheme.secondary,
+                            checkColor: theme.colorScheme.primary,
+                            side: const BorderSide(color: Colors.white70),
                             onChanged: (val) => setState(() => _acceptedTerms = val ?? false),
                           ),
                           Expanded(
                             child: Text(
                               'I agree to the Terms & Conditions and Privacy Policy of CranePro.',
-                              style: theme.textTheme.labelSmall,
+                              style: theme.textTheme.labelSmall?.copyWith(color: Colors.white70),
                             ),
                           ),
                         ],
@@ -192,7 +200,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         child: Text(
                           'Already have an account? Login',
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.primary,
+                            color: theme.colorScheme.secondary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
+import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
 
 enum ExpenseFilter { week, month, year, custom }
 
@@ -35,10 +36,12 @@ class _ExpenseAnalysisPageState extends State<ExpenseAnalysisPage> {
     final screenWidth = Responsive.screenWidth(context);
     final screenHeight = Responsive.screenHeight(context);
 
-    return Scaffold(
+    return PremiumScaffold(
       appBar: AppBar(
-        title: const Text('Expense Analysis'),
+        title: const Text('Expense Analysis', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -95,9 +98,14 @@ class _ExpenseAnalysisPageState extends State<ExpenseAnalysisPage> {
           onSelected: (selected) {
             if (selected) setState(() => _selectedFilter = filter);
           },
-          selectedColor: theme.colorScheme.primary,
-          backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.05),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          selectedColor: theme.colorScheme.secondary,
+          backgroundColor: Colors.white.withValues(alpha: 0.05),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(
+              color: isSelected ? theme.colorScheme.secondary : Colors.white12,
+            ),
+          ),
           showCheckmark: false,
         );
       }).toList(),
@@ -136,7 +144,7 @@ class _ExpenseAnalysisPageState extends State<ExpenseAnalysisPage> {
             children: [
               Container(width: 12, height: 12, decoration: BoxDecoration(color: _categoryColors[cat], shape: BoxShape.circle)),
               const SizedBox(width: 12),
-              Text(cat, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+              Text(cat, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: Colors.white70)),
             ],
           ),
         );
@@ -144,14 +152,18 @@ class _ExpenseAnalysisPageState extends State<ExpenseAnalysisPage> {
     );
 
     return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 0,
+      color: Colors.white.withValues(alpha: 0.05),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Expense Breakdown', style: theme.textTheme.displayLarge?.copyWith(fontSize: 18)),
+            Text('Expense Breakdown', style: theme.textTheme.displayLarge?.copyWith(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
             const SizedBox(height: 24),
             isTablet
                 ? Row(
@@ -176,30 +188,38 @@ class _ExpenseAnalysisPageState extends State<ExpenseAnalysisPage> {
 
   Widget _buildTrendLineCard(ThemeData theme, bool isTablet, double screenHeight) {
     return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 0,
+      color: Colors.white.withValues(alpha: 0.05),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Expense Trends', style: theme.textTheme.displayLarge?.copyWith(fontSize: 18)),
+            Text('Expense Trends', style: theme.textTheme.displayLarge?.copyWith(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
             const SizedBox(height: 32),
             AspectRatio(
               aspectRatio: isTablet ? 2.5 : 1.7,
               child: LineChart(
                 LineChartData(
                   gridData: const FlGridData(show: false),
-                  titlesData: const FlTitlesData(
+                  titlesData: FlTitlesData(
                     show: true,
-                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
                         reservedSize: 30,
                         interval: 1,
+                        getTitlesWidget: (val, meta) => Text(
+                          val.toInt().toString(),
+                          style: const TextStyle(color: Colors.white38, fontSize: 10),
+                        ),
                       ),
                     ),
                   ),
@@ -216,7 +236,7 @@ class _ExpenseAnalysisPageState extends State<ExpenseAnalysisPage> {
                         FlSpot(11, 70),
                       ],
                       isCurved: true,
-                      color: theme.colorScheme.primary,
+                      color: theme.colorScheme.secondary,
                       barWidth: 4,
                       isStrokeCapRound: true,
                       dotData: const FlDotData(show: false),
@@ -260,7 +280,7 @@ class _ExpenseAnalysisPageState extends State<ExpenseAnalysisPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(cat, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                Text(cat, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.white)),
                 Text('${(percentage * 100).toInt()}%', style: TextStyle(color: _categoryColors[cat], fontWeight: FontWeight.bold)),
               ],
             ),
@@ -270,7 +290,7 @@ class _ExpenseAnalysisPageState extends State<ExpenseAnalysisPage> {
               child: LinearProgressIndicator(
                 value: percentage,
                 minHeight: 8,
-                backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.05),
+                backgroundColor: Colors.white.withValues(alpha: 0.1),
                 color: _categoryColors[cat],
               ),
             ),
@@ -282,7 +302,7 @@ class _ExpenseAnalysisPageState extends State<ExpenseAnalysisPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Budget Consumption', style: theme.textTheme.displayLarge?.copyWith(fontSize: 18)),
+        Text('Budget Consumption', style: theme.textTheme.displayLarge?.copyWith(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
         const SizedBox(height: 20),
         isTablet
             ? GridView.builder(
