@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:extend_crane_services/core/utils/responsive.dart';
 import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_button.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_text_field.dart';
@@ -103,9 +102,9 @@ class _AddMaintenancePageState extends State<AddMaintenancePage> {
                   child: Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.amber.withValues(alpha: 0.1),
+                      color: Colors.amber.withOpacity(0.1),
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                      border: Border.all(color: Colors.amber.withOpacity(0.1)),
                     ),
                     child: const Icon(Icons.build_circle_rounded, color: Colors.amber, size: 50),
                   ),
@@ -123,7 +122,7 @@ class _AddMaintenancePageState extends State<AddMaintenancePage> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.1),
+                        color: Colors.white.withOpacity(0.1),
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(12),
                           bottomLeft: Radius.circular(12),

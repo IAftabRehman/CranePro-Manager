@@ -1,15 +1,16 @@
+import 'package:extend_crane_services/features/settings/presentation/pages/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
 import 'package:extend_crane_services/core/themes/app_theme.dart';
 import 'package:extend_crane_services/features/quotation/presentation/pages/add_quotation_page.dart';
 import 'package:extend_crane_services/features/dashboard/presentation/pages/main_dashboard.dart';
-import 'package:extend_crane_services/features/operations/presentation/pages/daily_log_page.dart';
 import 'package:extend_crane_services/features/maintenance/presentation/pages/maintenance_history_page.dart';
 import 'package:extend_crane_services/features/reports/presentation/pages/earnings_report_page.dart';
 
 class CustomDrawer extends StatelessWidget {
   final String activeRoute;
-  const CustomDrawer({super.key, this.activeRoute = 'Dashboard'});
+  final bool isViewer;
+  const CustomDrawer({super.key, this.activeRoute = 'Dashboard', this.isViewer = false});
 
   @override
   Widget build(BuildContext context) {
@@ -35,10 +36,12 @@ class CustomDrawer extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 children: [
                   _buildNavItem(context, Icons.dashboard_outlined, 'Dashboard', theme),
+                  _buildNavItem(context, Icons.person, 'Profile', theme),
                   _buildNavItem(context, Icons.file_copy_outlined, 'Generate Quotation', theme),
                   _buildNavItem(context, Icons.flash_on_outlined, 'Direct Work Entry', theme),
                   _buildNavItem(context, Icons.build_circle_outlined, 'Maintenance & Expenses', theme),
                   _buildNavItem(context, Icons.bar_chart_outlined, 'Reports & Analytics', theme),
+                  _buildNavItem(context, Icons.admin_panel_settings, 'Admin', theme, isAdminOnly: true),
                 ],
               ),
             ),
@@ -111,6 +114,9 @@ class CustomDrawer extends StatelessWidget {
               break;
             case 'Reports & Analytics':
               destination = const EarningsReportPage();
+              break;
+            case 'Profile':
+              destination = SettingsPage(isViewer: isViewer);
               break;
             default:
               return;

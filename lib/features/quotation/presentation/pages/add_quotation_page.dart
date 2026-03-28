@@ -63,7 +63,28 @@ class _AddQuotationPageState extends State<AddQuotationPage> {
       initialDate: _entries[index].startDate,
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.dark(
+              primary: Colors.amber, // Header aur selected date ka color
+              onPrimary: Colors.black, // Header text ka color
+              surface: Color(0xFF1A1F3D), // Calendar background (Premium Gradient se match karne ke liye)
+              onSurface: Colors.white, // Dates aur days ka text color
+              secondary: Colors.amber, // "Save" aur "Cancel" buttons ka text color
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.amber,
+                textStyle: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
+
     if (picked != null) {
       setState(() {
         _entries[index].startDate = picked;
@@ -143,9 +164,9 @@ class _AddQuotationPageState extends State<AddQuotationPage> {
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.05),
+                          color: Colors.white.withOpacity(0.05),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                          border: Border.all(color: Colors.white.withOpacity(0.1)),
                         ),
                         child: Column(
                           children: [
@@ -158,7 +179,7 @@ class _AddQuotationPageState extends State<AddQuotationPage> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text('${_terms.length} Terms Added', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
-                                      Text('Click below to edit or add more points.', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12)),
+                                      Text('Click below to edit or add more points.', style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12)),
                                     ],
                                   ),
                                 ),
@@ -168,11 +189,11 @@ class _AddQuotationPageState extends State<AddQuotationPage> {
                             ElevatedButton(
                               onPressed: _navigateToTerms,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white.withValues(alpha: 0.05),
+                                backgroundColor: Colors.white.withOpacity(0.05),
                                 foregroundColor: Colors.white,
                                 elevation: 0,
                                 minimumSize: const Size(double.infinity, 48),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: BorderSide(color: Colors.white.withOpacity(0.05))),
                               ),
                               child: Text('Manage Terms and Conditions', style: TextStyle(fontWeight: FontWeight.w400, fontSize: 15, letterSpacing: 0.2, wordSpacing: 2)),
                             ),
@@ -185,10 +206,10 @@ class _AddQuotationPageState extends State<AddQuotationPage> {
                       Container(
                         padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 18),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.secondary.withValues(alpha: 0.1),
+                          color: theme.colorScheme.secondary.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: theme.colorScheme.secondary.withValues(alpha: 0.5)),
-                          boxShadow: [BoxShadow(color: theme.colorScheme.secondary.withValues(alpha: 0.05), blurRadius: 15, offset: const Offset(0, 8))],
+                          border: Border.all(color: theme.colorScheme.secondary.withOpacity(0.1)),
+                          boxShadow: [BoxShadow(color: theme.colorScheme.secondary.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, 8))],
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -273,11 +294,11 @@ class _ServiceCard extends StatelessWidget {
       margin: const EdgeInsets.only(top: 20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.06),
+        color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
         boxShadow: [
-          BoxShadow(color: Colors.blue.withValues(alpha: 0.07), blurRadius: 10, offset: const Offset(7, 7)),
+          BoxShadow(color: Colors.blue.withOpacity(0.07), blurRadius: 10, offset: const Offset(7, 7)),
         ],
       ),
       child: Column(
@@ -330,9 +351,9 @@ class _ServiceCard extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.05),
+                color: Colors.white.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                border: Border.all(color: Colors.white.withOpacity(0.05)),
               ),
               child: Row(
                 children: [

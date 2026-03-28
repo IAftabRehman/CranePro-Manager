@@ -83,9 +83,9 @@ class _AddExpensePageState extends State<AddExpensePage> {
     return Container(
       height: height,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
       child: CustomPaint(
         painter: DashedRectPainter(color: Colors.white, strokeWidth: 1, gap: 5.0),
@@ -97,7 +97,7 @@ class _AddExpensePageState extends State<AddExpensePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.add_a_photo, size: 48, color: theme.colorScheme.secondary.withValues(alpha: 0.8)),
+              Icon(Icons.add_a_photo, size: 48, color: theme.colorScheme.secondary.withOpacity(0.8)),
               const SizedBox(height: 12),
               const Text(
                 'Upload Receipt / Photo',
@@ -140,19 +140,19 @@ class _AddExpensePageState extends State<AddExpensePage> {
             children: [
               ActionChip(
                 label: const Text('+ Diesel Refill'),
-                backgroundColor: Colors.white.withValues(alpha: 0.1),
+                backgroundColor: Colors.white.withOpacity(0.1),
                 labelStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 onPressed: () => _applyQuickTag('Diesel Refill', 'Fuel'),
               ),
               ActionChip(
                 label: const Text('+ Crane Service'),
-                backgroundColor: Colors.white.withValues(alpha: 0.1),
+                backgroundColor: Colors.white.withOpacity(0.1),
                 labelStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 onPressed: () => _applyQuickTag('Crane Standard Service', 'Maintenance'),
               ),
               ActionChip(
                  label: const Text('+ RTA Permit'),
-                 backgroundColor: Colors.white.withValues(alpha: 0.1),
+                 backgroundColor: Colors.white.withOpacity(0.1),
                  labelStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                  onPressed: () => _applyQuickTag('RTA Road Permit', 'Permit'),
               ),
@@ -178,7 +178,7 @@ class _AddExpensePageState extends State<AddExpensePage> {
               hintText: 'Select Category',
               hintStyle: const TextStyle(color: Colors.white38),
               filled: true,
-              fillColor: Colors.white.withValues(alpha: 0.05),
+              fillColor: Colors.white.withOpacity(0.05),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white12)),
               focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.colorScheme.secondary, width: 2)),
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -235,10 +235,10 @@ class _AddExpensePageState extends State<AddExpensePage> {
                   // Total Expense Summary Card
                   Card(
                     elevation: 0,
-                    color: Colors.white.withValues(alpha: 0.08),
+                    color: Colors.white.withOpacity(0.05),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                      side: BorderSide(color: Colors.white.withOpacity(0.05)),
                     ),
                     child: Container(
                       padding: const EdgeInsets.all(24),
@@ -257,7 +257,7 @@ class _AddExpensePageState extends State<AddExpensePage> {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.2),
+                                    color: Colors.white.withOpacity(0.05),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: const Row(
@@ -274,7 +274,7 @@ class _AddExpensePageState extends State<AddExpensePage> {
                           ),
                           Container(
                             padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), shape: BoxShape.circle),
+                            decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), shape: BoxShape.circle),
                             child: const Icon(Icons.account_balance_wallet, color: Colors.white, size: 32),
                           ),
                         ],
@@ -317,8 +317,8 @@ class _AddExpensePageState extends State<AddExpensePage> {
             horizontal: Responsive.scale(context, 16).clamp(16.0, 32.0),
           ),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
-            border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+            color: Colors.white.withOpacity(0.05),
+            border: Border(top: BorderSide(color: Colors.white.withOpacity(0.05))),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -350,7 +350,7 @@ class DashedRectPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color.withValues(alpha: 0.5)
+      ..color = color.withOpacity(0.5)
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
 

@@ -48,7 +48,7 @@ class MaintenanceHistoryPage extends StatelessWidget {
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.redAccent.withValues(alpha: 0.2), Colors.amber.withValues(alpha: 0.1)],
+                    colors: [Colors.redAccent.withOpacity(0.2), Colors.amber.withOpacity(0.2)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -83,7 +83,7 @@ class MaintenanceHistoryPage extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.redAccent.withValues(alpha: 0.2),
+                        color: Colors.redAccent.withOpacity(0.2),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(Icons.analytics_outlined, color: Colors.white, size: 32),
@@ -118,16 +118,16 @@ class MaintenanceHistoryPage extends StatelessWidget {
                   return Container(
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.05),
+                      color: Colors.white.withOpacity(0.05),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                      border: Border.all(color: Colors.white.withOpacity(0.05)),
                     ),
                     child: ListTile(
                       contentPadding: const EdgeInsets.all(16),
                       leading: Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.1),
+                          color: Colors.white.withOpacity(0.05),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(Icons.build_circle_outlined, color: Colors.white),
@@ -148,7 +148,7 @@ class MaintenanceHistoryPage extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: Colors.amber.withValues(alpha: 0.1),
+                              color: Colors.amber.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(

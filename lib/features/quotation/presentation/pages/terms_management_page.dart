@@ -42,49 +42,69 @@ class _TermsManagementPageState extends State<TermsManagementPage> {
 
     return PremiumScaffold(
       appBar: AppBar(
-        title: const Text('Terms & Conditions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+        title: const Text(
+          'Terms & Conditions',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            color: Colors.white,
+          ),
+        ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        actions: [
-          TextButton(
-            onPressed: () {
-              // Return filtered list (no empty terms)
-              Navigator.pop(context, _terms.where((t) => t.trim().isNotEmpty).toList());
-            },
-            child: Text('SAVE', style: TextStyle(color: theme.colorScheme.secondary, fontWeight: FontWeight.w900)),
-          ),
-        ],
       ),
       body: Column(
         children: [
           Container(
+            margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
             width: double.infinity,
             padding: const EdgeInsets.all(20),
-            color: Colors.white.withValues(alpha: 0.05),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(10)
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Manage Quotation Terms', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.white)),
+                Text(
+                  'Manage Quotation Terms',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text('These points will appear at the bottom of your PDF.', style: theme.textTheme.bodySmall?.copyWith(color: Colors.white70)),
+                Text(
+                  'These terms and condition will appear at the bottom of your Quotation PDF.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.white70,
+                  ),
+                ),
               ],
             ),
           ),
           Expanded(
             child: ListView.separated(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(15),
               physics: const BouncingScrollPhysics(),
               itemCount: _terms.length,
               separatorBuilder: (context, index) => const SizedBox(height: 16),
               itemBuilder: (context, index) {
                 return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     CircleAvatar(
-                      radius: 12,
-                      backgroundColor: Colors.white.withValues(alpha: 0.1),
-                      child: Text('${index + 1}', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)),
+                      radius: 15,
+                      backgroundColor: Colors.white.withOpacity(0.1),
+                      child: Text(
+                        '${index + 1}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -96,7 +116,11 @@ class _TermsManagementPageState extends State<TermsManagementPage> {
                     ),
                     IconButton(
                       onPressed: () => _removeTerm(index),
-                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                      icon: const Icon(
+                        Icons.delete_outline,
+                        color: Colors.redAccent,
+                        size: 25,
+                      ),
                     ),
                   ],
                 );
@@ -104,20 +128,49 @@ class _TermsManagementPageState extends State<TermsManagementPage> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: ElevatedButton.icon(
-              onPressed: _addTerm,
-              icon: const Icon(Icons.add),
-              label: const Text('ADD NEW TERM POINT', style: TextStyle(fontWeight: FontWeight.bold)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.colorScheme.secondary,
-                foregroundColor: theme.colorScheme.primary,
-                minimumSize: const Size(double.infinity, 56),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
+            padding: const EdgeInsets.all(18),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                buildElevatedButton(
+                  theme,
+                  _addTerm,
+                  Icons.add_box,
+                  "Add New Line",
+                ),
+                buildElevatedButton(
+                  theme,
+                  () {
+                    Navigator.pop(
+                      context,
+                      _terms.where((t) => t.trim().isNotEmpty).toList(),
+                    );
+                  },
+                  Icons.save_as,
+                  "Save",
+                ),
+              ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  ElevatedButton buildElevatedButton(
+    ThemeData theme,
+    GestureDragCancelCallback onTap,
+    IconData icon,
+    String name,
+  ) {
+    return ElevatedButton.icon(
+      onPressed: onTap,
+      icon: Icon(icon),
+      label: Text(name),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: theme.colorScheme.secondary,
+        foregroundColor: theme.colorScheme.primary,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

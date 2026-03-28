@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
 import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
 
+import '../../../../core/presentation/widgets/custom_drawer.dart';
+
 class ViewerDashboard extends StatelessWidget {
   const ViewerDashboard({super.key});
 
@@ -132,8 +134,7 @@ class ViewerDashboard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-            color: isInactive ? Colors.redAccent.withValues(alpha: 0.3) : Colors
-                .white.withValues(alpha: 0.1)),
+            color: Colors.redAccent.withValues(alpha: 0.3),)
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -277,6 +278,7 @@ class ViewerDashboard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return PremiumScaffold(
+        drawer: const CustomDrawer(activeRoute: 'Dashboard', isViewer: true),
         appBar: AppBar(
           title: const Text('Dashboard', style: TextStyle(
               color: Colors.white, fontWeight: FontWeight.bold)),

@@ -78,7 +78,7 @@ class _DirectWorkModalState extends State<DirectWorkModal> {
               children: [
                 Expanded(
                   child: _buildModeToggle(
-                    'Own 25T Crane', 
+                    'Own Crane',
                     Icons.engineering, 
                     _isOwnCrane, 
                     () => setState(() => _isOwnCrane = true)
@@ -87,7 +87,7 @@ class _DirectWorkModalState extends State<DirectWorkModal> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildModeToggle(
-                    'Outsource', 
+                    'Another Person',
                     Icons.handshake_outlined, 
                     !_isOwnCrane, 
                     () => setState(() {
@@ -100,7 +100,7 @@ class _DirectWorkModalState extends State<DirectWorkModal> {
             ),
             const SizedBox(height: 32),
             
-            _buildLabel('CLIENT NAME (OPTIONAL)'),
+            _buildLabel('Client Name (Optional)'),
             CraneInput(
               controller: _clientController,
               hintText: 'e.g. Street Client',
@@ -108,7 +108,7 @@ class _DirectWorkModalState extends State<DirectWorkModal> {
             ),
             
             const SizedBox(height: 20),
-            _buildLabel('SERVICE TYPE'),
+            _buildLabel('Service Type'),
             CraneInput(
               controller: _serviceController,
               hintText: 'e.g. 25 Ton Crane',
@@ -116,7 +116,7 @@ class _DirectWorkModalState extends State<DirectWorkModal> {
             ),
             
             const SizedBox(height: 20),
-            _buildLabel('LOCATION'),
+            _buildLabel('Location'),
             CraneInput(
               controller: _locationController,
               hintText: 'e.g. Musaffah M-12',
@@ -130,7 +130,7 @@ class _DirectWorkModalState extends State<DirectWorkModal> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildLabel('TOTAL RECEIVED (AED)'),
+                      _buildLabel('Total Received (AED)'),
                       CraneInput(
                         controller: _earningsController,
                         hintText: '0',
@@ -148,7 +148,7 @@ class _DirectWorkModalState extends State<DirectWorkModal> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildLabel(_isOwnCrane ? 'FUEL EXPENSE (AED)' : 'PAID TO PARTNER (AED)'),
+                      _buildLabel(_isOwnCrane ? 'Fuel Expense (AED)' : 'Paid To Partner (AED)'),
                       CraneInput(
                         controller: _expenseController,
                         hintText: '0',
@@ -170,14 +170,14 @@ class _DirectWorkModalState extends State<DirectWorkModal> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.1),
+                  color: Colors.green.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                  border: Border.all(color: Colors.green.withOpacity(0.1)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('MY COMMISSION:', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 12)),
+                    const Text('My Commission:', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 12)),
                     Text('AED ${_commission.toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18)),
                   ],
                 ),
@@ -218,7 +218,7 @@ class _DirectWorkModalState extends State<DirectWorkModal> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: isActive ? Colors.amber.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.05),
+          color: isActive ? Colors.amber.withOpacity(0.2) : Colors.white.withOpacity(0.05),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: isActive ? Colors.amber : Colors.white12),
         ),

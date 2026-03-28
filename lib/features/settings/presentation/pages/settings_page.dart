@@ -1,291 +1,251 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
 import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
+import 'package:extend_crane_services/shared/global_widgets/custom_text_field.dart';
+import '../providers/business_profile_provider.dart';
+import '../../data/models/business_profile.dart';
 
-class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key});
+class SettingsPage extends ConsumerStatefulWidget {
+  final bool isViewer;
+
+  const SettingsPage({super.key, this.isViewer = false});
 
   @override
-  State<SettingsPage> createState() => _SettingsPageState();
+  ConsumerState<SettingsPage> createState() => _SettingsPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage> {
-  bool _isDarkMode = false;
-  bool _notificationsOn = true;
+class _SettingsPageState extends ConsumerState<SettingsPage> {
+  late TextEditingController _nameController;
+  late TextEditingController _emailController;
+  late TextEditingController _websiteController;
+  late TextEditingController _addressController;
+
+  @override
+  void initState() {
+    super.initState();
+    final profile = ref.read(businessProfileProvider);
+    _nameController = TextEditingController(text: profile.businessName);
+    _emailController = TextEditingController(text: profile.email);
+    _websiteController = TextEditingController(text: profile.website);
+    _addressController = TextEditingController(text: profile.address);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _websiteController.dispose();
+    _addressController.dispose();
+    super.dispose();
+  }
+
+  void _saveProfile() {
+    if (widget.isViewer) return;
+    
+    final currentProfile = ref.read(businessProfileProvider);
+    ref.read(businessProfileProvider.notifier).updateProfile(currentProfile.copyWith(
+          businessName: _nameController.text,
+          email: _emailController.text,
+          website: _websiteController.text,
+          address: _addressController.text,
+        ));
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Business Profile Updated!'), backgroundColor: Colors.green),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isTablet = Responsive.isTablet(context);
+    final profile = ref.watch(businessProfileProvider);
 
     return PremiumScaffold(
       appBar: AppBar(
-        title: const Text('Settings & Profile', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('Business Identity', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          if (!widget.isViewer)
+            IconButton(
+              onPressed: _saveProfile,
+              icon: const Icon(Icons.check_circle_rounded, color: Colors.amber),
+            ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 800),
-              child: Column(
-                children: [
-                  // Profile Header
-                  _buildProfileHeader(theme, context),
-                  
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: Responsive.scale(context, 16).clamp(16.0, 32.0),
-                      vertical: 24,
-                    ),
-                    child: isTablet 
-                      ? _buildTabletLayout(theme)
-                      : _buildMobileLayout(theme),
-                  ),
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.scale(context, 24).clamp(16.0, 32.0),
+            vertical: 24,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Business Card Header
+              _buildBusinessCard(theme, profile),
+              const SizedBox(height: 32),
 
-                  // Logout Button
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 40),
-                    child: TextButton.icon(
-                      onPressed: () {
-                        // Logout logic
-                        Navigator.of(context).popUntil((route) => route.isFirst);
-                      },
-                      icon: const Icon(Icons.logout, color: Colors.redAccent),
-                      label: const Text(
-                        'Logout Account',
-                        style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
-                      ),
-                    ),
+              // Editable Fields (Admin Only) or View Only (Viewer)
+              _buildSectionHeader('Official Details', theme),
+              const SizedBox(height: 12),
+              _buildEditableField('Business Name', _nameController, Icons.business_rounded),
+              _buildEditableField('Email Address', _emailController, Icons.email_outlined),
+              _buildEditableField('Official Website', _websiteController, Icons.language_rounded),
+              _buildEditableField('Office Address', _addressController, Icons.location_on_outlined, maxLines: 2),
+              
+              const SizedBox(height: 32),
+              _buildSectionHeader('Branding Assets', theme),
+              const SizedBox(height: 12),
+              _buildLogoUploadSection(theme, profile),
+              
+              const SizedBox(height: 48),
+              if (!widget.isViewer)
+                ElevatedButton(
+                  onPressed: _saveProfile,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    elevation: 8,
                   ),
-                ],
-              ),
-            ),
+                  child: const Text('SAVE IDENTITY CARD', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.2)),
+                ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildProfileHeader(ThemeData theme, BuildContext context) {
-    final avatarSize = Responsive.scale(context, 80).clamp(60.0, 100.0);
-    
+  Widget _buildBusinessCard(ThemeData theme, BusinessProfile profile) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 40, offset: const Offset(0, 20)),
+        ],
       ),
       child: Column(
         children: [
-          Stack(
-            children: [
-              CircleAvatar(
-                radius: avatarSize / 2,
-                backgroundColor: Colors.white24,
-                child: Icon(Icons.person, size: avatarSize * 0.6, color: Colors.white),
-              ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.secondary,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: theme.colorScheme.primary, width: 2),
-                  ),
-                  child: const Icon(Icons.edit, size: 16, color: Colors.white),
-                ),
-              ),
-            ],
+          CircleAvatar(
+            radius: 50,
+            backgroundColor: Colors.amber.withOpacity(0.1),
+            child: const Icon(Icons.account_balance_rounded, size: 50, color: Colors.amber),
           ),
           const SizedBox(height: 16),
           Text(
-            'Aftab Ur Rehman',
-            style: theme.textTheme.displayLarge?.copyWith(color: Colors.white, fontSize: 20),
+            profile.businessName,
+            style: theme.textTheme.displayLarge?.copyWith(fontSize: 22, color: Colors.white),
+            textAlign: TextAlign.center,
           ),
+          const SizedBox(height: 4),
           Text(
-            'Al-Fajr Crane Services',
-            style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70),
+            'Primary Business Profile',
+            style: theme.textTheme.labelSmall?.copyWith(color: Colors.amber, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+          ),
+          const SizedBox(height: 24),
+          const Divider(color: Colors.white10),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildCardStat(Icons.verified_user_rounded, 'Verified'),
+              _buildCardStat(Icons.security_rounded, 'Encrypted'),
+              _buildCardStat(Icons.cloud_upload_rounded, 'Synced'),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMobileLayout(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildCardStat(IconData icon, String label) {
+    return Row(
       children: [
-        _buildSectionHeader('Account Settings', theme),
-        _buildGroup([
-          _buildItem(Icons.person_outline, 'Edit Profile', theme),
-          _buildItem(Icons.business_outlined, 'Business Details', theme),
-          _buildItem(Icons.receipt_long_outlined, 'Tax Information', theme),
-          _buildLogoUpload(theme),
-        ]),
-        const SizedBox(height: 32),
-        _buildSectionHeader('App Preferences', theme),
-        _buildGroup([
-          SwitchListTile(
-            value: _isDarkMode,
-            onChanged: (v) => setState(() => _isDarkMode = v),
-            title: Text('Dark Mode', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: Colors.white)),
-            secondary: Icon(Icons.dark_mode_outlined, color: theme.colorScheme.secondary),
-            activeColor: theme.colorScheme.secondary,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-          ),
-          SwitchListTile(
-            value: _notificationsOn,
-            onChanged: (v) => setState(() => _notificationsOn = v),
-            title: Text('Notifications', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: Colors.white)),
-            secondary: Icon(Icons.notifications_outlined, color: theme.colorScheme.secondary),
-            activeColor: theme.colorScheme.secondary,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-          ),
-          _buildItem(Icons.translate, 'Language (English)', theme),
-        ]),
-        const SizedBox(height: 32),
-        _buildSectionHeader('Support & Legal', theme),
-        _buildGroup([
-          _buildItem(Icons.help_outline, 'Help Center', theme),
-          _buildItem(Icons.description_outlined, 'Privacy Policy', theme),
-          _buildItem(Icons.info_outline, 'App Version 1.0.0', theme, showChevron: false),
-        ]),
+        Icon(icon, size: 14, color: Colors.white38),
+        const SizedBox(width: 6),
+        Text(label, style: const TextStyle(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.bold)),
       ],
     );
   }
 
-  Widget _buildTabletLayout(ThemeData theme) {
-    return Column(
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildEditableField(String label, TextEditingController controller, IconData icon, {int maxLines = 1}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label.toUpperCase(), style: const TextStyle(color: Colors.white38, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+          const SizedBox(height: 8),
+          CraneInput(
+            controller: controller,
+            hintText: 'Enter $label',
+            prefixIcon: Icon(icon, color: Colors.amber.withOpacity(0.7), size: 20),
+            maxLines: maxLines,
+            readOnly: widget.isViewer,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLogoUploadSection(ThemeData theme, BusinessProfile profile) {
+    return InkWell(
+      onTap: widget.isViewer ? null : () {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Logo upload coming soon!')));
+      },
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withOpacity(0.1)),
+        ),
+        child: Row(
           children: [
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.image_search_rounded, color: Colors.white38),
+            ),
+            const SizedBox(width: 20),
             Expanded(
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSectionHeader('Account Settings', theme),
-                  _buildGroup([
-                    _buildItem(Icons.person_outline, 'Edit Profile', theme),
-                    _buildItem(Icons.business_outlined, 'Business Details', theme),
-                    _buildItem(Icons.receipt_long_outlined, 'Tax Information', theme),
-                    _buildLogoUpload(theme),
-                  ]),
+                  const Text('Business Logo (High Res)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(
+                    widget.isViewer ? 'Logo management restricted' : 'Tap to upload PNG/JPG for PDF headers',
+                    style: const TextStyle(color: Colors.white38, fontSize: 12),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(width: 32),
-            Expanded(
-              child: Column(
-                children: [
-                  _buildSectionHeader('App Preferences', theme),
-                  _buildGroup([
-                    SwitchListTile(
-                      value: _isDarkMode,
-                      onChanged: (v) => setState(() => _isDarkMode = v),
-                      title: Text('Dark Mode', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
-                      secondary: Icon(Icons.dark_mode_outlined, color: theme.colorScheme.primary),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                    ),
-                    SwitchListTile(
-                      value: _notificationsOn,
-                      onChanged: (v) => setState(() => _notificationsOn = v),
-                      title: Text('Notifications', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
-                      secondary: Icon(Icons.notifications_outlined, color: theme.colorScheme.primary),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                    ),
-                    _buildItem(Icons.translate, 'Language (English)', theme),
-                  ]),
-                  const SizedBox(height: 32),
-                  _buildSectionHeader('Support & Legal', theme),
-                  _buildGroup([
-                    _buildItem(Icons.help_outline, 'Help Center', theme),
-                    _buildItem(Icons.description_outlined, 'Privacy Policy', theme),
-                    _buildItem(Icons.info_outline, 'App Version 1.0.0', theme, showChevron: false),
-                  ]),
-                ],
-              ),
-            )
+            if (!widget.isViewer)
+              const Icon(Icons.cloud_upload_rounded, color: Colors.amber),
           ],
         ),
-      ],
+      ),
     );
   }
 
   Widget _buildSectionHeader(String title, ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 12),
-      child: Text(
-        title.toUpperCase(),
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: Colors.white60,
-          letterSpacing: 1.2,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGroup(List<Widget> children) {
-    return Card(
-      elevation: 0,
-      color: Colors.white.withValues(alpha: 0.05),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-      ),
-      child: Column(children: children),
-    );
-  }
-
-  Widget _buildItem(IconData icon, String title, ThemeData theme, {bool showChevron = true}) {
-    return Column(
-      children: [
-        ListTile(
-          leading: Icon(icon, color: theme.colorScheme.secondary),
-          title: Text(title, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: Colors.white)),
-          trailing: showChevron ? const Icon(Icons.chevron_right, size: 20, color: Colors.white38) : null,
-          onTap: () {},
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-        ),
-        if (showChevron) Divider(height: 1, indent: 56, color: Colors.white.withValues(alpha: 0.05)),
-      ],
-    );
-  }
-
-  Widget _buildLogoUpload(ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text('Business Logo (for PDF)', style: theme.textTheme.labelSmall?.copyWith(color: Colors.white60)),
-          const SizedBox(height: 12),
-          Container(
-            height: 100,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.add_photo_alternate_outlined, color: theme.colorScheme.secondary),
-                const SizedBox(width: 12),
-                Text('Upload Logo', style: TextStyle(color: theme.colorScheme.secondary, fontWeight: FontWeight.bold)),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return Text(
+      title,
+      style: theme.textTheme.displayLarge?.copyWith(fontSize: 18, color: Colors.white),
     );
   }
 }

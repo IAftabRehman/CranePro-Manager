@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:extend_crane_services/features/operations/presentation/widgets/direct_work_modal.dart';
 import '../../../quotation/data/models/quotation_model.dart';
 import 'package:extend_crane_services/features/quotation/presentation/pages/add_quotation_page.dart';
-import 'package:extend_crane_services/features/operations/presentation/pages/daily_log_page.dart';
-import 'package:extend_crane_services/features/operations/presentation/widgets/nightly_report_modal.dart';
 import 'package:extend_crane_services/features/maintenance/presentation/pages/maintenance_history_page.dart';
 import 'package:extend_crane_services/features/reports/presentation/pages/earnings_report_page.dart';
 import 'package:extend_crane_services/features/notifications/presentation/pages/notification_screen.dart';
 import 'package:extend_crane_services/features/settings/presentation/pages/settings_page.dart';
 import 'package:extend_crane_services/core/presentation/widgets/custom_drawer.dart';
 import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
+import '../widgets/midnight_status_modal.dart';
 
 import '../../../../core/utils/responsive.dart';
 
@@ -105,7 +104,7 @@ class _MainDashboardState extends State<MainDashboard>
                   context: context,
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
-                  builder: (_) => NightlyReportModal(
+                  builder: (_) => MidnightStatusModal(
                     date: DateTime.now().subtract(const Duration(days: 1)),
                     quotation: QuotationData(clientName: 'Street Client'),
                   ),
@@ -155,9 +154,9 @@ class _MainDashboardState extends State<MainDashboard>
           aspectRatio: 1.0,
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.08),
+              color: Colors.white.withOpacity(0.08),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              border: Border.all(color: Colors.white.withOpacity(0.1)),
             ),
             padding: EdgeInsets.all(
               Responsive.scale(context, 16).clamp(12.0, 24.0),
@@ -216,10 +215,10 @@ class _MainDashboardState extends State<MainDashboard>
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
-      color: Colors.white.withValues(alpha: 0.05),
+      color: Colors.white.withOpacity(0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+        side: BorderSide(color: Colors.white.withOpacity(0.1)),
       ),
       child: ListTile(
         contentPadding: EdgeInsets.symmetric(
@@ -229,7 +228,7 @@ class _MainDashboardState extends State<MainDashboard>
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
+            color: Colors.white.withOpacity(0.1),
             shape: BoxShape.circle,
           ),
           child: const Icon(Icons.precision_manufacturing, color: Colors.white),
@@ -278,7 +277,7 @@ class _MainDashboardState extends State<MainDashboard>
     final useSidebar = screenWidth > 900;
 
     return PremiumScaffold(
-      drawer: useSidebar ? null : const CustomDrawer(activeRoute: 'Dashboard'),
+      drawer: useSidebar ? null : CustomDrawer(activeRoute: 'Dashboard', isViewer: false),
       floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
@@ -333,7 +332,7 @@ class _MainDashboardState extends State<MainDashboard>
                   vertical: 10,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.95),
+                  color: Colors.red.withOpacity(0.1),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black26,
@@ -372,7 +371,7 @@ class _MainDashboardState extends State<MainDashboard>
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: Colors.white.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -442,7 +441,7 @@ class _MainDashboardState extends State<MainDashboard>
                               onPressed: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const SettingsPage(),
+                                  builder: (_) => SettingsPage(),
                                 ),
                               ),
                               icon: const Icon(
@@ -486,7 +485,7 @@ class _MainDashboardState extends State<MainDashboard>
                                 '18',
                                 Icons.engineering,
                                 theme.colorScheme.secondary,
-                                const DailyLogPage(),
+                                null,
                               ),
                               _buildSummaryCard(
                                 context,
@@ -522,7 +521,7 @@ class _MainDashboardState extends State<MainDashboard>
                                       context: context,
                                       isScrollControlled: true,
                                       backgroundColor: Colors.transparent,
-                                      builder: (_) => NightlyReportModal(
+                                      builder: (_) => MidnightStatusModal(
                                         date: DateTime.now().subtract(
                                           const Duration(days: 1),
                                         ),
@@ -535,20 +534,20 @@ class _MainDashboardState extends State<MainDashboard>
                                   child: Container(
                                     padding: const EdgeInsets.all(16),
                                     decoration: BoxDecoration(
-                                      color: Colors.redAccent.withValues(
-                                        alpha: 0.15,
+                                      color: Colors.redAccent.withOpacity(
+                                        0.15,
                                       ),
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
-                                        color: Colors.redAccent.withValues(
-                                          alpha: 0.5,
+                                        color: Colors.redAccent.withOpacity(
+                                          0.5,
                                         ),
                                         width: 2,
                                       ),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.redAccent.withValues(
-                                            alpha: 0.2,
+                                          color: Colors.redAccent.withOpacity(
+                                            0.2,
                                           ),
                                           blurRadius: 10,
                                           spreadRadius: 2,
