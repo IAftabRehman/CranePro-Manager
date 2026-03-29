@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:extend_crane_services/core/themes/app_theme.dart';
 import 'package:extend_crane_services/features/reports/presentation/widgets/viewer_report_header.dart';
+import 'package:extend_crane_services/features/reports/presentation/pages/work_entry_details_page.dart';
 import 'dart:ui';
 
 class WorkHistoryViewerPage extends StatefulWidget {
@@ -82,6 +83,7 @@ class _WorkHistoryViewerPageState extends State<WorkHistoryViewerPage> {
                     
                     // Own Crane Entry
                     _buildHistoryCard(
+                      context,
                       isOwnCrane: true,
                       client: 'Emaar Properties',
                       location: 'Dubai Marina',
@@ -92,30 +94,33 @@ class _WorkHistoryViewerPageState extends State<WorkHistoryViewerPage> {
                     
                     // Commission Entry
                     _buildHistoryCard(
+                      context,
                       isOwnCrane: false,
                       client: 'Sobha Realty',
                       location: 'Dubai Creek Harbor',
                       total: 8500,
                       deduction: 6800,
-                      deductionLabel: 'Partner Payment',
+                      deductionLabel: 'Outsourced Cost',
                     ),
                     
                     _buildHistoryCard(
+                      context,
                       isOwnCrane: true,
                       client: 'Damac Hills',
-                      location: 'Al Qudra',
+                      location: 'Al Qudra Road',
                       total: 2800,
                       deduction: 320,
                       deductionLabel: 'Fuel Cost',
                     ),
                     
                     _buildHistoryCard(
+                      context,
                       isOwnCrane: false,
                       client: 'Azizi Developments',
                       location: 'Al Furjan',
                       total: 12000,
                       deduction: 10200,
-                      deductionLabel: 'Partner Payment',
+                      deductionLabel: 'Outsourced Cost',
                     ),
                     
                     const SizedBox(height: 40),
@@ -150,13 +155,14 @@ class _WorkHistoryViewerPageState extends State<WorkHistoryViewerPage> {
               textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(width: 48), // Spacer to balance back button
+          const SizedBox(width: 48),
         ],
       ),
     );
   }
 
-  Widget _buildHistoryCard({
+  Widget _buildHistoryCard(
+    BuildContext context, {
     required bool isOwnCrane,
     required String client,
     required String location,
@@ -169,74 +175,95 @@ class _WorkHistoryViewerPageState extends State<WorkHistoryViewerPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.35),
+        color: Colors.white.withValues(alpha: 0.35),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.4)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                Row(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => WorkEntryDetailsPage(
+                  isOwnCrane: isOwnCrane,
+                  client: client,
+                  location: location,
+                  total: total,
+                  deduction: deduction,
+                  deductionLabel: deductionLabel,
+                ),
+              ),
+            );
+          },
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppTheme.deepNavyBlue.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        isOwnCrane ? Icons.architecture_rounded : Icons.handshake_rounded,
-                        color: AppTheme.deepNavyBlue,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            client.toUpperCase(),
-                            style: const TextStyle(
-                              color: AppTheme.deepNavyBlue,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w900,
-                            ),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: AppTheme.deepNavyBlue.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
                           ),
-                          Text(
-                            location,
-                            style: TextStyle(
-                              color: AppTheme.deepNavyBlue.withOpacity(0.7),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                            ),
+                          child: Icon(
+                            isOwnCrane ? Icons.architecture_rounded : Icons.handshake_rounded,
+                            color: AppTheme.deepNavyBlue,
+                            size: 24,
                           ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                client.toUpperCase(),
+                                style: const TextStyle(
+                                  color: AppTheme.deepNavyBlue,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              Text(
+                                location,
+                                style: TextStyle(
+                                  color: AppTheme.deepNavyBlue.withOpacity(0.7),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.chevron_right_rounded, color: AppTheme.deepNavyBlue),
+                      ],
                     ),
-                    const Icon(Icons.chevron_right_rounded, color: AppTheme.deepNavyBlue),
+                    
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Divider(color: Colors.white, thickness: 1),
+                    ),
+                    
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildCalculationCol(isOwnCrane ? 'Gross Total' : 'Total Quotation', 'AED ${total.toStringAsFixed(0)}'),
+                        _buildCalculationCol(deductionLabel, '(-) AED ${deduction.toStringAsFixed(0)}', isDeduction: true),
+                        _buildCalculationCol(isOwnCrane ? 'NET PROFIT' : 'NET COMMISSION', 'AED ${net.toStringAsFixed(0)}', isNet: true),
+                      ],
+                    ),
                   ],
                 ),
-                
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Divider(color: Colors.white, thickness: 1),
-                ),
-                
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildCalculationCol('Gross Total', 'AED ${total.toStringAsFixed(0)}'),
-                    _buildCalculationCol(deductionLabel, '(-) AED ${deduction.toStringAsFixed(0)}', isDeduction: true),
-                    _buildCalculationCol('NET PROFIT', 'AED ${net.toStringAsFixed(0)}', isNet: true),
-                  ],
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -255,7 +282,7 @@ class _WorkHistoryViewerPageState extends State<WorkHistoryViewerPage> {
         Text(
           label.toUpperCase(),
           style: TextStyle(
-            color: AppTheme.deepNavyBlue.withOpacity(0.6),
+            color: AppTheme.deepNavyBlue.withValues(alpha: 0.6),
             fontSize: 9,
             fontWeight: FontWeight.w900,
             letterSpacing: 0.5,

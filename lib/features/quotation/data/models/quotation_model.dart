@@ -26,6 +26,7 @@ class QuotationData {
   List<QuotationServiceEntry> entries;
   List<String> terms;
   QuotationStatus status;
+  String? cancellationReason; // NEW: Track reason for rejection
 
   QuotationData({
     this.clientName = '',
@@ -33,6 +34,7 @@ class QuotationData {
     List<QuotationServiceEntry>? entries,
     List<String>? terms,
     this.status = QuotationStatus.pending,
+    this.cancellationReason,
   })  : entries = entries ?? [QuotationServiceEntry()],
         terms = terms ?? [];
 

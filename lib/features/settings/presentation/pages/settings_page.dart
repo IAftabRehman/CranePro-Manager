@@ -195,12 +195,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.35),
+        color: Colors.white.withValues(alpha: 0.35),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.5)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             offset: const Offset(0, 20),
             blurRadius: 40,
           ),
@@ -233,7 +233,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             decoration: BoxDecoration(
-              color: AppTheme.deepNavyBlue.withOpacity(0.1),
+              color: AppTheme.deepNavyBlue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Text(
@@ -256,13 +256,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.5),
+        color: Colors.white.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.3)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          Icon(icon, color: AppTheme.deepNavyBlue.withOpacity(0.7), size: 22),
+          Icon(icon, color: AppTheme.deepNavyBlue.withValues(alpha: 0.7), size: 22),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -271,7 +271,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 Text(
                   label.toUpperCase(),
                   style: TextStyle(
-                    color: AppTheme.deepNavyBlue.withOpacity(0.5),
+                    color: AppTheme.deepNavyBlue.withValues(alpha: 0.5),
                     fontSize: 10,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 0.5,
@@ -299,9 +299,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        color: Colors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.2), style: BorderStyle.solid),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.2), style: BorderStyle.solid),
       ),
       child: Row(
         children: [
@@ -309,7 +309,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: AppTheme.deepNavyBlue.withOpacity(0.05),
+              color: AppTheme.deepNavyBlue.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(Icons.verified_user_rounded, color: AppTheme.deepNavyBlue),

@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
 import 'package:extend_crane_services/core/themes/app_theme.dart';
 import 'package:extend_crane_services/core/presentation/widgets/custom_drawer.dart';
+import 'package:extend_crane_services/features/dashboard/presentation/widgets/live_status_feed_item.dart';
+import 'package:extend_crane_services/features/quotation/data/models/quotation_model.dart';
+import 'package:extend_crane_services/features/reports/presentation/pages/work_history_viewer_page.dart';
 import 'dart:ui';
+import 'dart:async';
 
 class ViewerDashboard extends StatefulWidget {
   const ViewerDashboard({super.key});
@@ -11,22 +15,41 @@ class ViewerDashboard extends StatefulWidget {
   State<ViewerDashboard> createState() => _ViewerDashboardState();
 }
 
-class _ViewerDashboardState extends State<ViewerDashboard> with SingleTickerProviderStateMixin {
+class _ViewerDashboardState extends State<ViewerDashboard> with TickerProviderStateMixin {
   late AnimationController _alertController;
-  final bool _hasPendingQuotations = true; // Simulated: Check for yesterday's pending work
+  late ScrollController _scrollController;
+  double _parallaxOffset = 0.0;
+
+  // Stream simulation for "Live Status" updates
+  final StreamController<String> _statusStreamController = StreamController<String>.broadcast();
 
   @override
   void initState() {
     super.initState();
     _alertController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
+
+    _scrollController = ScrollController()..addListener(() {
+      setState(() {
+        _parallaxOffset = _scrollController.offset * 0.3;
+      });
+    });
+
+    // Simulate real-time updates from Dubai
+    Timer.periodic(const Duration(seconds: 10), (timer) {
+      if (mounted) {
+        _statusStreamController.add('New Site Activity: Own 25T Crane @ Dubai Marina');
+      }
+    });
   }
 
   @override
   void dispose() {
     _alertController.dispose();
+    _scrollController.dispose();
+    _statusStreamController.close();
     super.dispose();
   }
 
@@ -34,41 +57,54 @@ class _ViewerDashboardState extends State<ViewerDashboard> with SingleTickerProv
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: const CustomDrawer(activeRoute: 'Dashboard', isViewer: true),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: AppTheme.lavenderBlueGradient,
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // TASK 1: Header Integration
-              _buildAppBar(context),
-              
-              // TASK 3: Lazy Driver Alert System
-              if (_hasPendingQuotations) _buildFlashingAlert(),
+      body: Stack(
+        children: [
+          // Parallax Background
+          Positioned(
+            top: -_parallaxOffset,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: AppTheme.lavenderBlueGradient,
+              ),
+            ),
+          ),
+          
+          SafeArea(
+            child: Column(
+              children: [
+                _buildAppBar(context),
+                _buildLiveStatusHeader(),
 
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                  child: Column(
-                    children: [
-                      // TASK 2: 3D Summary Analytics
-                      _buildSummaryGrid(context),
-                      
-                      const SizedBox(height: 40),
-                      
-                      // TASK 4: Recent Activity Feed
-                      _buildTodayWorkFeed(context),
-                    ],
+                Expanded(
+                  child: SingleChildScrollView(
+                    controller: _scrollController,
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                    child: Column(
+                      children: [
+                        // TASK 2: 4 Command Center Cards
+                        _buildCommandCenterGrid(context),
+                        
+                        const SizedBox(height: 48),
+
+                        // TASK 4: Execution Modes
+                        _buildExecutionTabs(context),
+                        
+                        const SizedBox(height: 48),
+                        
+                        // TASK 3: Status-Based Activity Feed
+                        _buildLiveActivityStream(context),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -90,12 +126,12 @@ class _ViewerDashboardState extends State<ViewerDashboard> with SingleTickerProv
           ),
           Column(
             children: [
-              Image.asset('assets/images/logo.png', height: 60),
+              Hero(tag: 'logo', child: Image.asset('assets/images/logo.png', height: 60)),
               const Text(
-                'LIVE MONITORING',
+                'FAMILY MONITOR - LIVE STATION',
                 style: TextStyle(
                   color: AppTheme.deepNavyBlue,
-                  fontSize: 12,
+                  fontSize: 10,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 2.0,
                 ),
@@ -107,279 +143,321 @@ class _ViewerDashboardState extends State<ViewerDashboard> with SingleTickerProv
     );
   }
 
-  Widget _buildFlashingAlert() {
-    return AnimatedBuilder(
-      animation: _alertController,
-      builder: (context, child) {
-        return Container(
-          width: double.infinity,
-          margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          decoration: BoxDecoration(
-            color: Color.lerp(Colors.redAccent, Colors.amber, _alertController.value)!.withOpacity(0.9),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.redAccent.withOpacity(0.3 * _alertController.value),
-                blurRadius: 10,
-                spreadRadius: 2,
-              )
-            ],
-          ),
-          child: const Row(
-            children: [
-              Icon(Icons.report_problem_rounded, color: Colors.white, size: 22),
-              SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'PENDING REPORT: Street Client @ Dubai Marina - Status not updated by Driver.',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 11,
-                  ),
-                ),
+  Widget _buildLiveStatusHeader() {
+    return StreamBuilder<String>(
+      stream: _statusStreamController.stream,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const SizedBox.shrink();
+
+        return AnimatedBuilder(
+          animation: _alertController,
+          builder: (context, child) {
+            return Container(
+              width: double.infinity,
+              margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+              decoration: BoxDecoration(
+                color: Color.lerp(Colors.red.shade900, Colors.amber.shade900, _alertController.value)!.withValues(alpha: 0.9),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.red.withValues(alpha: 0.3 * _alertController.value),
+                    blurRadius: 15 * _alertController.value,
+                    spreadRadius: 2,
+                  )
+                ],
               ),
-            ],
-          ),
+              child: Row(
+                children: [
+                  const Icon(Icons.bolt_rounded, color: Colors.white, size: 24),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'DUBAI UPDATE: ${snapshot.data}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 11,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
         );
       },
     );
   }
 
-  Widget _buildSummaryGrid(BuildContext context) {
-    final bool isTablet = Responsive.isTablet(context);
-    
+  Widget _buildCommandCenterGrid(BuildContext context) {
     return Column(
       children: [
-        if (!isTablet) ...[
-          _Viewer3DCard(
-            title: 'TOTAL GROSS INCOME',
-            value: 'AED 84,250',
-            icon: Icons.account_balance_wallet_rounded,
-            color: Colors.blueAccent,
-          ),
-          const SizedBox(height: 20),
-          _Viewer3DCard(
-            title: 'OPERATING EXPENSES',
-            value: 'AED 12,400',
-            icon: Icons.receipt_long_rounded,
-            color: Colors.redAccent,
-          ),
-          const SizedBox(height: 20),
-          _Viewer3DCard(
-            title: 'NET CASH FLOW (PROFIT)',
-            value: 'AED 71,850',
-            icon: Icons.trending_up_rounded,
-            color: Colors.greenAccent,
-            isProfit: true,
-          ),
-        ] else
-          Row(
-            children: [
-              Expanded(
-                child: _Viewer3DCard(
-                  title: 'GROSS INCOME',
-                  value: 'AED 84.2K',
-                  icon: Icons.account_balance_wallet_rounded,
-                  color: Colors.blueAccent,
-                ),
+        Row(
+          children: [
+            Expanded(
+              child: _CommandCard(
+                label: 'LIVE PROFIT',
+                value: 'AED 8,420',
+                icon: Icons.auto_graph_rounded,
+                isPrimary: true,
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _Viewer3DCard(
-                  title: 'EXPENSES',
-                  value: 'AED 12.4K',
-                  icon: Icons.receipt_long_rounded,
-                  color: Colors.redAccent,
-                ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _CommandCard(
+                label: 'ACTIVE WORK',
+                value: '4 JOBS',
+                icon: Icons.timer_rounded,
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _Viewer3DCard(
-                  title: 'NET PROFIT',
-                  value: 'AED 71.8K',
-                  icon: Icons.trending_up_rounded,
-                  color: Colors.greenAccent,
-                  isProfit: true,
-                ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _CommandCard(
+                label: 'MAINTENANCE',
+                value: 'AED 3,200',
+                icon: Icons.build_circle_rounded,
               ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _CommandCard(
+                label: 'CANCELLED',
+                value: '2 TASKS',
+                icon: Icons.cancel_presentation_rounded,
+                isDanger: true,
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
 
-  Widget _buildTodayWorkFeed(BuildContext context) {
+  Widget _buildExecutionTabs(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'EXECUTION REPORTS',
+              style: TextStyle(
+                color: AppTheme.deepNavyBlue,
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            TextButton(
+              onPressed: () {},
+              child: const Text('VIEW ALL', style: TextStyle(color: AppTheme.deepNavyBlue, fontWeight: FontWeight.w900, fontSize: 12)),
+            )
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _ReportExecutionModeButton(
+                label: 'OWN CRANE (25T)',
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WorkHistoryViewerPage())),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _ReportExecutionModeButton(
+                label: 'COMMISSION',
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WorkHistoryViewerPage())),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLiveActivityStream(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Padding(
-          padding: EdgeInsets.only(left: 4, bottom: 16),
+          padding: EdgeInsets.only(left: 4, bottom: 20),
           child: Text(
-            'TODAY\'S WORK ACTIVITY',
+            'LIVE ACTIVITY STREAM',
             style: TextStyle(
               color: AppTheme.deepNavyBlue,
-              fontSize: 18,
+              fontSize: 17,
               fontWeight: FontWeight.w900,
               letterSpacing: 1.0,
             ),
           ),
         ),
-        _buildActivityTile('Own Crane 25T', 'AED 2,500', 'Business Bay, Dubai'),
-        _buildActivityTile('Commission Basis', 'AED 850', 'Deira, Dubai'),
-        _buildActivityTile('Own Crane 25T', 'AED 4,200', 'Jumeirah Village Circle'),
+        const LiveStatusFeedItem(
+          title: 'Damac Hills - Site 4',
+          subtitle: 'Dubai Al Qudra Road',
+          amount: 'AED 4,500',
+          status: QuotationStatus.completed,
+        ),
+        const LiveStatusFeedItem(
+          title: 'Sobha Realty - Ground',
+          subtitle: 'Meydan, Dubai',
+          amount: 'AED 12,000',
+          status: QuotationStatus.pending,
+        ),
+        const LiveStatusFeedItem(
+          title: 'Emaar Marini',
+          subtitle: 'Dubai Marina JBR',
+          amount: 'AED 2,800',
+          status: QuotationStatus.cancelled,
+          reason: 'Operator Tired - No Night Shift',
+        ),
         const SizedBox(height: 40),
       ],
     );
   }
+}
 
-  Widget _buildActivityTile(String type, String amount, String location) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.3)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppTheme.deepNavyBlue.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.precision_manufacturing_rounded, color: AppTheme.deepNavyBlue, size: 20),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  type,
-                  style: const TextStyle(
-                    color: AppTheme.deepNavyBlue,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
+class _CommandCard extends StatefulWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+  final bool isPrimary;
+  final bool isDanger;
+
+  const _CommandCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+    this.isPrimary = false,
+    this.isDanger = false,
+  });
+
+  @override
+  State<_CommandCard> createState() => _CommandCardState();
+}
+
+class _CommandCardState extends State<_CommandCard> with SingleTickerProviderStateMixin {
+  late AnimationController _pressController;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _pressController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 150),
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
+      CurvedAnimation(parent: _pressController, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pressController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Color accentColor = AppTheme.deepNavyBlue;
+    if (widget.isPrimary) accentColor = Colors.green.shade900;
+    if (widget.isDanger) accentColor = Colors.red.shade900;
+
+    return GestureDetector(
+      onTapDown: (_) => _pressController.forward(),
+      onTapUp: (_) => _pressController.reverse(),
+      onTapCancel: () => _pressController.reverse(),
+      child: AnimatedBuilder(
+        animation: _scaleAnimation,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _scaleAnimation.value,
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.35),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: accentColor.withValues(alpha: 0.2), width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05 + (_scaleAnimation.value - 1.0)),
+                    offset: const Offset(0, 10),
+                    blurRadius: 20 * _scaleAnimation.value,
                   ),
-                ),
-                Text(
-                  location,
-                  style: TextStyle(
-                    color: AppTheme.deepNavyBlue.withOpacity(0.6),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Icon(widget.icon, color: accentColor, size: 24),
+                      if (widget.isPrimary)
+                        const Icon(Icons.flash_on_rounded, color: Colors.amber, size: 16),
+                    ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  Text(
+                    widget.label.toUpperCase(),
+                    style: TextStyle(
+                      color: AppTheme.deepNavyBlue.withValues(alpha: 0.6),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    widget.value,
+                    style: TextStyle(
+                      color: accentColor,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Text(
-            amount,
-            style: const TextStyle(
-              color: Color(0xFF1A237E),
-              fontSize: 16,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 }
 
-class _Viewer3DCard extends StatelessWidget {
-  final String title;
-  final String value;
-  final IconData icon;
-  final Color color;
-  final bool isProfit;
+class _ReportExecutionModeButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onPressed;
 
-  const _Viewer3DCard({
-    required this.title,
-    required this.value,
-    required this.icon,
-    required this.color,
-    this.isProfit = false,
-  });
+  const _ReportExecutionModeButton({required this.label, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            offset: const Offset(0, 15),
-            blurRadius: 30,
-            spreadRadius: -5,
-          ),
-        ],
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppTheme.deepNavyBlue,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: 10,
+        shadowColor: AppTheme.deepNavyBlue.withValues(alpha: 0.4),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.white.withOpacity(0.2)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        color: AppTheme.deepNavyBlue,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    Icon(icon, color: color.withOpacity(0.8), size: 24),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    color: AppTheme.deepNavyBlue,
-                    fontSize: 28,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                if (isProfit) ...[
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(Icons.trending_up, color: Colors.green, size: 16),
-                      const SizedBox(width: 4),
-                      Text(
-                        '+12% from last month',
-                        style: TextStyle(
-                          color: Colors.green.shade800,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 1.0,
         ),
+        textAlign: TextAlign.center,
       ),
     );
   }
