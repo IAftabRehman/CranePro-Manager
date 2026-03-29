@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_button.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_text_field.dart';
-import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
+import 'package:extend_crane_services/core/themes/app_theme.dart';
+import 'package:extend_crane_services/features/auth/presentation/pages/pending_approval_page.dart';
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+  final String roleTitle;
+  const RegisterPage({super.key, required this.roleTitle});
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -13,20 +15,14 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
-  final _businessNameController = TextEditingController();
   final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   
-  String? _selectedCapacity;
-  bool _acceptedTerms = false;
   bool _isLoading = false;
-
-  final List<String> _capacities = ['50 Ton', '100 Ton', '150 Ton', '200+ Ton'];
 
   @override
   void dispose() {
-    _businessNameController.dispose();
     _fullNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -35,180 +31,150 @@ class _RegisterPageState extends State<RegisterPage> {
 
   void _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
-    if (!_acceptedTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please accept the Terms & Conditions')),
-      );
-      return;
-    }
-    if (_selectedCapacity == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a Primary Crane Capacity')),
-      );
-      return;
-    }
 
     setState(() => _isLoading = true);
+    
+    // TASK 4: Admin Notification Simulation
+    // In a real app, this would be a Firebase Cloud Function or similar
+    debugPrint('NOTIFY ADMIN: New ${widget.roleTitle} Request: ${_fullNameController.text} is waiting for approval.');
+    
     await Future.delayed(const Duration(seconds: 2));
+    
     if (mounted) {
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registration Successful!')),
+      
+      // TASK 2: Admin Approval Logic - Navigate to Pending Screen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const PendingApprovalPage()),
       );
-      Navigator.pop(context);
     }
-  }
-
-  Widget _buildSectionHeader(String title, IconData icon, ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.white70, size: 20),
-          const SizedBox(width: 8),
-          Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: PremiumScaffold(
-        appBar: AppBar(
-          title: const Text('Create Account', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-          centerTitle: true,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: const BackButton(color: Colors.white),
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: AppTheme.lavenderBlueGradient,
         ),
-        body: SafeArea(
+        child: SafeArea(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: EdgeInsets.symmetric(
-              horizontal: Responsive.scale(context, 16).clamp(16.0, 32.0),
-              vertical: 24,
-            ),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 550),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+            padding: const EdgeInsets.all(24.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
+                  Hero(
+                    tag: 'logo',
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      height: 100,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  const Text(
+                    'Create Account',
+                    style: TextStyle(
+                      color: AppTheme.lavenderPrimary,
+                      fontSize: 32,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Hidden Role Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.deepNavyBlue.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppTheme.deepNavyBlue.withValues(alpha: 0.2)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.shield_rounded, size: 16, color: const Color(0xFFFFB300)),
+                        const SizedBox(width: 8),
+                        Text(
+                          'REGISTERING AS: ${widget.roleTitle.toUpperCase()}',
+                          style: const TextStyle(
+                            color:  const Color(0xFFFFB300),
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 40),
+                  
+                  CraneInput(
+                    controller: _fullNameController,
+                    hintText: 'Full Name',
+                    prefixIcon: const Icon(Icons.person_outline),
+                    validator: (v) => v != null && v.isNotEmpty ? null : 'Name is required',
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  CraneInput(
+                    controller: _emailController,
+                    hintText: 'Email Address',
+                    keyboardType: TextInputType.emailAddress,
+                    prefixIcon: const Icon(Icons.email_outlined),
+                    validator: (v) => v != null && v.contains('@') ? null : 'Enter a valid email',
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  CraneInput(
+                    controller: _passwordController,
+                    hintText: 'Password',
+                    obscureText: true,
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    validator: (v) => v != null && v.length >= 6 ? null : 'Min 6 characters required',
+                  ),
+                  
+                  const SizedBox(height: 48),
+                  
+                  CraneButton(
+                    text: 'SignUp',
+                    onPressed: _handleRegister,
+                    isLoading: _isLoading,
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildSectionHeader('Business Identity', Icons.business_center, theme),
-                      
-                      CraneInput(
-                        controller: _businessNameController,
-                        hintText: 'Business Name (e.g. Al-Fajr Cranes)',
-                        suffixIcon: const Icon(Icons.apartment),
-                        validator: (val) => val == null || val.isEmpty ? 'Required' : null,
+                      const Text(
+                        'Already have an account?',
+                        style: TextStyle(color: AppTheme.lavenderPrimary),
                       ),
-                      const SizedBox(height: 16),
-                      
-                      CraneInput(
-                        controller: _fullNameController,
-                        hintText: 'Full Name',
-                        suffixIcon: const Icon(Icons.person),
-                        validator: (val) => val == null || val.isEmpty ? 'Required' : null,
-                      ),
-
-                      const SizedBox(height: 24),
-                      _buildSectionHeader('Fleet Specifications', Icons.precision_manufacturing, theme),
-                      
-                      Text(
-                        'Primary Crane Capacity',
-                        style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.white70),
-                      ),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: _capacities.map((cap) => ChoiceChip(
-                          label: Text(cap, style: TextStyle(fontWeight: FontWeight.bold, color: _selectedCapacity == cap ? theme.colorScheme.primary : Colors.white)),
-                          selected: _selectedCapacity == cap,
-                          onSelected: (val) {
-                            if(val) setState(() => _selectedCapacity = cap);
-                          },
-                          selectedColor: theme.colorScheme.secondary,
-                          backgroundColor: Colors.white.withValues(alpha: 0.05),
-                          checkmarkColor: theme.colorScheme.primary,
-                          side: BorderSide(color: _selectedCapacity == cap ? theme.colorScheme.secondary : Colors.white.withValues(alpha: 0.1)),
-                        )).toList(),
-                      ),
-
-                      const SizedBox(height: 24),
-                      _buildSectionHeader('Account Credentials', Icons.lock_person, theme),
-                      
-                      CraneInput(
-                        controller: _emailController,
-                        hintText: 'Email Address',
-                        keyboardType: TextInputType.emailAddress,
-                        suffixIcon: const Icon(Icons.email),
-                        validator: (val) => val == null || !val.contains('@') ? 'Invalid Email' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      CraneInput(
-                        controller: _passwordController,
-                        hintText: 'Password (min 6 chars)',
-                        obscureText: true,
-                        suffixIcon: const Icon(Icons.lock),
-                        validator: (val) => val == null || val.length < 6 ? 'Too short' : null,
-                      ),
-
-                      const SizedBox(height: 24),
-                      Row(
-                        children: [
-                          Checkbox(
-                            value: _acceptedTerms,
-                            activeColor: theme.colorScheme.secondary,
-                            checkColor: theme.colorScheme.primary,
-                            side: const BorderSide(color: Colors.white70),
-                            onChanged: (val) => setState(() => _acceptedTerms = val ?? false),
-                          ),
-                          Expanded(
-                            child: Text(
-                              'I agree to the Terms & Conditions and Privacy Policy of CranePro.',
-                              style: theme.textTheme.labelSmall?.copyWith(color: Colors.white70),
-                            ),
-                          ),
-                        ],
-                      ),
-                      
-                      const SizedBox(height: 32),
-                      CraneButton(
-                        text: 'Create Business Account',
-                        onPressed: _handleRegister,
-                        isLoading: _isLoading,
-                      ),
-                      
-                      const SizedBox(height: 16),
                       TextButton(
                         onPressed: () => Navigator.pop(context),
-                        child: Text(
-                          'Already have an account? Login',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.secondary,
+                        child: const Text(
+                          'Login',
+                          style: TextStyle(
+                            color: AppTheme.lavenderPrimary,
                             fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 48),
                     ],
                   ),
-                ),
+                  const SizedBox(height: 40),
+                ],
               ),
             ),
           ),

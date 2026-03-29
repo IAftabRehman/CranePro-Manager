@@ -3,10 +3,11 @@ import 'package:extend_crane_services/core/utils/responsive.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_button.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_text_field.dart';
 import 'package:extend_crane_services/features/auth/presentation/pages/register_page.dart';
+import 'package:extend_crane_services/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:extend_crane_services/features/dashboard/presentation/pages/main_dashboard.dart';
 import 'package:extend_crane_services/features/dashboard/presentation/pages/viewer_dashboard.dart';
 import 'package:extend_crane_services/features/admin/presentation/pages/admin_control_page.dart';
-import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
+import 'package:extend_crane_services/core/themes/app_theme.dart';
 
 class LoginPage extends StatefulWidget {
   final String roleTitle;
@@ -31,7 +32,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _handleLogin() async {
-    if (_formKey.currentState!.validate()) return; // !
+    if (_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
     await Future.delayed(const Duration(seconds: 2));
@@ -62,168 +63,125 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: PremiumScaffold(
-        appBar: AppBar(
-          title: const Text('Login', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-          centerTitle: true,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: AppTheme.lavenderBlueGradient,
         ),
-        body: SafeArea(
-          child: Align(
-            alignment: Alignment.topCenter,
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: EdgeInsets.symmetric(
-                horizontal: Responsive.scale(context, 16).clamp(16.0, 32.0),
-                vertical: Responsive.screenHeight(context) * 0.05,
-              ),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 450),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
+        child: SafeArea(
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.all(24.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  const SizedBox(height: 40),
+                  
+                  // TASK 1: Header & Logo hero
+                  Hero(
+                    tag: 'logo',
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      height: 100,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 32),
+                  
+                  const Text(
+                    'Welcome Back',
+                    style: TextStyle(
+                      color: AppTheme.lavenderPrimary,
+                      fontSize: 32,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  
+                  Text(
+                    'Login to manage your ${widget.roleTitle} account',
+                    style: TextStyle(
+                      color: AppTheme.lavenderPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 48),
+                  
+                  CraneInput(
+                    controller: _emailController,
+                    hintText: 'Email Address',
+                    prefixIcon: const Icon(Icons.email_outlined),
+                    validator: (v) => v != null && v.contains('@') ? null : 'Enter a valid email',
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  CraneInput(
+                    controller: _passwordController,
+                    hintText: 'Password',
+                    obscureText: true,
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    validator: (v) => v != null && v.length >= 6 ? null : 'Password too short',
+                  ),
+                  
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => Navigator.push(
+                        context, 
+                        MaterialPageRoute(builder: (_) => const ForgotPasswordPage())
+                      ),
+                      child: const Text(
+                        'Forgot Password?',
+                        style: TextStyle(
+                          color: AppTheme.lavenderPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 32),
+                  
+                  CraneButton(
+                    text: 'Login',
+                    onPressed: _handleLogin,
+                    isLoading: _isLoading,
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Header Logo & Welcome
-                      Icon(
-                        Icons.precision_manufacturing,
-                        size: Responsive.scale(context, 60).clamp(40.0, 80.0),
-                        color: Colors.white,
+                      const Text(
+                        'Don\'t have an account?',
+                        style: TextStyle(color: AppTheme.lavenderPrimary),
                       ),
-                      SizedBox(height: Responsive.screenHeight(context) * 0.02),
-                      Text(
-                        'Welcome Back, Officer',
-                        style: theme.textTheme.displayLarge?.copyWith(
-                          fontSize: Responsive.scale(context, 24).clamp(20.0, 32.0),
-                          color: Colors.white,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: Responsive.screenHeight(context) * 0.01),
-
-                      // Role Indicator Badge
-                      Center(
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: Responsive.scale(context, 16).clamp(12.0, 24.0),
-                            vertical: Responsive.scale(context, 8).clamp(6.0, 12.0),
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.badge, size: 16, color: Colors.white70),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Logging in as: ${widget.roleTitle}',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: Colors.white70,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: Responsive.scale(context, 12).clamp(10.0, 14.0),
-                                ),
-                              ),
-                            ],
+                      TextButton(
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => RegisterPage(roleTitle: widget.roleTitle),
                           ),
                         ),
-                      ),
-                      SizedBox(height: Responsive.screenHeight(context) * 0.05),
-
-                      // Email Input
-                      CraneInput(
-                        controller: _emailController,
-                        hintText: 'Email Address',
-                        keyboardType: TextInputType.emailAddress,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Email is required';
-                          }
-                          if (!value.contains('@') || !value.contains('.')) {
-                            return 'Enter a valid email address';
-                          }
-                          return null;
-                        },
-                      ),
-                      SizedBox(height: Responsive.screenHeight(context) * 0.02),
-
-                      // Password Input
-                      CraneInput(
-                        controller: _passwordController,
-                        hintText: 'Password',
-                        obscureText: true,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Password is required';
-                          }
-                          if (value.length < 6) {
-                            return 'Password must be at least 6 characters';
-                          }
-                          return null;
-                        },
-                      ),
-                      SizedBox(height: Responsive.screenHeight(context) * 0.01),
-
-                      // Forgot Password
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () {},
-                          child: Text(
-                            'Forgot Password?',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.secondary,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        child: const Text(
+                          'Sign Up',
+                          style: TextStyle(
+                            color: AppTheme.lavenderPrimary,
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
                           ),
                         ),
-                      ),
-                      SizedBox(height: Responsive.screenHeight(context) * 0.04),
-
-                      // Login Button Wrapper
-                      Center(
-                        child: CraneButton(
-                          text: 'Secure Login',
-                          isLoading: _isLoading,
-                          onPressed: _handleLogin,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'New to CranePro?',
-                            style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => const RegisterPage()),
-                              );
-                            },
-                            child: Text(
-                              'Create Account',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: theme.colorScheme.secondary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),
-                ),
+                ],
               ),
             ),
           ),

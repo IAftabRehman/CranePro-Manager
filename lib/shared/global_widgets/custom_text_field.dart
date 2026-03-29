@@ -4,6 +4,7 @@ class CraneInput extends StatelessWidget {
   final TextEditingController? controller;
   final FocusNode? focusNode;
   final String hintText;
+  final Color? hintTextColor;
   final bool obscureText;
   final TextInputType keyboardType;
   final String? Function(String?)? validator;
@@ -29,6 +30,7 @@ class CraneInput extends StatelessWidget {
     this.autofillHints,
     this.prefixIcon,
     this.suffixIcon,
+    this.hintTextColor,
     this.readOnly = false,
     this.onTap,
     this.prefixText,
@@ -56,11 +58,12 @@ class CraneInput extends StatelessWidget {
           style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white),
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle: theme.textTheme.labelSmall?.copyWith(color: Colors.white.withOpacity(0.5)),
-            prefixIcon: prefixIcon != null ? IconTheme(data: const IconThemeData(color: Colors.white70), child: prefixIcon!) : null,
+            fillColor: Colors.blue.withOpacity(0.5),
+            hintStyle: theme.textTheme.labelSmall?.copyWith(color: Colors.white, fontSize: 13),
+            prefixIcon: prefixIcon != null ? IconTheme(data: const IconThemeData(color: Colors.white), child: prefixIcon!) : null,
             prefixText: prefixText,
             prefixStyle: const TextStyle(color: Colors.white70),
-            suffixIcon: suffixIcon != null ? IconTheme(data: const IconThemeData(color: Colors.white70), child: suffixIcon!) : null,
+            suffixIcon: suffixIcon != null ? IconTheme(data: const IconThemeData(color: Colors.white), child: suffixIcon!) : null,
           ),
         );
       },

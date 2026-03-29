@@ -1,7 +1,9 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
 import 'package:extend_crane_services/features/auth/presentation/pages/login_page.dart';
-import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
+import 'package:extend_crane_services/features/auth/presentation/pages/admin_login_page.dart';
+import 'package:extend_crane_services/core/themes/app_theme.dart';
 
 class RoleSelectionPage extends StatefulWidget {
   const RoleSelectionPage({super.key});
@@ -11,164 +13,280 @@ class RoleSelectionPage extends StatefulWidget {
 }
 
 class _RoleSelectionPageState extends State<RoleSelectionPage> {
-  int? _selectedRoleIndex;
+  int _logoTapCount = 0;
+  DateTime? _lastLogoTap;
 
-  final List<Map<String, dynamic>> _roles = [
-    {
-      'title': 'Operator / Owner',
-      'subtitle': 'Full Access to manage quotes and operations.',
-      'icon': Icons.admin_panel_settings,
-    },
-    {
-      'title': 'Viewer / Client',
-      'subtitle': 'Read Only access to view quotes and status.',
-      'icon': Icons.visibility,
-    },
-    {
-      'title': 'Admin Role',
-      'subtitle': 'Management of users and overall system config.',
-      'icon': Icons.manage_accounts,
-    },
-  ];
+  void _handleLogoTap() {
+    final now = DateTime.now();
+    if (_lastLogoTap == null || now.difference(_lastLogoTap!) < const Duration(milliseconds: 500)) {
+      _logoTapCount++;
+    } else {
+      _logoTapCount = 1;
+    }
+    _lastLogoTap = now;
 
-  void _navigateToLogin() {
-    if (_selectedRoleIndex == null) return;
-    
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => LoginPage(
-          roleTitle: _roles[_selectedRoleIndex!]['title'],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRoleCard(int index, Map<String, dynamic> role) {
-    final isSelected = _selectedRoleIndex == index;
-    final theme = Theme.of(context);
-
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _selectedRoleIndex = index;
-        });
-        // Feedback delay
-        Future.delayed(const Duration(milliseconds: 300), _navigateToLogin);
-      },
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: isSelected ? theme.colorScheme.secondary.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? theme.colorScheme.secondary : Colors.white.withValues(alpha: 0.15),
-            width: isSelected ? 2 : 1,
-          ),
-          boxShadow: isSelected ? [
-            BoxShadow(
-              color: theme.colorScheme.secondary.withValues(alpha: 0.2),
-              blurRadius: 15,
-              offset: const Offset(0, 4),
-            ),
-          ] : null,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              role['icon'],
-              size: Responsive.scale(context, 32).clamp(24.0, 48.0),
-              color: isSelected ? theme.colorScheme.secondary : Colors.white70,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              role['title'],
-              style: theme.textTheme.displayLarge?.copyWith(
-                fontSize: Responsive.scale(context, 18).clamp(16.0, 24.0),
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              role['subtitle'],
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontSize: Responsive.scale(context, 12).clamp(11.0, 16.0),
-                color: Colors.white.withValues(alpha: 0.6),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    if (_logoTapCount >= 3) {
+      _logoTapCount = 0;
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const AdminLoginPage()),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return PremiumScaffold(
-      appBar: AppBar(
-        title: const Text('Select Your Role', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final isTablet = constraints.maxWidth > 600;
+    final isTablet = MediaQuery.of(context).size.width > 600;
 
-            return SingleChildScrollView(
-              padding: EdgeInsets.symmetric(
-                horizontal: Responsive.scale(context, 24).clamp(16.0, 48.0),
-                vertical: 24,
-              ),
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: AppTheme.lavenderBlueGradient,
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    'Welcome to CranePro',
-                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                          fontSize: Responsive.scale(context, 28).clamp(24.0, 40.0),
-                          color: Colors.white,
-                        ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: Responsive.screenHeight(context) * 0.02),
-                  Text(
-                    'Please select your role to continue onboarding.',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: Responsive.screenHeight(context) * 0.05),
-                  if (isTablet)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: _roles.asMap().entries.map((entry) {
-                        return Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                              right: entry.key != _roles.length - 1 ? 16.0 : 0.0,
-                            ),
-                            child: _buildRoleCard(entry.key, entry.value),
-                          ),
-                        );
-                      }).toList(),
-                    )
-                  else
-                    Column(
-                      children: _roles.asMap().entries.map((entry) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 16.0),
-                          child: _buildRoleCard(entry.key, entry.value),
-                        );
-                      }).toList(),
+                  GestureDetector(
+                    onTap: _handleLogoTap,
+                    child: Hero(
+                      tag: 'logo',
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        height: Responsive.scale(context, 100).clamp(80.0, 150.0),
+                        fit: BoxFit.contain,
+                      ),
                     ),
+                  ),
+                  
+                  const SizedBox(height: 30),
+                  
+                  // TASK 3: Typography
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      'Select Your Role to Continue',
+                      style: TextStyle(
+                        color: AppTheme.lavenderPrimary,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.1,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 30),
+                  
+                  // TASK 4: Responsive Layout (Side-by-side for Tablet, Stacked for Mobile)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1000),
+                      child: isTablet 
+                        ? Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: RoleCard3D(
+                                  title: 'OPERATOR',
+                                  subtitle: 'Heavy Equipment Management',
+                                  icon: Icons.precision_manufacturing,
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const LoginPage(roleTitle: 'Operator')),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 24),
+                              Expanded(
+                                child: RoleCard3D(
+                                  title: 'VIEWER / CLIENT',
+                                  subtitle: 'Real-time Project Tracking',
+                                  icon: Icons.visibility_rounded,
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const LoginPage(roleTitle: 'Viewer')),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        : Column(
+                            children: [
+                              RoleCard3D(
+                                title: 'OPERATOR',
+                                subtitle: 'Heavy Equipment Management',
+                                icon: Icons.precision_manufacturing,
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const LoginPage(roleTitle: 'Operator')),
+                                ),
+                              ),
+                              const SizedBox(height: 30),
+                              RoleCard3D(
+                                title: 'VIEWER / CLIENT',
+                                subtitle: 'Real-time Project Tracking',
+                                icon: Icons.visibility_rounded,
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const LoginPage(roleTitle: 'Viewer')),
+                                ),
+                              ),
+                            ],
+                          ),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
                 ],
               ),
-            );
-          },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class RoleCard3D extends StatefulWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const RoleCard3D({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  State<RoleCard3D> createState() => _RoleCard3DState();
+}
+
+class _RoleCard3DState extends State<RoleCard3D> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) {
+        setState(() => _isPressed = false);
+        widget.onTap();
+      },
+      onTapCancel: () => setState(() => _isPressed = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+        transform: Matrix4.translationValues(0, _isPressed ? 4.0 : 0.0, 0)
+          ..setEntry(3, 2, 0.001) // Depth perception
+          ..scale(_isPressed ? 0.95 : 1.0), // Scale effect
+        child: Container(
+          width: 200,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            // TASK: Sinking effect shadows
+            boxShadow: _isPressed 
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    offset: const Offset(0, 4),
+                    blurRadius: 10,
+                  ),
+                ] 
+              : [
+                  // Bottom Shadow (Deep)
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    offset: const Offset(0, 15),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                  ),
+                  // Side Shadow (Soft)
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    offset: const Offset(10, 5),
+                    blurRadius: 15,
+                  ),
+                  // Highlighting Effect (Inner white glow simulation)
+                  BoxShadow(
+                    color: Colors.white.withOpacity(0.4),
+                    offset: const Offset(-2, -2),
+                    blurRadius: 5,
+                  ),
+                ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.3),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Premium 3D-style icon container
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            offset: const Offset(0, 4),
+                            blurRadius: 8,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        widget.icon,
+                        size: 30,
+                        color: AppTheme.deepNavyBlue,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      widget.title,
+                      style: const TextStyle(
+                        color: AppTheme.deepNavyBlue,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.1,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      widget.subtitle,
+                      style: TextStyle(
+                        color: AppTheme.deepNavyBlue.withOpacity(0.7),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );

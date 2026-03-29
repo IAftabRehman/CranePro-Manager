@@ -55,11 +55,13 @@ class _MainDashboardState extends State<MainDashboard>
                 color: Colors.redAccent,
               ),
               SizedBox(width: 12),
-              Text(
-                'MIDNIGHT UPDATE',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  'MIDNIGHT UPDATE',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],

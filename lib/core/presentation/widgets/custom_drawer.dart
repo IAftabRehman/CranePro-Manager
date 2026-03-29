@@ -1,3 +1,5 @@
+import 'package:extend_crane_services/features/reports/presentation/pages/maintenance_log_viewer_page.dart';
+import 'package:extend_crane_services/features/reports/presentation/pages/work_history_viewer_page.dart';
 import 'package:extend_crane_services/features/settings/presentation/pages/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
@@ -6,6 +8,8 @@ import 'package:extend_crane_services/features/quotation/presentation/pages/add_
 import 'package:extend_crane_services/features/dashboard/presentation/pages/main_dashboard.dart';
 import 'package:extend_crane_services/features/maintenance/presentation/pages/maintenance_history_page.dart';
 import 'package:extend_crane_services/features/reports/presentation/pages/earnings_report_page.dart';
+
+import '../../../features/dashboard/presentation/pages/viewer_dashboard.dart';
 
 class CustomDrawer extends StatelessWidget {
   final String activeRoute;
@@ -34,15 +38,22 @@ class CustomDrawer extends StatelessWidget {
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                children: [
-                  _buildNavItem(context, Icons.dashboard_outlined, 'Dashboard', theme),
-                  _buildNavItem(context, Icons.person, 'Profile', theme),
-                  _buildNavItem(context, Icons.file_copy_outlined, 'Generate Quotation', theme),
-                  _buildNavItem(context, Icons.flash_on_outlined, 'Direct Work Entry', theme),
-                  _buildNavItem(context, Icons.build_circle_outlined, 'Maintenance & Expenses', theme),
-                  _buildNavItem(context, Icons.bar_chart_outlined, 'Reports & Analytics', theme),
-                  _buildNavItem(context, Icons.admin_panel_settings, 'Admin', theme, isAdminOnly: true),
-                ],
+                children: isViewer 
+                  ? [
+                      _buildNavItem(context, Icons.dashboard_outlined, 'Dashboard', theme),
+                      _buildNavItem(context, Icons.bar_chart_outlined, 'Work Reports', theme),
+                      _buildNavItem(context, Icons.build_circle_outlined, 'Maintenance', theme),
+                      _buildNavItem(context, Icons.person_outline, 'Business Profile', theme),
+                    ]
+                  : [
+                      _buildNavItem(context, Icons.dashboard_outlined, 'Dashboard', theme),
+                      _buildNavItem(context, Icons.person, 'Profile', theme),
+                      _buildNavItem(context, Icons.file_copy_outlined, 'Generate Quotation', theme),
+                      _buildNavItem(context, Icons.flash_on_outlined, 'Direct Work Entry', theme),
+                      _buildNavItem(context, Icons.build_circle_outlined, 'Maintenance & Expenses', theme),
+                      _buildNavItem(context, Icons.bar_chart_outlined, 'Reports & Analytics', theme),
+                      _buildNavItem(context, Icons.admin_panel_settings, 'Admin', theme, isAdminOnly: true),
+                    ],
               ),
             ),
 
@@ -99,21 +110,19 @@ class CustomDrawer extends StatelessWidget {
           Widget destination;
           switch (title) {
             case 'Dashboard':
-              destination = const MainDashboard();
+              destination = isViewer ? const ViewerDashboard() : const MainDashboard();
               break;
-            case 'Generate Quotation':
-              destination = const AddQuotationPage();
+            case 'Work Reports':
+              destination = const WorkHistoryViewerPage();
               break;
-            case 'Direct Work Entry':
-              // This is usually a modal, but for drawer menu we can link to a list or the modal trigger
-              // For now, let's keep it simple or redirect to dashboard with modal trigger
-              destination = const MainDashboard(); 
-              break;
-            case 'Maintenance & Expenses':
-              destination = const MaintenanceHistoryPage();
+            case 'Maintenance':
+              destination = const MaintenanceLogViewerPage();
               break;
             case 'Reports & Analytics':
               destination = const EarningsReportPage();
+              break;
+            case 'Maintenance & Expenses':
+              destination = const MaintenanceHistoryPage();
               break;
             case 'Profile':
               destination = SettingsPage(isViewer: isViewer);

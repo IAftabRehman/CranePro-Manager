@@ -17,59 +17,60 @@ class CraneButton extends StatelessWidget {
     this.icon,
   });
   @override
+  @override
   Widget build(BuildContext context) {
-    // Determine dimensions responsibly
-    final width = Responsive.screenWidth(context) * 0.8;
-    final height = Responsive.isMobile(context) ? 50.0 : 65.0;
+    final width = Responsive.screenWidth(context) * 0.5; // Thoda width barha di
+    final height = Responsive.isMobile(context) ? 60.0 : 70.0; // Height bhi thodi barha di
     final theme = Theme.of(context);
 
     Widget buttonChild = isLoading
         ? SizedBox(
-            height: 24,
-            width: 24,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.5,
-              valueColor: AlwaysStoppedAnimation<Color>(isOutlined ? theme.colorScheme.secondary : theme.colorScheme.primary),
-            ),
-          )
-        : FittedBox(
-            fit: BoxFit.scaleDown,
-            child: icon != null
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(icon, size: 22),
-                      const SizedBox(width: 10),
-                      Text(text),
-                    ],
-                  )
-                : Text(text),
-          );
+      child: CircularProgressIndicator(
+        strokeWidth: 3,
+        valueColor: AlwaysStoppedAnimation<Color>(
+            isOutlined ? theme.colorScheme.secondary : theme.colorScheme.primary),
+      ),
+    )
+        : Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        if (icon != null) ...[
+          Icon(icon, size: 26),
+          const SizedBox(width: 12),
+        ],
+        Text(
+          text,
+          style: TextStyle(
+            fontSize: 14,
+          ),
+        ),
+      ],
+    );
 
     return SizedBox(
       width: width,
       height: height,
       child: isOutlined
           ? OutlinedButton(
-              onPressed: isLoading ? null : onPressed,
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: theme.colorScheme.secondary, width: 2),
-                foregroundColor: theme.colorScheme.secondary,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                textStyle: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              child: buttonChild,
-            )
+        onPressed: isLoading ? null : onPressed,
+        style: OutlinedButton.styleFrom(
+          side: BorderSide(color: theme.colorScheme.secondary, width: 2.5),
+          foregroundColor: theme.colorScheme.secondary,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        ),
+        child: buttonChild,
+      )
           : ElevatedButton(
-              onPressed: isLoading ? null : onPressed,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.colorScheme.secondary,
-                foregroundColor: theme.colorScheme.primary,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                elevation: 4,
-              ),
-              child: buttonChild,
-            ),
+        onPressed: isLoading ? null : onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: theme.colorScheme.secondary,
+          foregroundColor: theme.colorScheme.primary,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          elevation: 8,
+          shadowColor: theme.colorScheme.secondary,
+        ),
+        child: buttonChild,
+      ),
     );
   }
 }

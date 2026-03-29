@@ -1,433 +1,384 @@
 import 'package:flutter/material.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
-import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
+import 'package:extend_crane_services/core/themes/app_theme.dart';
+import 'package:extend_crane_services/core/presentation/widgets/custom_drawer.dart';
+import 'dart:ui';
 
-import '../../../../core/presentation/widgets/custom_drawer.dart';
-
-class ViewerDashboard extends StatelessWidget {
+class ViewerDashboard extends StatefulWidget {
   const ViewerDashboard({super.key});
 
-  final bool _hasPendingReports = true; // Mocking pending status for viewer
+  @override
+  State<ViewerDashboard> createState() => _ViewerDashboardState();
+}
 
-  Widget _buildStatusCard(BuildContext context, String title, String value,
-      IconData icon, Color color) {
-    final theme = Theme.of(context);
-    return Card(
-      elevation: 0,
-      color: Colors.white.withValues(alpha: 0.05),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(
-            Responsive.scale(context, 16).clamp(16.0, 24.0)),
-        child: Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: color.withValues(alpha: 0.1),
-              radius: Responsive.scale(context, 24).clamp(20.0, 32.0),
-              child: Icon(icon, color: color,
-                  size: Responsive.scale(context, 24).clamp(20.0, 32.0)),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.white70,
-                      fontSize: Responsive.scale(context, 12).clamp(11.0, 14.0),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    value,
-                    style: theme.textTheme.displayLarge?.copyWith(
-                      fontSize: Responsive.scale(context, 18).clamp(16.0, 24.0),
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+class _ViewerDashboardState extends State<ViewerDashboard> with SingleTickerProviderStateMixin {
+  late AnimationController _alertController;
+  final bool _hasPendingQuotations = true; // Simulated: Check for yesterday's pending work
+
+  @override
+  void initState() {
+    super.initState();
+    _alertController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    )..repeat(reverse: true);
   }
 
-  Widget _buildTimelineStep(BuildContext context, String title, String subtitle,
-      bool isCompleted, bool isLast) {
-    final theme = Theme.of(context);
-    final color = isCompleted ? Colors.green : theme.colorScheme.tertiary
-        .withValues(alpha: 0.3);
-
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Column(
-            children: [
-              CircleAvatar(
-                radius: Responsive.scale(context, 12).clamp(10.0, 16.0),
-                backgroundColor: color,
-                child: isCompleted
-                    ? Icon(Icons.check,
-                    size: Responsive.scale(context, 16).clamp(14.0, 20.0),
-                    color: Colors.white)
-                    : const SizedBox.shrink(),
-              ),
-              if (!isLast)
-                Expanded(
-                  child: VerticalDivider(
-                    color: color,
-                    thickness: 2,
-                    width: 24,
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.displayLarge?.copyWith(
-                      fontSize: Responsive.scale(context, 16).clamp(14.0, 18.0),
-                      color: isCompleted ? theme.colorScheme.secondary : Colors
-                          .white24,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: isCompleted ? Colors.white70 : Colors.white12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDailyPulse(BuildContext context) {
-    final theme = Theme.of(context);
-    final fuelSpent = 1250;
-    final commission = 3500;
-    final isInactive = true; // Mocking inactivity > 24h
-
-    return Card(
-      elevation: 0,
-      color: Colors.white.withValues(alpha: 0.05),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-            color: Colors.redAccent.withValues(alpha: 0.3),)
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'DAILY PULSE',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                      color: Colors.white38,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2),
-                ),
-                if (isInactive)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.redAccent.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                            Icons.timer_outlined, color: Colors.redAccent,
-                            size: 12),
-                        const SizedBox(width: 4),
-                        const Text('LAZY METER: HIGH', style: TextStyle(
-                            color: Colors.redAccent,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                _buildPulseStat(context, 'WORK DONE', '✅ YES', Colors.green),
-                _buildVerticalDivider(),
-                _buildPulseStat(
-                    context, 'FUEL SPENT', 'AED $fuelSpent', Colors.orange),
-                _buildVerticalDivider(),
-                _buildPulseStat(context, 'EARNED', 'AED $commission',
-                    theme.colorScheme.secondary),
-              ],
-            ),
-            if (isInactive) ...[
-              const SizedBox(height: 16),
-              const Divider(color: Colors.white10),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(
-                      Icons.error_outline, color: Colors.redAccent, size: 16),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Operator has not reported for 28 hours!',
-                    style: TextStyle(color: Colors.redAccent,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600),
-                  ),
-                ],
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPulseStat(BuildContext context, String label, String value,
-      Color color) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(label, style: const TextStyle(
-              color: Colors.white38, fontSize: 9, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
-          Text(value, style: TextStyle(
-              color: color, fontSize: 13, fontWeight: FontWeight.w900)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildVerticalDivider() {
-    return Container(
-      height: 30,
-      width: 1,
-      color: Colors.white.withValues(alpha: 0.05),
-    );
-  }
-
-  Widget _buildTimelineSection(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      elevation: 0,
-      color: Colors.white.withValues(alpha: 0.05),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(
-            Responsive.scale(context, 20).clamp(16.0, 32.0)),
-        child: IgnorePointer( // Strictly view-only timeline
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Recent Job Progress',
-                style: theme.textTheme.displayLarge?.copyWith(
-                  fontSize: Responsive.scale(context, 18).clamp(16.0, 22.0),
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 24),
-              _buildTimelineStep(context, 'Quotation Sent',
-                  'Oct 24, 2026 - Approved by Client', true, false),
-              _buildTimelineStep(context, 'Crane Dispatched',
-                  'Oct 25, 2026 - 50 Ton Crane en route', true, false),
-              _buildTimelineStep(context, 'Work Started',
-                  'Oct 25, 2026 - Lifting operations ongoing', false, false),
-              _buildTimelineStep(
-                  context, 'Completed', 'Awaiting final sign-off', false, true),
-            ],
-          ),
-        ),
-      ),
-    );
+  @override
+  void dispose() {
+    _alertController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return PremiumScaffold(
-        drawer: const CustomDrawer(activeRoute: 'Dashboard', isViewer: true),
-        appBar: AppBar(
-          title: const Text('Dashboard', style: TextStyle(
-              color: Colors.white, fontWeight: FontWeight.bold)),
-          centerTitle: true,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(40),
-            child: Container(
-              width: double.infinity,
-              color: theme.colorScheme.secondary.withValues(alpha: 0.1),
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Center(
-                child: Text(
-                  'Guest / Viewer Mode',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.secondary,
-                  ),
-                ),
-              ),
-            ),
-          ),
+    return Scaffold(
+      drawer: const CustomDrawer(activeRoute: 'Dashboard', isViewer: true),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: AppTheme.lavenderBlueGradient,
         ),
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // TASK 3: Persistent Sticky Red Bar (Visible to Viewer)
-            if (_hasPendingReports)
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  color: Colors.red.withValues(alpha: 0.95),
-                  child: Row(
+        child: SafeArea(
+          child: Column(
+            children: [
+              // TASK 1: Header Integration
+              _buildAppBar(context),
+              
+              // TASK 3: Lazy Driver Alert System
+              if (_hasPendingQuotations) _buildFlashingAlert(),
+
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                  child: Column(
                     children: [
-                      const Icon(Icons.report_problem_rounded, color: Colors.white, size: 20),
-                      const SizedBox(width: 12),
-                      const Expanded(
-                        child: Text(
-                          'OPERATOR ALERT: Pending Report for Street Client',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
-                        ),
-                      ),
-                      const Icon(Icons.chevron_right_rounded, color: Colors.white70, size: 20),
+                      // TASK 2: 3D Summary Analytics
+                      _buildSummaryGrid(context),
+                      
+                      const SizedBox(height: 40),
+                      
+                      // TASK 4: Recent Activity Feed
+                      _buildTodayWorkFeed(context),
                     ],
                   ),
                 ),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-            Padding(
-              padding: EdgeInsets.only(top: _hasPendingReports ? 45 : 0),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final isTablet = constraints.maxWidth > 700;
-                  final paddingVal = Responsive.scale(context, 16).clamp(16.0, 32.0);
-
-                  // Summary Cards Items
-                  final summaryCards = [
-                    _buildStatusCard(context, 'Today\'s Work Status', 'Crane Active at Site A', Icons.engineering, Colors.blue),
-                    _buildStatusCard(context, 'Pending Quotations', '3 Awaiting', Icons.request_page, Colors.orange),
-                    _buildStatusCard(context, 'Completed Jobs', '14 This Week', Icons.task_alt, Colors.green),
-                  ];
-
-                  Widget summarySection;
-                  if (isTablet) {
-                    summarySection = Row(
-                      children: summaryCards.map((card) => Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.only(right: card == summaryCards.last ? 0 : 16.0),
-                          child: card,
-                        ),
-                      )).toList(),
-                    );
-                  } else {
-                    summarySection = Column(
-                      children: summaryCards.map((card) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
-                        child: card,
-                      )).toList(),
-                    );
-                  }
-
-                  if (isTablet) {
-                    // Side-by-side for iPad Pro
-                    return Padding(
-                      padding: EdgeInsets.all(paddingVal * 1.5),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            flex: 5,
-                            child: SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Overview',
-                                    style: theme.textTheme.displayLarge?.copyWith(fontSize: 22, color: Colors.white),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  summarySection,
-                                  const SizedBox(height: 24),
-                                  _buildDailyPulse(context),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 32),
-                          Expanded(
-                            flex: 4,
-                            child: SingleChildScrollView(
-                              child: _buildTimelineSection(context),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  // Mobile Column
-                  return SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          'Overview',
-                          style: theme.textTheme.displayLarge?.copyWith(
-                            fontSize: Responsive.scale(context, 20).clamp(18.0, 24.0),
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        _buildDailyPulse(context),
-                        const SizedBox(height: 16),
-                        summarySection,
-                        const SizedBox(height: 32),
-                        _buildTimelineSection(context),
-                      ],
-                    ),
-                  );
-                },
+  Widget _buildAppBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Builder(
+              builder: (context) => IconButton(
+                icon: const Icon(Icons.menu_rounded, color: AppTheme.deepNavyBlue, size: 32),
+                onPressed: () => Scaffold.of(context).openDrawer(),
               ),
             ),
-          ],
+          ),
+          Column(
+            children: [
+              Image.asset('assets/images/logo.png', height: 60),
+              const Text(
+                'LIVE MONITORING',
+                style: TextStyle(
+                  color: AppTheme.deepNavyBlue,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2.0,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFlashingAlert() {
+    return AnimatedBuilder(
+      animation: _alertController,
+      builder: (context, child) {
+        return Container(
+          width: double.infinity,
+          margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          decoration: BoxDecoration(
+            color: Color.lerp(Colors.redAccent, Colors.amber, _alertController.value)!.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.redAccent.withOpacity(0.3 * _alertController.value),
+                blurRadius: 10,
+                spreadRadius: 2,
+              )
+            ],
+          ),
+          child: const Row(
+            children: [
+              Icon(Icons.report_problem_rounded, color: Colors.white, size: 22),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'PENDING REPORT: Street Client @ Dubai Marina - Status not updated by Driver.',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSummaryGrid(BuildContext context) {
+    final bool isTablet = Responsive.isTablet(context);
+    
+    return Column(
+      children: [
+        if (!isTablet) ...[
+          _Viewer3DCard(
+            title: 'TOTAL GROSS INCOME',
+            value: 'AED 84,250',
+            icon: Icons.account_balance_wallet_rounded,
+            color: Colors.blueAccent,
+          ),
+          const SizedBox(height: 20),
+          _Viewer3DCard(
+            title: 'OPERATING EXPENSES',
+            value: 'AED 12,400',
+            icon: Icons.receipt_long_rounded,
+            color: Colors.redAccent,
+          ),
+          const SizedBox(height: 20),
+          _Viewer3DCard(
+            title: 'NET CASH FLOW (PROFIT)',
+            value: 'AED 71,850',
+            icon: Icons.trending_up_rounded,
+            color: Colors.greenAccent,
+            isProfit: true,
+          ),
+        ] else
+          Row(
+            children: [
+              Expanded(
+                child: _Viewer3DCard(
+                  title: 'GROSS INCOME',
+                  value: 'AED 84.2K',
+                  icon: Icons.account_balance_wallet_rounded,
+                  color: Colors.blueAccent,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _Viewer3DCard(
+                  title: 'EXPENSES',
+                  value: 'AED 12.4K',
+                  icon: Icons.receipt_long_rounded,
+                  color: Colors.redAccent,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _Viewer3DCard(
+                  title: 'NET PROFIT',
+                  value: 'AED 71.8K',
+                  icon: Icons.trending_up_rounded,
+                  color: Colors.greenAccent,
+                  isProfit: true,
+                ),
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+
+  Widget _buildTodayWorkFeed(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(left: 4, bottom: 16),
+          child: Text(
+            'TODAY\'S WORK ACTIVITY',
+            style: TextStyle(
+              color: AppTheme.deepNavyBlue,
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.0,
+            ),
+          ),
+        ),
+        _buildActivityTile('Own Crane 25T', 'AED 2,500', 'Business Bay, Dubai'),
+        _buildActivityTile('Commission Basis', 'AED 850', 'Deira, Dubai'),
+        _buildActivityTile('Own Crane 25T', 'AED 4,200', 'Jumeirah Village Circle'),
+        const SizedBox(height: 40),
+      ],
+    );
+  }
+
+  Widget _buildActivityTile(String type, String amount, String location) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppTheme.deepNavyBlue.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.precision_manufacturing_rounded, color: AppTheme.deepNavyBlue, size: 20),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  type,
+                  style: const TextStyle(
+                    color: AppTheme.deepNavyBlue,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                Text(
+                  location,
+                  style: TextStyle(
+                    color: AppTheme.deepNavyBlue.withOpacity(0.6),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            amount,
+            style: const TextStyle(
+              color: Color(0xFF1A237E),
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Viewer3DCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final IconData icon;
+  final Color color;
+  final bool isProfit;
+
+  const _Viewer3DCard({
+    required this.title,
+    required this.value,
+    required this.icon,
+    required this.color,
+    this.isProfit = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            offset: const Offset(0, 15),
+            blurRadius: 30,
+            spreadRadius: -5,
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.white.withOpacity(0.2)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: AppTheme.deepNavyBlue,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    Icon(icon, color: color.withOpacity(0.8), size: 24),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    color: AppTheme.deepNavyBlue,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                if (isProfit) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.trending_up, color: Colors.green, size: 16),
+                      const SizedBox(width: 4),
+                      Text(
+                        '+12% from last month',
+                        style: TextStyle(
+                          color: Colors.green.shade800,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
         ),
       ),
     );
