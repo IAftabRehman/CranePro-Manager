@@ -4,6 +4,7 @@ import 'package:extend_crane_services/core/utils/responsive.dart';
 import 'package:extend_crane_services/features/auth/presentation/pages/login_page.dart';
 import 'package:extend_crane_services/features/auth/presentation/pages/admin_login_page.dart';
 import 'package:extend_crane_services/core/themes/app_theme.dart';
+import 'package:flutter/services.dart';
 
 class RoleSelectionPage extends StatefulWidget {
   const RoleSelectionPage({super.key});
@@ -12,21 +13,23 @@ class RoleSelectionPage extends StatefulWidget {
   State<RoleSelectionPage> createState() => _RoleSelectionPageState();
 }
 
+
 class _RoleSelectionPageState extends State<RoleSelectionPage> {
   int _logoTapCount = 0;
   DateTime? _lastLogoTap;
 
   void _handleLogoTap() {
     final now = DateTime.now();
-    if (_lastLogoTap == null || now.difference(_lastLogoTap!) < const Duration(milliseconds: 500)) {
-      _logoTapCount++;
-    } else {
+    if (_lastLogoTap == null || now.difference(_lastLogoTap!) > const Duration(milliseconds: 1500)) {
       _logoTapCount = 1;
+    } else {
+      _logoTapCount++;
     }
     _lastLogoTap = now;
 
-    if (_logoTapCount >= 3) {
+    if (_logoTapCount == 3) { // Exactly 3 taps
       _logoTapCount = 0;
+      HapticFeedback.mediumImpact(); // Subtle vibration for Admin
       Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const AdminLoginPage()),

@@ -27,9 +27,9 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
   }
 
   void _handleLogin() async {
-    if (_formKey.currentState!.validate()) {
+    if (!_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      
+
       // Simulating Admin Authentication
       await Future.delayed(const Duration(seconds: 2));
       
@@ -51,69 +51,106 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return PremiumScaffold(
-      appBar: AppBar(
-        title: const Text('Admin Secure Portal', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white24),
+    return Scaffold(
+      backgroundColor: const Color(0xFF0F0F0F), // Deep Restricted Black
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF0F0F0F),
+              const Color(0xFF1A237E).withValues(alpha: 0.2), // Subtle Navy hint
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(32.0),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 400),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Restricted Icon
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.withValues(alpha: 0.05),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.amber.withValues(alpha: 0.2), width: 2),
+                        ),
+                        child: const Icon(Icons.lock_person_rounded, size: 70, color: Colors.amber),
                       ),
-                      child: const Icon(Icons.shield_rounded, size: 64, color: AppTheme.accentGold),
-                    ),
-                    const SizedBox(height: 32),
-                    const Text(
-                      'Admin Authentication',
-                      style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Restricted Area. Authorized Access Only.',
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
-                    ),
-                    const SizedBox(height: 48),
-                    CraneInput(
-                      controller: _emailController,
-                      hintText: 'Admin Email',
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (v) => v != null && v.contains('@') ? null : 'Valid email required',
-                    ),
-                    const SizedBox(height: 16),
-                    CraneInput(
-                      controller: _passwordController,
-                      hintText: 'Security Token',
-                      obscureText: true,
-                      validator: (v) => v != null && v.length >= 6 ? null : 'Token too short',
-                    ),
-                    const SizedBox(height: 48),
-                    CraneButton(
-                      text: 'Authenticate',
-                      onPressed: _handleLogin,
-                      isLoading: _isLoading,
-                    ),
-                    const SizedBox(height: 24),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Return to App', style: TextStyle(color: Colors.white54)),
-                    ),
-                  ],
+                      const SizedBox(height: 40),
+                      
+                      const Text(
+                        'ADMINISTRATOR ACCESS',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 2.0,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'RESTRICTED TERMINAL - AUTHORIZED ONLY',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.5),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                      const SizedBox(height: 60),
+
+                      CraneInput(
+                        controller: _emailController,
+                        hintText: 'Admin Email',
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (v) => v != null && v.contains('@') ? null : 'Valid email required',
+                      ),
+                      const SizedBox(height: 20),
+                      CraneInput(
+                        controller: _passwordController,
+                        hintText: 'Security Token',
+                        obscureText: true,
+                        validator: (v) => v != null && v.length >= 6 ? null : 'Token too short',
+                      ),
+                      
+                      const SizedBox(height: 60),
+
+                      SizedBox(
+                        width: double.infinity,
+                        child: CraneButton(
+                          text: 'AUTHENTICATE',
+                          onPressed: _handleLogin,
+                          isLoading: _isLoading,
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 32),
+                      
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(
+                          'RETURN TO PUBLIC AREA',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.3),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

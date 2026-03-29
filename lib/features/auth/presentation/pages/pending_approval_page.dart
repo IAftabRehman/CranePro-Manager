@@ -14,7 +14,8 @@ class PendingApprovalPage extends StatefulWidget {
 class _PendingApprovalPageState extends State<PendingApprovalPage> with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
-  Timer? _statusTimer;
+  // Simulated real-time status stream
+  final StreamController<Map<String, dynamic>> _statusController = StreamController<Map<String, dynamic>>.broadcast();
 
   @override
   void initState() {
@@ -28,19 +29,13 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> with SingleTi
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
-    // TASK 3: Real-Time Sync Simulation
-    // In a real app, this would be a Firebase Auth/Firestore listener
-    _statusTimer = Timer(const Duration(seconds: 8), () {
+    // Simulate Admin Response after 10 seconds
+    Timer(const Duration(seconds: 10), () {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Access Granted! Bahadar Khan approved your request.'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ViewerDashboard()),
-        );
+        _statusController.add({
+          'isAdminApproved': true,
+          'rejectionReason': null,
+        });
       }
     });
   }
@@ -48,7 +43,7 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> with SingleTi
   @override
   void dispose() {
     _pulseController.dispose();
-    _statusTimer?.cancel();
+    _statusController.close();
     super.dispose();
   }
 
@@ -69,69 +64,101 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> with SingleTi
           decoration: const BoxDecoration(
             gradient: AppTheme.lavenderBlueGradient,
           ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // TASK 1: Animated Pulse Logo
-                  ScaleTransition(
-                    scale: _pulseAnimation,
-                    child: Hero(
-                      tag: 'logo',
-                      child: Image.asset(
-                        'assets/images/logo.png',
-                        height: 120,
-                        fit: BoxFit.contain,
+          child: StreamBuilder<Map<String, dynamic>>(
+            stream: _statusController.stream,
+            builder: (context, snapshot) {
+              if (snapshot.hasData && snapshot.data!['isAdminApproved'] == true) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => const ViewerDashboard()),
+                  );
+                });
+              }
+
+              final rejectionReason = snapshot.data?['rejectionReason'];
+
+              return SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ScaleTransition(
+                        scale: _pulseAnimation,
+                        child: Hero(
+                          tag: 'logo',
+                          child: Image.asset(
+                            'assets/images/logo.png',
+                            height: 120,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 48),
-                  
-                  const Text(
-                    'Verification in Progress',
-                    style: TextStyle(
-                      color: AppTheme.deepNavyBlue,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w900,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  const Text(
-                    'Bahadar Khan is reviewing your request. You will be granted access once approved.',
-                    style: TextStyle(
-                      color: AppTheme.deepNavyBlue,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  
-                  const SizedBox(height: 60),
+                      const SizedBox(height: 48),
+                      
+                      Text(
+                        rejectionReason != null ? 'Access Rejected' : 'Verification in Progress',
+                        style: const TextStyle(
+                          color: AppTheme.deepNavyBlue,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w900,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      if (rejectionReason != null)
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                          ),
+                          child: Text(
+                            'REASON: $rejectionReason',
+                            style: const TextStyle(
+                              color: Colors.redAccent,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        )
+                      else
+                        const Text(
+                          'Bahadar Khan is reviewing your request. You will be granted access once approved.',
+                          style: TextStyle(
+                            color: AppTheme.deepNavyBlue,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      
+                      const SizedBox(height: 60),
 
-                  // TASK 1: Custom Pulse Progress
-                  const SizedBox(
-                    width: 40,
-                    height: 40,
-                    child: CircularProgressIndicator(
-                      color: AppTheme.deepNavyBlue,
-                      strokeWidth: 3,
-                    ),
-                  ),
+                      if (rejectionReason == null)
+                        const SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: CircularProgressIndicator(
+                            color: AppTheme.deepNavyBlue,
+                            strokeWidth: 3,
+                          ),
+                        ),
 
-                  const SizedBox(height: 60),
-                  
-                  // TASK 4: Premium Logout Button
-                  CraneButton(
-                    text: 'Logout',
-                    onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                      const SizedBox(height: 60),
+                      
+                      CraneButton(
+                        text: rejectionReason != null ? 'Back to Signup' : 'Logout',
+                        onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           ),
         ),
       ),
