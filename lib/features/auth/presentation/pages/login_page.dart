@@ -1,27 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_button.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_text_field.dart';
+import 'package:extend_crane_services/core/themes/app_theme.dart';
 import 'package:extend_crane_services/features/auth/presentation/pages/register_page.dart';
 import 'package:extend_crane_services/features/auth/presentation/pages/forgot_password_page.dart';
-import 'package:extend_crane_services/features/dashboard/presentation/pages/main_dashboard.dart';
-import 'package:extend_crane_services/features/dashboard/presentation/pages/viewer_dashboard.dart';
-import 'package:extend_crane_services/features/admin/presentation/pages/admin_control_page.dart';
-import 'package:extend_crane_services/core/themes/app_theme.dart';
+import 'package:extend_crane_services/features/auth/presentation/controllers/login_notifier.dart';
 
-class LoginPage extends StatefulWidget {
+class LoginPage extends ConsumerStatefulWidget {
   final String roleTitle;
 
   const LoginPage({super.key, required this.roleTitle});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends ConsumerState<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -30,38 +28,37 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void _handleLogin() async {
-    if (_formKey.currentState!.validate()) return;
-
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 2));
-    if (mounted) {
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login Successful!')),
-      );
-
-      if (widget.roleTitle.contains('Viewer')) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const ViewerDashboard()),
+  void _handleLogin() {
+    if (!_formKey.currentState!.validate()) return;
+    ref.read(loginProvider.notifier).login(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
         );
-      } else if (widget.roleTitle.contains('Admin')) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const AdminControlPage()),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const MainDashboard()),
-        );
-      }
-    }
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AsyncValue<void>>(loginProvider, (previous, next) {
+      next.when(
+        data: (_) {
+          // AuthWrapper in main.dart will automatically handle the navigation
+          // based on the successfully changed authState and userProfile.
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Login Successful!')),
+          );
+        },
+        error: (err, _) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('$err'),
+              backgroundColor: AppTheme.deepNavyBlue,
+            ),
+          );
+        },
+        loading: () {},
+      );
+    });
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -150,7 +147,7 @@ class _LoginPageState extends State<LoginPage> {
                   CraneButton(
                     text: 'Login',
                     onPressed: _handleLogin,
-                    isLoading: _isLoading,
+                    isLoading: ref.watch(loginProvider).isLoading,
                   ),
                   
                   const SizedBox(height: 24),

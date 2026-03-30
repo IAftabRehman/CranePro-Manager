@@ -226,8 +226,17 @@ class _AddQuotationPageState extends State<AddQuotationPage> {
                       const SizedBox(height: 30),
                       ElevatedButton(
                         onPressed: () {
-                          final data = QuotationData(
+                          final data = QuotationModel(
+                            quotationId: DateTime.now().millisecondsSinceEpoch.toString(),
+                            operatorId: 'mock_operator_id', // TODO: Get from Auth
                             clientName: _clientController.text,
+                            siteLocation: _entries.isNotEmpty ? _entries.first.location : '',
+                            serviceType: _entries.isNotEmpty ? _entries.first.serviceName : '',
+                            totalAmount: _totalPrice,
+                            balanceAmount: _totalPrice,
+                            createdAt: DateTime.now(),
+                            updatedAt: DateTime.now(),
+                            workDate: _entries.isNotEmpty ? _entries.first.startDate : DateTime.now(),
                             entries: _entries,
                             terms: _terms.where((t) => t.isNotEmpty).toList(),
                           );

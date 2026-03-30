@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/themes/app_theme.dart';
-import 'features/auth/presentation/pages/splash_screen.dart';
+import 'features/auth/presentation/widgets/auth_wrapper.dart';
 
-void main() {
+import 'package:firebase_core/firebase_core.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(
     const ProviderScope(
       child: CraneProManagerApp(),
@@ -21,7 +25,7 @@ class CraneProManagerApp extends StatelessWidget {
       title: 'CranePro Manager',
       themeMode: ThemeMode.light,
       theme: AppTheme.lightTheme,
-      home: const SplashScreen(),
+      home: const AuthWrapper(),
       debugShowCheckedModeBanner: false,
     );
   }

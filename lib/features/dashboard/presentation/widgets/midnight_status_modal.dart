@@ -5,7 +5,7 @@ import 'package:extend_crane_services/features/quotation/data/models/quotation_m
 
 class MidnightStatusModal extends StatefulWidget {
   final DateTime date;
-  final QuotationData quotation;
+  final QuotationModel quotation;
 
   const MidnightStatusModal({
     super.key,

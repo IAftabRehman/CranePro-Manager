@@ -1,57 +1,69 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_button.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_text_field.dart';
 import 'package:extend_crane_services/core/themes/app_theme.dart';
 import 'package:extend_crane_services/features/auth/presentation/pages/pending_approval_page.dart';
+import 'package:extend_crane_services/features/auth/presentation/controllers/signup_notifier.dart';
 
-class RegisterPage extends StatefulWidget {
+class RegisterPage extends ConsumerStatefulWidget {
   final String roleTitle;
   const RegisterPage({super.key, required this.roleTitle});
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  ConsumerState<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  
-  bool _isLoading = false;
+  final _phoneController = TextEditingController();
 
   @override
   void dispose() {
     _fullNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
-  void _handleRegister() async {
+  void _handleRegister() {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
-    
-    // TASK 4: Admin Notification Simulation
-    // In a real app, this would be a Firebase Cloud Function or similar
-    debugPrint('NOTIFY ADMIN: New ${widget.roleTitle} Request: ${_fullNameController.text} is waiting for approval.');
-    
-    await Future.delayed(const Duration(seconds: 2));
-    
-    if (mounted) {
-      setState(() => _isLoading = false);
-      
-      // TASK 2: Admin Approval Logic - Navigate to Pending Screen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const PendingApprovalPage()),
-      );
-    }
+    ref.read(signupProvider.notifier).signUp(
+          fullName: _fullNameController.text,
+          email: _emailController.text,
+          password: _passwordController.text,
+          phoneNumber: _phoneController.text,
+          role: widget.roleTitle.toLowerCase().contains('admin') ? 'viewer' : widget.roleTitle.toLowerCase(),
+        );
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AsyncValue<void>>(signupProvider, (previous, next) {
+      next.when(
+        data: (_) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const PendingApprovalPage()),
+          );
+        },
+        error: (err, _) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('$err'),
+              backgroundColor: AppTheme.deepNavyBlue,
+            ),
+          );
+        },
+        loading: () {},
+      );
+    });
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -141,13 +153,23 @@ class _RegisterPageState extends State<RegisterPage> {
                     prefixIcon: const Icon(Icons.lock_outline),
                     validator: (v) => v != null && v.length >= 6 ? null : 'Min 6 characters required',
                   ),
+
+                  const SizedBox(height: 16),
+
+                  CraneInput(
+                    controller: _phoneController,
+                    hintText: 'Phone Number',
+                    keyboardType: TextInputType.phone,
+                    prefixIcon: const Icon(Icons.phone_outlined),
+                    validator: (v) => v != null && v.isNotEmpty ? null : 'Phone is required',
+                  ),
                   
                   const SizedBox(height: 48),
                   
                   CraneButton(
                     text: 'SignUp',
                     onPressed: _handleRegister,
-                    isLoading: _isLoading,
+                    isLoading: ref.watch(signupProvider).isLoading,
                   ),
                   
                   const SizedBox(height: 24),

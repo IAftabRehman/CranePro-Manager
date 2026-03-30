@@ -11,7 +11,7 @@ import 'package:extend_crane_services/features/quotation/data/models/quotation_m
 import 'package:extend_crane_services/features/settings/presentation/providers/business_profile_provider.dart';
 
 class PdfPreviewPage extends ConsumerStatefulWidget {
-  final QuotationData data;
+  final QuotationModel data;
 
   const PdfPreviewPage({super.key, required this.data});
 

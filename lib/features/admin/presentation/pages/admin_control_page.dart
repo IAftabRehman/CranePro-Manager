@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:extend_crane_services/core/themes/app_theme.dart';
-import 'package:extend_crane_services/core/data/models/user_model.dart';
+import 'package:extend_crane_services/features/auth/data/models/user_model.dart';
 import 'package:extend_crane_services/features/admin/presentation/widgets/admin_approval_view.dart';
 import 'package:extend_crane_services/features/admin/presentation/widgets/admin_directory_view.dart';
 import 'package:extend_crane_services/features/admin/presentation/pages/admin_financial_dashboard.dart';
@@ -28,8 +28,8 @@ class _AdminControlPageState extends State<AdminControlPage> {
       id: '1',
       fullName: 'Bahadar Khan',
       email: 'bahadar@cranepro.ae',
-      role: UserRole.admin,
-      signupDate: DateTime.now().subtract(const Duration(days: 60)),
+      role: 'admin',
+      createdAt: DateTime.now().subtract(const Duration(days: 60)),
       isAdminApproved: true,
       lastLogin: DateTime.now().subtract(const Duration(hours: 1)),
     ),
@@ -37,8 +37,8 @@ class _AdminControlPageState extends State<AdminControlPage> {
       id: '2',
       fullName: 'Aftab Rehman',
       email: 'aftab@cranepro.ae',
-      role: UserRole.operator,
-      signupDate: DateTime.now().subtract(const Duration(days: 30)),
+      role: 'operator',
+      createdAt: DateTime.now().subtract(const Duration(days: 30)),
       isAdminApproved: true,
       totalQuotations: 124,
       lastLogin: DateTime.now().subtract(const Duration(hours: 2)),
@@ -47,24 +47,24 @@ class _AdminControlPageState extends State<AdminControlPage> {
       id: '3',
       fullName: 'John Doe',
       email: 'john@alfajr.com',
-      role: UserRole.operator,
-      signupDate: DateTime.now().subtract(const Duration(hours: 5)),
+      role: 'operator',
+      createdAt: DateTime.now().subtract(const Duration(hours: 5)),
       isAdminApproved: false,
     ),
     UserModel(
       id: '4',
       fullName: 'Jane Smith',
       email: 'jane@emaar.ae',
-      role: UserRole.viewer,
-      signupDate: DateTime.now().subtract(const Duration(hours: 2)),
+      role: 'viewer',
+      createdAt: DateTime.now().subtract(const Duration(hours: 2)),
       isAdminApproved: false,
     ),
     UserModel(
       id: '5',
       fullName: 'Ali Qasim',
       email: 'ali@binladin.com',
-      role: UserRole.viewer,
-      signupDate: DateTime.now().subtract(const Duration(days: 10)),
+      role: 'viewer',
+      createdAt: DateTime.now().subtract(const Duration(days: 10)),
       isAdminApproved: true,
       lastLogin: DateTime.now().subtract(const Duration(hours: 24)),
     ),

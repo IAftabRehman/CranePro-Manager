@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:extend_crane_services/core/themes/app_theme.dart';
-import 'package:extend_crane_services/core/data/models/user_model.dart';
+import 'package:extend_crane_services/features/auth/data/models/user_model.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_button.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_text_field.dart';
 
@@ -39,7 +39,7 @@ class _AdminDirectoryViewState extends State<AdminDirectoryView> {
 
   List<UserModel> _getFilteredUsers(UserRole role) {
     return widget.users.where((u) {
-      final matchesRole = u.role == role;
+      final matchesRole = u.role == role.name;
       final matchesSearch =
           u.fullName.toLowerCase().contains(_searchQuery) ||
           u.email.toLowerCase().contains(_searchQuery);
@@ -298,7 +298,7 @@ class _AdminDirectoryViewState extends State<AdminDirectoryView> {
                 ),
               ),
               Text(
-                user.role.name.toUpperCase(),
+                user.role.toUpperCase(),
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w800,
@@ -311,10 +311,10 @@ class _AdminDirectoryViewState extends State<AdminDirectoryView> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _buildStatItem(
-                    user.role == UserRole.operator
+                    user.role == UserRole.operator.name
                         ? 'TOTAL QUOTATIONS'
                         : 'LAST LOGIN',
-                    user.role == UserRole.operator
+                    user.role == UserRole.operator.name
                         ? '${user.totalQuotations}'
                         : (user.lastLogin != null
                               ? '${user.lastLogin!.day}/${user.lastLogin!.month}'

@@ -109,7 +109,18 @@ class _MainDashboardState extends State<MainDashboard>
                   backgroundColor: Colors.transparent,
                   builder: (_) => MidnightStatusModal(
                     date: DateTime.now().subtract(const Duration(days: 1)),
-                    quotation: QuotationData(clientName: 'Street Client'),
+                    quotation: QuotationModel(
+                      quotationId: 'mock_1',
+                      operatorId: 'mock_op',
+                      clientName: 'Street Client',
+                      siteLocation: 'Musaffah M-27',
+                      serviceType: '50 Ton Crane',
+                      totalAmount: 1000,
+                      balanceAmount: 1000,
+                      createdAt: DateTime.now(),
+                      updatedAt: DateTime.now(),
+                      workDate: DateTime.now(),
+                    ),
                   ),
                 );
               },
@@ -535,8 +546,17 @@ class _MainDashboardState extends State<MainDashboard>
                                           date: DateTime.now().subtract(
                                             const Duration(days: 1),
                                           ),
-                                          quotation: QuotationData(
+                                          quotation: QuotationModel(
+                                            quotationId: 'mock_1',
+                                            operatorId: 'mock_op',
                                             clientName: 'Street Client',
+                                            siteLocation: 'Musaffah M-27',
+                                            serviceType: '50 Ton Crane',
+                                            totalAmount: 1000,
+                                            balanceAmount: 1000,
+                                            createdAt: DateTime.now(),
+                                            updatedAt: DateTime.now(),
+                                            workDate: DateTime.now(),
                                           ),
                                         ),
                                       );

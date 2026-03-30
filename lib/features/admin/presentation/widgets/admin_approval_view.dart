@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:extend_crane_services/core/themes/app_theme.dart';
-import 'package:extend_crane_services/core/data/models/user_model.dart';
+import 'package:extend_crane_services/features/auth/data/models/user_model.dart';
 
 class AdminApprovalView extends StatefulWidget {
   final List<UserModel> users;
@@ -154,7 +154,7 @@ class _AnimatedUserCardState extends State<AnimatedUserCard> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            widget.user.role.toString().split('.').last.toUpperCase(),
+                            widget.user.role.toUpperCase(),
                             style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.0),
                           ),
                         ),
@@ -172,7 +172,9 @@ class _AnimatedUserCardState extends State<AnimatedUserCard> {
                               style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.5), fontSize: 9, fontWeight: FontWeight.w900),
                             ),
                             Text(
-                              '${widget.user.signupDate.day}/${widget.user.signupDate.month}/${widget.user.signupDate.year}',
+                              widget.user.createdAt != null 
+                                ? '${widget.user.createdAt!.day}/${widget.user.createdAt!.month}/${widget.user.createdAt!.year}'
+                                : 'N/A',
                               style: const TextStyle(color: AppTheme.deepNavyBlue, fontSize: 13, fontWeight: FontWeight.w800),
                             ),
                           ],

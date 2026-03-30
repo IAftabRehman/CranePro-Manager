@@ -1,14 +1,18 @@
-enum UserRole { operator, viewer, admin }
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+enum UserRole { admin, operator, viewer }
 
 class UserModel {
   final String id;
   final String fullName;
   final String email;
-  final UserRole role;
-  final DateTime signupDate;
+  final String role; // 'admin', 'operator', 'viewer'
   final bool isAdminApproved;
   final bool isBlocked;
   final String? rejectionReason;
+  final String? fcmToken;
+  final DateTime? createdAt;
+  final String? phoneNumber;
   final int totalQuotations;
   final DateTime? lastLogin;
 
@@ -17,30 +21,40 @@ class UserModel {
     required this.fullName,
     required this.email,
     required this.role,
-    required this.signupDate,
     this.isAdminApproved = false,
     this.isBlocked = false,
     this.rejectionReason,
+    this.fcmToken,
+    this.createdAt,
+    this.phoneNumber,
     this.totalQuotations = 0,
     this.lastLogin,
   });
 
   UserModel copyWith({
+    String? fullName,
+    String? email,
+    String? role,
     bool? isAdminApproved,
     bool? isBlocked,
     String? rejectionReason,
+    String? fcmToken,
+    DateTime? createdAt,
+    String? phoneNumber,
     int? totalQuotations,
     DateTime? lastLogin,
   }) {
     return UserModel(
       id: id,
-      fullName: fullName,
-      email: email,
-      role: role,
-      signupDate: signupDate,
+      fullName: fullName ?? this.fullName,
+      email: email ?? this.email,
+      role: role ?? this.role,
       isAdminApproved: isAdminApproved ?? this.isAdminApproved,
       isBlocked: isBlocked ?? this.isBlocked,
       rejectionReason: rejectionReason ?? this.rejectionReason,
+      fcmToken: fcmToken ?? this.fcmToken,
+      createdAt: createdAt ?? this.createdAt,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
       totalQuotations: totalQuotations ?? this.totalQuotations,
       lastLogin: lastLogin ?? this.lastLogin,
     );
@@ -51,13 +65,15 @@ class UserModel {
       'id': id,
       'fullName': fullName,
       'email': email,
-      'role': role.toString().split('.').last,
-      'signupDate': signupDate.toIso8601String(),
+      'role': role,
       'isAdminApproved': isAdminApproved,
       'isBlocked': isBlocked,
       'rejectionReason': rejectionReason,
+      'fcmToken': fcmToken,
+      'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : FieldValue.serverTimestamp(),
+      'phoneNumber': phoneNumber,
       'totalQuotations': totalQuotations,
-      'lastLogin': lastLogin?.toIso8601String(),
+      'lastLogin': lastLogin != null ? Timestamp.fromDate(lastLogin!) : null,
     };
   }
 
@@ -66,16 +82,15 @@ class UserModel {
       id: map['id'] ?? '',
       fullName: map['fullName'] ?? '',
       email: map['email'] ?? '',
-      role: UserRole.values.firstWhere(
-        (e) => e.toString().split('.').last == map['role'],
-        orElse: () => UserRole.viewer,
-      ),
-      signupDate: DateTime.parse(map['signupDate'] ?? DateTime.now().toIso8601String()),
+      role: map['role'] ?? 'viewer',
       isAdminApproved: map['isAdminApproved'] ?? false,
       isBlocked: map['isBlocked'] ?? false,
       rejectionReason: map['rejectionReason'],
+      fcmToken: map['fcmToken'],
+      createdAt: (map['createdAt'] as Timestamp?)?.toDate(),
+      phoneNumber: map['phoneNumber'],
       totalQuotations: map['totalQuotations'] ?? 0,
-      lastLogin: map['lastLogin'] != null ? DateTime.parse(map['lastLogin']) : null,
+      lastLogin: (map['lastLogin'] as Timestamp?)?.toDate(),
     );
   }
 }
