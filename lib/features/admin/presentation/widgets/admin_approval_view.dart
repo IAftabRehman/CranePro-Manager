@@ -87,7 +87,7 @@ class _AnimatedUserCardState extends State<AnimatedUserCard> {
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = widget.user.isAdminApproved ? Colors.green : (widget.user.rejectionReason != null ? Colors.red : Colors.orange);
+    final statusColor = widget.user.isAdminApproved ? Colors.green : (widget.user.rejectionReason != null ? Colors.red : Colors.yellow);
     
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),

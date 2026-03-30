@@ -40,8 +40,9 @@ class _AdminDirectoryViewState extends State<AdminDirectoryView> {
   List<UserModel> _getFilteredUsers(UserRole role) {
     return widget.users.where((u) {
       final matchesRole = u.role == role;
-      final matchesSearch = u.fullName.toLowerCase().contains(_searchQuery) ||
-                            u.email.toLowerCase().contains(_searchQuery);
+      final matchesSearch =
+          u.fullName.toLowerCase().contains(_searchQuery) ||
+          u.email.toLowerCase().contains(_searchQuery);
       return matchesRole && matchesSearch && u.isAdminApproved;
     }).toList();
   }
@@ -52,22 +53,30 @@ class _AdminDirectoryViewState extends State<AdminDirectoryView> {
       length: 2,
       child: Column(
         children: [
+          const SizedBox(height: 20),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: CraneInput(
-              controller: _searchController,
-              hintText: 'Search by Name or Email...',
-              prefixIcon: const Icon(Icons.search, color: AppTheme.deepNavyBlue),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+            child: Text(
+              "Check History\nOf Any Operator or Viewer",
+              style: TextStyle(
+                color: Color(0xFFFFB300),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
             ),
           ),
           const TabBar(
             tabs: [
-              Tab(text: 'OPERATORS'),
-              Tab(text: 'VIEWERS'),
+              Tab(text: 'Operators'),
+              Tab(text: 'Viewers'),
             ],
-            labelColor: AppTheme.deepNavyBlue,
-            indicatorColor: AppTheme.deepNavyBlue,
-            labelStyle: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.2),
+            labelColor: Colors.black,
+            indicatorColor: Colors.black,
+            labelStyle: TextStyle(
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.2,
+            ),
           ),
           Expanded(
             child: TabBarView(
@@ -89,7 +98,10 @@ class _AdminDirectoryViewState extends State<AdminDirectoryView> {
       return Center(
         child: Text(
           'No ${role.name}s Found',
-          style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.5), fontWeight: FontWeight.w800),
+          style: TextStyle(
+            color: AppTheme.deepNavyBlue.withValues(alpha: 0.5),
+            fontWeight: FontWeight.w800,
+          ),
         ),
       );
     }
@@ -98,7 +110,8 @@ class _AdminDirectoryViewState extends State<AdminDirectoryView> {
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.all(24),
       itemCount: filteredUsers.length,
-      itemBuilder: (context, index) => _buildDirectoryTile(filteredUsers[index]),
+      itemBuilder: (context, index) =>
+          _buildDirectoryTile(filteredUsers[index]),
     );
   }
 
@@ -119,7 +132,9 @@ class _AdminDirectoryViewState extends State<AdminDirectoryView> {
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 24),
         decoration: BoxDecoration(
-          color: user.isBlocked ? Colors.green.shade900 : Colors.orange.shade900,
+          color: user.isBlocked
+              ? Colors.green.shade900
+              : Colors.orange.shade900,
           borderRadius: BorderRadius.circular(24),
         ),
         child: Icon(
@@ -134,10 +149,18 @@ class _AdminDirectoryViewState extends State<AdminDirectoryView> {
           return await showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('Delete User?', style: TextStyle(fontWeight: FontWeight.w900)),
-              content: Text('Are you sure you want to permanently remove ${user.fullName}?'),
+              title: const Text(
+                'Delete User?',
+                style: TextStyle(fontWeight: FontWeight.w900),
+              ),
+              content: Text(
+                'Are you sure you want to permanently remove ${user.fullName}?',
+              ),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('CANCEL')),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('CANCEL'),
+                ),
                 ElevatedButton(
                   onPressed: () => Navigator.pop(context, true),
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -175,7 +198,11 @@ class _AdminDirectoryViewState extends State<AdminDirectoryView> {
                 backgroundColor: AppTheme.deepNavyBlue.withValues(alpha: 0.1),
                 child: Text(
                   user.fullName[0],
-                  style: const TextStyle(color: AppTheme.deepNavyBlue, fontWeight: FontWeight.w900, fontSize: 20),
+                  style: const TextStyle(
+                    color: AppTheme.deepNavyBlue,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 20,
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -210,7 +237,8 @@ class _AdminDirectoryViewState extends State<AdminDirectoryView> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: (user.isBlocked ? Colors.red : Colors.green).withValues(alpha: 0.5),
+                      color: (user.isBlocked ? Colors.red : Colors.green)
+                          .withValues(alpha: 0.5),
                       blurRadius: 8,
                       spreadRadius: 2,
                     ),
@@ -242,26 +270,55 @@ class _AdminDirectoryViewState extends State<AdminDirectoryView> {
               Container(
                 width: 60,
                 height: 6,
-                decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(3)),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(3),
+                ),
               ),
               const SizedBox(height: 32),
               CircleAvatar(
                 radius: 40,
                 backgroundColor: AppTheme.deepNavyBlue.withValues(alpha: 0.1),
-                child: Text(user.fullName[0], style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppTheme.deepNavyBlue)),
+                child: Text(
+                  user.fullName[0],
+                  style: const TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.deepNavyBlue,
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
-              Text(user.fullName, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.deepNavyBlue)),
-              Text(user.role.name.toUpperCase(), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.grey.shade600, letterSpacing: 2)),
+              Text(
+                user.fullName,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  color: AppTheme.deepNavyBlue,
+                ),
+              ),
+              Text(
+                user.role.name.toUpperCase(),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.grey.shade600,
+                  letterSpacing: 2,
+                ),
+              ),
               const SizedBox(height: 32),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _buildStatItem(
-                    user.role == UserRole.operator ? 'TOTAL QUOTATIONS' : 'LAST LOGIN',
-                    user.role == UserRole.operator 
-                      ? '${user.totalQuotations}' 
-                      : (user.lastLogin != null ? '${user.lastLogin!.day}/${user.lastLogin!.month}' : 'N/A'),
+                    user.role == UserRole.operator
+                        ? 'TOTAL QUOTATIONS'
+                        : 'LAST LOGIN',
+                    user.role == UserRole.operator
+                        ? '${user.totalQuotations}'
+                        : (user.lastLogin != null
+                              ? '${user.lastLogin!.day}/${user.lastLogin!.month}'
+                              : 'N/A'),
                     Icons.trending_up,
                   ),
                   _buildStatItem(
@@ -285,13 +342,36 @@ class _AdminDirectoryViewState extends State<AdminDirectoryView> {
     );
   }
 
-  Widget _buildStatItem(String label, String value, IconData icon, {bool isDestructive = false}) {
+  Widget _buildStatItem(
+    String label,
+    String value,
+    IconData icon, {
+    bool isDestructive = false,
+  }) {
     return Column(
       children: [
-        Icon(icon, color: isDestructive ? Colors.red : AppTheme.deepNavyBlue, size: 32),
+        Icon(
+          icon,
+          color: isDestructive ? Colors.red : AppTheme.deepNavyBlue,
+          size: 32,
+        ),
         const SizedBox(height: 8),
-        Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: isDestructive ? Colors.red : AppTheme.deepNavyBlue)),
-        Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.grey.shade600)),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+            color: isDestructive ? Colors.red : AppTheme.deepNavyBlue,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w800,
+            color: Colors.grey.shade600,
+          ),
+        ),
       ],
     );
   }

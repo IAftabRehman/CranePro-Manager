@@ -80,10 +80,23 @@ class _AdminAuditTrailPageState extends State<AdminAuditTrailPage> {
       length: 2,
       child: Column(
         children: [
+          const SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+            child: Text(
+              "Check Edit\nor Deleted History of Operators",
+              style: TextStyle(
+                color: Color(0xFFFFB300),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
           const TabBar(
             tabs: [
-              Tab(text: 'EDITS'),
-              Tab(text: 'DELETED'),
+              Tab(text: 'Edits'),
+              Tab(text: 'Deleted'),
             ],
             labelColor: Colors.black,
             indicatorColor: Colors.black,

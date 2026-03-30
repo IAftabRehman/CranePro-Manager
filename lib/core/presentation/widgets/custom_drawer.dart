@@ -46,12 +46,12 @@ class CustomDrawer extends StatelessWidget {
                     ]
                   : [
                       _buildNavItem(context, Icons.dashboard_outlined, 'Dashboard', theme),
-                      _buildNavItem(context, Icons.person, 'Profile', theme),
                       _buildNavItem(context, Icons.file_copy_outlined, 'Generate Quotation', theme),
                       _buildNavItem(context, Icons.flash_on_outlined, 'Direct Work Entry', theme),
                       _buildNavItem(context, Icons.build_circle_outlined, 'Maintenance & Expenses', theme),
                       _buildNavItem(context, Icons.bar_chart_outlined, 'Reports & Analytics', theme),
-                      _buildNavItem(context, Icons.admin_panel_settings, 'Admin', theme, isAdminOnly: true),
+                      // _buildNavItem(context, Icons.admin_panel_settings, 'Admin', theme, isAdminOnly: true),
+                      _buildNavItem(context, Icons.person, 'Profile', theme),
                     ],
               ),
             ),
@@ -70,7 +70,7 @@ class CustomDrawer extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: Colors.yellow.withValues(alpha: 0.15),
         border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
       ),
       child: Column(

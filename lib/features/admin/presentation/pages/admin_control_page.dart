@@ -9,6 +9,7 @@ import 'package:extend_crane_services/features/admin/presentation/pages/admin_ex
 import 'package:extend_crane_services/features/admin/presentation/pages/admin_activity_logs_page.dart';
 import 'package:extend_crane_services/features/admin/presentation/pages/admin_audit_trail_page.dart';
 import 'package:extend_crane_services/features/admin/presentation/pages/admin_backup_page.dart';
+import 'package:extend_crane_services/features/auth/presentation/pages/role_selection_page.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_button.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_text_field.dart';
 
@@ -87,12 +88,9 @@ class _AdminControlPageState extends State<AdminControlPage> {
       context: context,
       builder: (context) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        // Blur thoda barha diya
         child: AlertDialog(
           backgroundColor: Colors.transparent,
-          // Standard background hata diya
           contentPadding: EdgeInsets.zero,
-          // Taake hamara gradient poore box mein aaye
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(28),
           ),
@@ -226,9 +224,10 @@ class _AdminControlPageState extends State<AdminControlPage> {
   }
 
   void _handleLogout() {
-    Navigator.of(
-      context,
-    ).pushNamedAndRemoveUntil('/role-selection', (route) => false);
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const RoleSelectionPage()),
+      (route) => false,
+    );
   }
 
   @override
@@ -267,68 +266,66 @@ class _AdminControlPageState extends State<AdminControlPage> {
   Widget _buildBottomNav() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.deepPurpleAccent.withAlpha(204),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(13),
+            color: Colors.blue.withOpacity(0.5),
             blurRadius: 20,
             offset: const Offset(0, -10),
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) => setState(() => _currentIndex = index),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: Colors.white,
-          unselectedItemColor: Colors.grey,
-          selectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.w900,
-            fontSize: 10,
-          ),
-          unselectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 10,
-          ),
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.dashboard_rounded),
-              label: 'DASHBOARD',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.people_alt_rounded),
-              label: 'USERS',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.history_edu_rounded),
-              label: 'LOGS',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.assessment_outlined),
-              label: 'REPORTS',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.security_rounded),
-              label: 'SECURITY',
-            ),
-          ],
+      child: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.black26,
+        selectedItemColor: Colors.green,
+        iconSize: 20,
+        selectedIconTheme: IconThemeData(
+          size: 30
         ),
+        unselectedItemColor: Colors.white,
+        selectedLabelStyle: const TextStyle(
+          fontWeight: FontWeight.w900,
+          fontSize: 16,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontWeight: FontWeight.w700,
+          fontSize: 10,
+        ),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard_rounded),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.people_alt_rounded),
+            label: 'Users',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.history_edu_rounded),
+            label: 'Logs',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.assessment_outlined),
+            label: 'Reports',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.security_rounded),
+            label: 'Security',
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildHeader() {
     final titles = [
-      'FINANCIAL OVERVIEW',
-      'USER MANAGEMENT',
-      'LIVE ACTIVITY TRACKER',
-      'REPORT EXPORT HUB',
-      'SECURITY & DATA HUB',
+      'Financial Overview',
+      'User Management',
+      'Live Activity Tracker',
+      'Report Export Hub',
+      'Security & Data Hub',
     ];
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -346,8 +343,9 @@ class _AdminControlPageState extends State<AdminControlPage> {
           ),
           IconButton(
             icon: const Icon(
-              Icons.logout_rounded,
+              Icons.logout_sharp,
               color: AppTheme.deepNavyBlue,
+              size: 25,
             ),
             onPressed: _handleLogout,
           ),
@@ -363,11 +361,11 @@ class _AdminControlPageState extends State<AdminControlPage> {
         children: [
           const TabBar(
             tabs: [
-              Tab(text: 'PENDING'),
-              Tab(text: 'DIRECTORY'),
+              Tab(text: 'Pending'),
+              Tab(text: 'Directory'),
             ],
-            labelColor: AppTheme.deepNavyBlue,
-            indicatorColor: AppTheme.deepNavyBlue,
+            labelColor: Colors.black,
+            indicatorColor: Colors.black,
             labelStyle: TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
             unselectedLabelStyle: TextStyle(
               fontWeight: FontWeight.w700,
@@ -402,8 +400,8 @@ class _AdminControlPageState extends State<AdminControlPage> {
         children: [
           const TabBar(
             tabs: [
-              Tab(text: 'BACKUP'),
-              Tab(text: 'AUDIT'),
+              Tab(text: 'BackUp'),
+              Tab(text: 'Audit'),
             ],
             labelColor: Colors.black,
             indicatorColor: Colors.black,
