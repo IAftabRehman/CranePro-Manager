@@ -1,58 +1,43 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:extend_crane_services/features/quotation/data/models/quotation_model.dart';
-import 'dart:developer';
+import '../../../quotation/data/models/quotation_model.dart';
 
 class WorkRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final String _collection = 'quotations';
 
-  /// TASK 2: Saves a new quotation to Firestore using .add().
+  /// Adds a new quotation to Firestore.
+  /// Uses .add() to generate a unique document ID.
   Future<void> addQuotation(QuotationModel quote) async {
     try {
-      await _firestore.collection('quotations').add(quote.toMap());
-      log("Quotation created successfully.");
-    } on FirebaseException catch (e) { // TASK 3: Catch FirebaseException
-      log("Firebase Error adding quotation: ${e.code} - ${e.message}");
-      rethrow;
+      await _firestore.collection(_collection).add(quote.toMap());
     } catch (e) {
-      log("Misc Error adding quotation: $e");
-      rethrow;
+      throw Exception('Failed to add quotation: $e');
     }
   }
 
-  /// TASK 2: Fetches quotations for a specific operator (uid).
+  /// Streams quotations for a specific operator, ordered by creation date.
   Stream<List<QuotationModel>> getOperatorWork(String uid) {
-    try {
-      return _firestore
-          .collection('quotations')
-          .where('operatorId', isEqualTo: uid)
-          .orderBy('createdAt', descending: true)
-          .snapshots()
-          .map((snapshot) => snapshot.docs
-              .map((doc) => QuotationModel.fromMap(doc.data(), docId: doc.id))
-              .toList());
-    } on FirebaseException catch (e) {
-      log("Firebase Error fetching operator work: ${e.code} - ${e.message}");
-      return const Stream.empty();
-    } catch (e) {
-      log("Misc Error fetching operator work: $e");
-      return const Stream.empty();
-    }
+    return _firestore
+        .collection(_collection)
+        .where('operatorId', isEqualTo: uid)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        return QuotationModel.fromMap(doc.data(), docId: doc.id);
+      }).toList();
+    });
   }
 
-  /// TASK 2: Updates only the status field of a specific document.
-  Future<void> updateWorkStatus(String docId, String newStatus) async {
+  /// Updates the status of a specific quotation.
+  Future<void> updateQuotationStatus(String docId, String status) async {
     try {
-      await _firestore.collection('quotations').doc(docId).update({
-        'status': newStatus,
-        'updatedAt': FieldValue.serverTimestamp(),
+      await _firestore.collection(_collection).doc(docId).update({
+        'status': status,
+        'updatedAt': Timestamp.now(),
       });
-      log("Quotation $docId status updated to $newStatus.");
-    } on FirebaseException catch (e) {
-      log("Firebase Error updating status: ${e.code} - ${e.message}");
-      rethrow;
     } catch (e) {
-      log("Misc Error updating status: $e");
-      rethrow;
+      throw Exception('Failed to update quotation status: $e');
     }
   }
 }

@@ -35,7 +35,7 @@ class QuotationServiceEntry {
       serviceName: map['serviceName'] ?? '',
       duration: map['duration'] ?? '',
       location: map['location'] ?? '',
-      price: (map['price'] as num?)?.toDouble() ?? 0.0,
+      price: double.parse((map['price'] ?? 0.0).toString()),
       startDate: map['startDate'] is Timestamp 
           ? (map['startDate'] as Timestamp).toDate() 
           : DateTime.now(),
@@ -110,8 +110,8 @@ class QuotationModel {
   }
 
   factory QuotationModel.fromMap(Map<String, dynamic> map, {String? docId}) {
-    final double total = (map['totalAmount'] as num?)?.toDouble() ?? 0.0;
-    final double advance = (map['advancePaid'] as num?)?.toDouble() ?? 0.0;
+    final double total = double.parse((map['totalAmount'] ?? 0.0).toString());
+    final double advance = double.parse((map['advancePaid'] ?? 0.0).toString());
 
     return QuotationModel(
       id: docId ?? map['id'] ?? '',
