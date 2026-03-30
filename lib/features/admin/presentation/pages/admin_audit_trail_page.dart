@@ -78,74 +78,26 @@ class _AdminAuditTrailPageState extends State<AdminAuditTrailPage> {
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 2,
-      child: Scaffold(
-        body: Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: const BoxDecoration(
-            gradient: AppTheme.lavenderBlueGradient,
+      child: Column(
+        children: [
+          const TabBar(
+            tabs: [
+              Tab(text: 'EDITS'),
+              Tab(text: 'DELETED'),
+            ],
+            labelColor: Colors.black,
+            indicatorColor: Colors.black,
+            labelStyle: TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
+            unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
           ),
-          child: SafeArea(
-            bottom: false,
-            child: Column(
+          Expanded(
+            child: TabBarView(
               children: [
-                _buildHeader(),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  child: CraneInput(
-                    controller: _searchController,
-                    hintText: 'Search by Client or Operator...',
-                    prefixIcon: const Icon(Icons.search, color: AppTheme.deepNavyBlue),
-                  ),
-                ),
-                const TabBar(
-                  tabs: [
-                    Tab(text: 'LIVE CHANGES'),
-                    Tab(text: 'DELETED ARCHIVE'),
-                  ],
-                  labelColor: AppTheme.deepNavyBlue,
-                  indicatorColor: AppTheme.deepNavyBlue,
-                  labelStyle: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.0, fontSize: 13),
-                  unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                ),
-                Expanded(
-                  child: TabBarView(
-                    children: [
-                      _buildAuditList(false),
-                      _buildAuditList(true),
-                    ],
-                  ),
-                ),
+                _buildAuditList(false),
+                _buildAuditList(true),
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.deepNavyBlue),
-            onPressed: () => Navigator.pop(context),
-          ),
-          const Expanded(
-            child: Text(
-              'MASTER AUDIT TRAIL',
-              style: TextStyle(
-                color: AppTheme.deepNavyBlue,
-                fontSize: 18,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 2.0,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(width: 48),
         ],
       ),
     );
@@ -158,7 +110,7 @@ class _AdminAuditTrailPageState extends State<AdminAuditTrailPage> {
       return Center(
         child: Text(
           showDeleted ? 'Recycle Bin is Empty' : 'No Changes Logged',
-          style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.5), fontWeight: FontWeight.w800),
+          style: TextStyle(color: AppTheme.deepNavyBlue.withOpacity(0.5), fontWeight: FontWeight.w800),
         ),
       );
     }
@@ -175,9 +127,9 @@ class _AdminAuditTrailPageState extends State<AdminAuditTrailPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
+        color: Colors.white.withOpacity(0.15),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+        border: Border.all(color: Colors.white.withOpacity(0.3)),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
@@ -203,7 +155,7 @@ class _AdminAuditTrailPageState extends State<AdminAuditTrailPage> {
                         ),
                         Text(
                           '${entry.targetType} - ${entry.userName}',
-                          style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.6), fontSize: 12, fontWeight: FontWeight.w700),
+                          style: TextStyle(color: AppTheme.deepNavyBlue.withOpacity(0.6), fontSize: 12, fontWeight: FontWeight.w700),
                         ),
                       ],
                     ),
@@ -218,7 +170,7 @@ class _AdminAuditTrailPageState extends State<AdminAuditTrailPage> {
               ),
               subtitle: Text(
                 DateFormat('MMM dd, HH:mm').format(entry.timestamp),
-                style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.4), fontSize: 10, fontWeight: FontWeight.w800),
+                style: TextStyle(color: AppTheme.deepNavyBlue.withOpacity(0.4), fontSize: 10, fontWeight: FontWeight.w800),
               ),
               children: [
                 Padding(
@@ -258,7 +210,7 @@ class _AdminAuditTrailPageState extends State<AdminAuditTrailPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(e.key, style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.6), fontSize: 12, fontWeight: FontWeight.w700)),
+              Text(e.key, style: TextStyle(color: AppTheme.deepNavyBlue.withOpacity(0.6), fontSize: 12, fontWeight: FontWeight.w700)),
               Text(e.value, style: const TextStyle(color: AppTheme.deepNavyBlue, fontSize: 13, fontWeight: FontWeight.w800)),
             ],
           ),

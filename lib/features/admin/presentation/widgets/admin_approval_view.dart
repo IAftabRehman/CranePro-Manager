@@ -2,8 +2,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:extend_crane_services/core/themes/app_theme.dart';
 import 'package:extend_crane_services/core/data/models/user_model.dart';
-import 'package:extend_crane_services/shared/global_widgets/custom_button.dart';
-import 'package:extend_crane_services/shared/global_widgets/custom_text_field.dart';
 
 class AdminApprovalView extends StatefulWidget {
   final List<UserModel> users;

@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:extend_crane_services/core/utils/responsive.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_button.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_text_field.dart';
 import 'package:extend_crane_services/features/admin/presentation/pages/admin_control_page.dart';
-import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
-import 'package:extend_crane_services/core/themes/app_theme.dart';
 
 class AdminLoginPage extends StatefulWidget {
   const AdminLoginPage({super.key});

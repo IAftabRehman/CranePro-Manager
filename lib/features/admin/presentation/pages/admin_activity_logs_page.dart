@@ -67,70 +67,25 @@ class _AdminActivityLogsPageState extends State<AdminActivityLogsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: AppTheme.lavenderBlueGradient,
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(),
-              Expanded(
-                child: StreamBuilder<List<ActivityLog>>(
-                  stream: _logController.stream,
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-                    
-                    final logs = snapshot.data!;
-                    return ListView.builder(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                      itemCount: logs.length,
-                      itemBuilder: (context, index) {
-                        return TimelineTile(
-                          log: logs[index],
-                          isFirst: index == 0,
-                          isLast: index == logs.length - 1,
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.deepNavyBlue),
-            onPressed: () => Navigator.pop(context),
-          ),
-          const Expanded(
-            child: Text(
-              'LIVE ACTIVITY TRACKER',
-              style: TextStyle(
-                color: AppTheme.deepNavyBlue,
-                fontSize: 18,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 2.0,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(width: 48),
-        ],
-      ),
+    return StreamBuilder<List<ActivityLog>>(
+      stream: _logController.stream,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        
+        final logs = snapshot.data!;
+        return ListView.builder(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          itemCount: logs.length,
+          itemBuilder: (context, index) {
+            return TimelineTile(
+              log: logs[index],
+              isFirst: index == 0,
+              isLast: index == logs.length - 1,
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -168,18 +123,18 @@ class TimelineTile extends StatelessWidget {
         Container(
           width: 2,
           height: 12,
-          color: isFirst ? Colors.transparent : AppTheme.deepNavyBlue.withValues(alpha: 0.2),
+          color: isFirst ? Colors.transparent : AppTheme.deepNavyBlue.withOpacity(0.2),
         ),
         Container(
-          width: 32,
-          height: 32,
+          width: 25,
+          height: 25,
           decoration: BoxDecoration(
-            color: log.category.color.withValues(alpha: 0.1),
+            color: log.category.color.withOpacity(0.1),
             shape: BoxShape.circle,
             border: Border.all(color: log.category.color, width: 2),
             boxShadow: [
               BoxShadow(
-                color: log.category.color.withValues(alpha: 0.3),
+                color: log.category.color.withOpacity(0.3),
                 blurRadius: 8,
                 spreadRadius: 1,
               ),
@@ -190,7 +145,7 @@ class TimelineTile extends StatelessWidget {
         Expanded(
           child: Container(
             width: 2,
-            color: isLast ? Colors.transparent : AppTheme.deepNavyBlue.withValues(alpha: 0.2),
+            color: isLast ? Colors.transparent : AppTheme.deepNavyBlue.withOpacity(0.8),
           ),
         ),
       ],
@@ -201,10 +156,10 @@ class TimelineTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -217,9 +172,9 @@ class TimelineTile extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
+              color: Colors.white.withOpacity(0.15),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+              border: Border.all(color: Colors.white.withOpacity(0.3)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -238,7 +193,7 @@ class TimelineTile extends StatelessWidget {
                     Text(
                       DateFormat('HH:mm').format(log.timestamp),
                       style: TextStyle(
-                        color: AppTheme.deepNavyBlue.withValues(alpha: 0.5),
+                        color: AppTheme.deepNavyBlue.withOpacity(0.5),
                         fontSize: 12,
                         fontWeight: FontWeight.w900,
                       ),
@@ -249,7 +204,7 @@ class TimelineTile extends StatelessWidget {
                 Text(
                   log.message,
                   style: TextStyle(
-                    color: AppTheme.deepNavyBlue.withValues(alpha: 0.7),
+                    color: AppTheme.deepNavyBlue.withOpacity(0.7),
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     height: 1.4,
@@ -257,12 +212,10 @@ class TimelineTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  log.category.name.toUpperCase(),
+                  log.category.name,
                   style: TextStyle(
                     color: log.category.color,
-                    fontSize: 9,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.5,
+                    fontSize: 12,
                   ),
                 ),
               ],

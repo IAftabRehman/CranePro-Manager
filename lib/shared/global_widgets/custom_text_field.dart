@@ -5,6 +5,7 @@ class CraneInput extends StatelessWidget {
   final FocusNode? focusNode;
   final String hintText;
   final Color? hintTextColor;
+  final Color? fillColor;
   final bool obscureText;
   final TextInputType keyboardType;
   final String? Function(String?)? validator;
@@ -31,6 +32,7 @@ class CraneInput extends StatelessWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.hintTextColor,
+    this.fillColor,
     this.readOnly = false,
     this.onTap,
     this.prefixText,
@@ -40,33 +42,30 @@ class CraneInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final theme = Theme.of(context);
-        return TextFormField(
-          controller: controller,
-          focusNode: focusNode,
-          obscureText: obscureText,
-          keyboardType: keyboardType,
-          validator: validator,
-          maxLines: maxLines,
-          autofillHints: autofillHints,
-          initialValue: initialValue,
-          onChanged: onChanged,
-          readOnly: readOnly,
-          onTap: onTap,
-          style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white),
-          decoration: InputDecoration(
-            hintText: hintText,
-            fillColor: Colors.blue.withOpacity(0.5),
-            hintStyle: theme.textTheme.labelSmall?.copyWith(color: Colors.white, fontSize: 13),
-            prefixIcon: prefixIcon != null ? IconTheme(data: const IconThemeData(color: Colors.white), child: prefixIcon!) : null,
-            prefixText: prefixText,
-            prefixStyle: const TextStyle(color: Colors.white70),
-            suffixIcon: suffixIcon != null ? IconTheme(data: const IconThemeData(color: Colors.white), child: suffixIcon!) : null,
-          ),
-        );
-      },
+    final theme = Theme.of(context);
+    return TextFormField(
+      controller: controller,
+      focusNode: focusNode,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      validator: validator,
+      maxLines: maxLines,
+      autofillHints: autofillHints,
+      initialValue: initialValue,
+      onChanged: onChanged,
+      readOnly: readOnly,
+      onTap: onTap,
+      style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white),
+      decoration: InputDecoration(
+        hintText: hintText,
+        filled: true,
+        fillColor: fillColor ?? Colors.blue.withAlpha(128),
+        hintStyle: theme.textTheme.labelSmall?.copyWith(color: Colors.white, fontSize: 13),
+        prefixIcon: prefixIcon != null ? IconTheme(data: const IconThemeData(color: Colors.white), child: prefixIcon!) : null,
+        prefixText: prefixText,
+        prefixStyle: const TextStyle(color: Colors.white70),
+        suffixIcon: suffixIcon != null ? IconTheme(data: const IconThemeData(color: Colors.white), child: suffixIcon!) : null,
+      ),
     );
   }
 }

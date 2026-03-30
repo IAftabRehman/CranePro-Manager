@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 enum LogCategory {
-  login(Icons.vpn_key_rounded, Colors.blue),
-  work(Icons.precision_manufacturing_rounded, Colors.green),
-  maintenance(Icons.build_circle_rounded, Colors.orange),
+  login(Icons.vpn_key_rounded, Colors.lightBlueAccent),
+  work(Icons.precision_manufacturing_rounded, Colors.lightGreenAccent),
+  maintenance(Icons.build_circle_rounded, Colors.yellow),
   cancellation(Icons.cancel_rounded, Colors.red),
   signup(Icons.person_add_alt_1_rounded, Colors.purple);
 

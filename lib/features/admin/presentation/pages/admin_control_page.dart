@@ -20,7 +20,8 @@ class AdminControlPage extends StatefulWidget {
 }
 
 class _AdminControlPageState extends State<AdminControlPage> {
-  // Real User Models with added statistics
+  int _currentIndex = 0;
+
   final List<UserModel> _users = [
     UserModel(
       id: '1',
@@ -72,12 +73,12 @@ class _AdminControlPageState extends State<AdminControlPage> {
     setState(() {
       final index = _users.indexWhere((u) => u.id == user.id);
       if (index != -1) {
-        _users[index] = _users[index].copyWith(isAdminApproved: true, rejectionReason: null);
+        _users[index] = _users[index].copyWith(
+          isAdminApproved: true,
+          rejectionReason: null,
+        );
       }
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${user.fullName} Approved!'), backgroundColor: Colors.green),
-    );
   }
 
   void _handleReject(UserModel user) {
@@ -85,48 +86,131 @@ class _AdminControlPageState extends State<AdminControlPage> {
     showDialog(
       context: context,
       builder: (context) => BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        // Blur thoda barha diya
         child: AlertDialog(
-          backgroundColor: Colors.white.withValues(alpha: 0.9),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          title: const Text(
-            'Reject User Request',
-            style: TextStyle(color: AppTheme.deepNavyBlue, fontWeight: FontWeight.w900),
+          backgroundColor: Colors.transparent,
+          // Standard background hata diya
+          contentPadding: EdgeInsets.zero,
+          // Taake hamara gradient poore box mein aaye
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Enter reason for rejecting ${user.fullName}:', style: const TextStyle(fontSize: 14)),
-              const SizedBox(height: 16),
-              CraneInput(
-                controller: reasonController,
-                hintText: 'e.g. Unknown Identity',
-                maxLines: 2,
+          content: Container(
+            width: 340,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              // --- AAPKA GRADIENT YAHAN HAI ---
+              gradient: AppTheme.premiumGradient,
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: Colors.white.withOpacity(0.3)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.person_remove_rounded,
+                    color: Colors.white,
+                    size: 40,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Reason for Rejection',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Mention why ${user.fullName} is being rejected:',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.5),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Input Field
+                  CraneInput(
+                    controller: reasonController,
+                    hintText: 'Reason of Rejection...',
+                    maxLines: 3,
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      rejectionButtons(
+                        context,
+                        "Cancel",
+                        Colors.red,
+                        () => Navigator.pop(context),
+                      ),
+                      const SizedBox(width: 10),
+                      rejectionButtons(
+                        context,
+                        "Reject & Send",
+                        Colors.green,
+                        () {
+                          if (reasonController.text.trim().isEmpty) return;
+                          setState(() {
+                            final index = _users.indexWhere(
+                              (u) => u.id == user.id,
+                            );
+                            if (index != -1) {
+                              _users[index] = _users[index].copyWith(
+                                isAdminApproved: false,
+                                rejectionReason: reasonController.text,
+                              );
+                            }
+                          });
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
-            ),
-            CraneButton(
-              text: 'Send & Reject',
-              onPressed: () {
-                if (reasonController.text.isEmpty) return;
-                setState(() {
-                  final index = _users.indexWhere((u) => u.id == user.id);
-                  if (index != -1) {
-                    _users[index] = _users[index].copyWith(
-                      isAdminApproved: false,
-                      rejectionReason: reasonController.text,
-                    );
-                  }
-                });
-                Navigator.pop(context);
-              },
-            ),
-          ],
+        ),
+      ),
+    );
+  }
+
+  Expanded rejectionButtons(
+    BuildContext context,
+    String title,
+    Color color,
+    GestureDragCancelCallback onTap,
+  ) {
+    return Expanded(
+      child: TextButton(
+        onPressed: () {
+          Navigator.pop(context);
+        },
+        child: Text(
+          title,
+          style: TextStyle(
+            color: color,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.1,
+          ),
         ),
       ),
     );
@@ -139,120 +223,195 @@ class _AdminControlPageState extends State<AdminControlPage> {
         _users[index] = _users[index].copyWith(isBlocked: isBlocked);
       }
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${user.fullName} ${isBlocked ? 'Blocked' : 'Unblocked'}!'),
-        backgroundColor: isBlocked ? Colors.red : Colors.green,
-      ),
-    );
+  }
+
+  void _handleLogout() {
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil('/role-selection', (route) => false);
   }
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        body: Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: const BoxDecoration(
-            gradient: AppTheme.lavenderBlueGradient,
+    final List<Widget> pages = [
+      const AdminFinancialDashboard(),
+      _buildUserManagementModule(),
+      const AdminActivityLogsPage(),
+      const AdminExportPage(),
+      _buildSecurityModule(),
+    ];
+
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: AppTheme.lavenderBlueGradient,
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              _buildHeader(),
+              Expanded(
+                child: IndexedStack(index: _currentIndex, children: pages),
+              ),
+            ],
           ),
-          child: SafeArea(
-            bottom: false,
-            child: Column(
-              children: [
-                _buildHeader(),
-                const TabBar(
-                  tabs: [
-                    Tab(text: 'PENDING APPROVAL'),
-                    Tab(text: 'USER DIRECTORY'),
-                  ],
-                  labelColor: AppTheme.deepNavyBlue,
-                  indicatorColor: AppTheme.deepNavyBlue,
-                  labelStyle: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.0, fontSize: 13),
-                  unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                ),
-                Expanded(
-                  child: TabBarView(
-                    children: [
-                      AdminApprovalView(
-                        users: _users,
-                        onApprove: _handleApprove,
-                        onReject: _handleReject,
-                        onToggleBlock: _handleToggleBlock,
-                      ),
-                      AdminDirectoryView(
-                        users: _users,
-                        onToggleBlock: _handleToggleBlock,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+        ),
+      ),
+      bottomNavigationBar: _buildBottomNav(),
+    );
+  }
+
+  Widget _buildBottomNav() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.deepPurpleAccent.withAlpha(204),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(13),
+            blurRadius: 20,
+            offset: const Offset(0, -10),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) => setState(() => _currentIndex = index),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          type: BottomNavigationBarType.fixed,
+          selectedItemColor: Colors.white,
+          unselectedItemColor: Colors.grey,
+          selectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 10,
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 10,
+          ),
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.dashboard_rounded),
+              label: 'DASHBOARD',
             ),
-          ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.people_alt_rounded),
+              label: 'USERS',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.history_edu_rounded),
+              label: 'LOGS',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.assessment_outlined),
+              label: 'REPORTS',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.security_rounded),
+              label: 'SECURITY',
+            ),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildHeader() {
+    final titles = [
+      'FINANCIAL OVERVIEW',
+      'USER MANAGEMENT',
+      'LIVE ACTIVITY TRACKER',
+      'REPORT EXPORT HUB',
+      'SECURITY & DATA HUB',
+    ];
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          Text(
+            titles[_currentIndex],
+            style: const TextStyle(
+              color: AppTheme.deepNavyBlue,
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.5,
+            ),
+          ),
           IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.deepNavyBlue, size: 20),
-            onPressed: () => Navigator.pop(context),
+            icon: const Icon(
+              Icons.logout_rounded,
+              color: AppTheme.deepNavyBlue,
+            ),
+            onPressed: _handleLogout,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUserManagementModule() {
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        children: [
+          const TabBar(
+            tabs: [
+              Tab(text: 'PENDING'),
+              Tab(text: 'DIRECTORY'),
+            ],
+            labelColor: AppTheme.deepNavyBlue,
+            indicatorColor: AppTheme.deepNavyBlue,
+            labelStyle: TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
+            unselectedLabelStyle: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                AdminApprovalView(
+                  users: _users,
+                  onApprove: _handleApprove,
+                  onReject: _handleReject,
+                  onToggleBlock: _handleToggleBlock,
+                ),
+                AdminDirectoryView(
+                  users: _users,
+                  onToggleBlock: _handleToggleBlock,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSecurityModule() {
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        children: [
+          const TabBar(
+            tabs: [
+              Tab(text: 'BACKUP'),
+              Tab(text: 'AUDIT'),
+            ],
+            labelColor: Colors.black,
+            indicatorColor: Colors.black,
+            labelStyle: TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
           ),
           const Expanded(
-            child: Text(
-              'ADMIN TERMINAL',
-              style: TextStyle(
-                color: AppTheme.deepNavyBlue,
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.2,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.monetization_on_outlined, color: AppTheme.deepNavyBlue, size: 22),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const AdminFinancialDashboard()),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.description_outlined, color: AppTheme.deepNavyBlue, size: 22),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const AdminExportPage()),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.history_rounded, color: AppTheme.deepNavyBlue, size: 22),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const AdminActivityLogsPage()),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.manage_search_rounded, color: AppTheme.deepNavyBlue, size: 22),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const AdminAuditTrailPage()),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.cloud_sync_rounded, color: AppTheme.deepNavyBlue, size: 22),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const AdminBackupPage()),
+            child: TabBarView(
+              children: [AdminBackupPage(), AdminAuditTrailPage()],
             ),
           ),
         ],

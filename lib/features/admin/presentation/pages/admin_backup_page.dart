@@ -24,7 +24,7 @@ class _AdminBackupPageState extends State<AdminBackupPage> {
     super.initState();
     _currentStatus = BackupStatus(
       lastBackupDate: DateTime.now().subtract(const Duration(days: 2)),
-      fileSize: '1.24 MB',
+      fileSize: '1.25 MB',
       isSuccess: true,
       backupType: 'Auto',
     );
@@ -64,26 +64,26 @@ class _AdminBackupPageState extends State<AdminBackupPage> {
       builder: (context) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: AlertDialog(
-          backgroundColor: Colors.white.withValues(alpha: 0.9),
+          backgroundColor: Colors.white.withOpacity(0.9),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: const Row(
             children: [
               Icon(Icons.warning_amber_rounded, color: Colors.red),
               SizedBox(width: 8),
-              Text('DANGER ZONE', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w900)),
+              Text('Danger Zone', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w900)),
             ],
           ),
           content: const Text(
-            'RESTORE: This will overwrite ALL current business data with the latest backup. This action cannot be undone. Proceed?',
-            style: TextStyle(fontWeight: FontWeight.w600),
+            'RESTORE: This will overwrite ALL current business data with the latest backup. This action cannot be undone. Proceed?\nAre you Restore the Database?',
+            style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('CANCEL', style: TextStyle(color: Colors.grey)),
+              child: const Text('Cancel'),
             ),
             CraneButton(
-              text: 'RESTORE DATABASE',
+              text: 'Restore',
               onPressed: () async {
                 Navigator.pop(context);
                 final success = await _backupService.restoreFromLatestBackup();
@@ -105,81 +105,37 @@ class _AdminBackupPageState extends State<AdminBackupPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: AppTheme.lavenderBlueGradient,
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(),
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    children: [
-                      _buildStatusCard(),
-                      const SizedBox(height: 32),
-                      _buildInfoTable(),
-                      const SizedBox(height: 60),
-                      if (_isBackingUp) ...[
-                        Text('GENERATING SNAPSHOT...', style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.6), fontWeight: FontWeight.w900, fontSize: 13)),
-                        const SizedBox(height: 16),
-                        _buildProgressBar(),
-                      ] else ...[
-                        CraneButton(
-                          text: 'CREATE NEW BACKUP',
-                          onPressed: _handleManualBackup,
-                          icon: Icons.cloud_upload_outlined,
-                        ),
-                        const SizedBox(height: 24),
-                        OutlinedButton.icon(
-                          onPressed: _showRestoreWarning,
-                          icon: const Icon(Icons.settings_backup_restore, color: Colors.red),
-                          label: const Text('RESTORE FROM RECENT FILE', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w900, fontSize: 16)),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Colors.red, width: 2),
-                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Padding(
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.all(24),
-      child: Row(
+      child: Column(
         children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.deepNavyBlue),
-            onPressed: () => Navigator.pop(context),
-          ),
-          const Expanded(
-            child: Text(
-              'DATA SECURITY HUB',
-              style: TextStyle(
-                color: AppTheme.deepNavyBlue,
-                fontSize: 18,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 2.0,
-              ),
-              textAlign: TextAlign.center,
+          _buildStatusCard(),
+          const SizedBox(height: 20),
+          _buildInfoTable(),
+          const SizedBox(height: 20),
+          if (_isBackingUp) ...[
+            Text('GENERATING SNAPSHOT...', style: TextStyle(color: AppTheme.deepNavyBlue.withOpacity(0.6), fontWeight: FontWeight.w900, fontSize: 13)),
+            const SizedBox(height: 16),
+            _buildProgressBar(),
+          ] else ...[
+            CraneButton(
+              text: 'Create BackUp',
+              onPressed: _handleManualBackup,
+              icon: null,
             ),
-          ),
-          const SizedBox(width: 48),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _showRestoreWarning,
+              style: OutlinedButton.styleFrom(
+                backgroundColor: Colors.black.withOpacity(0.5),
+                side: const BorderSide(color: Colors.red, width: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              ),
+              child: const Text('Restore From Resent File', style: TextStyle(color: Colors.red, fontSize: 15)),
+            ),
+          ],
         ],
       ),
     );
@@ -188,28 +144,24 @@ class _AdminBackupPageState extends State<AdminBackupPage> {
   Widget _buildStatusCard() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.25),
+        color: Colors.white.withOpacity(0.25),
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
+        border: Border.all(color: Colors.white.withOpacity(0.4)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 30,
-            offset: const Offset(0, 20),
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 20,
+            offset: const Offset(5, 20),
           ),
         ],
       ),
       child: Column(
         children: [
-          const Icon(Icons.security_update_good_rounded, size: 64, color: AppTheme.deepNavyBlue),
+          const Icon(Icons.security_update_good_rounded, size: 50, color: AppTheme.deepNavyBlue),
           const SizedBox(height: 16),
-          const Text('SYSTEM HEALTH: SECURE', style: TextStyle(color: AppTheme.deepNavyBlue, fontSize: 18, fontWeight: FontWeight.w900)),
-          Text(
-            'Weekly automated snapshots enabled',
-            style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.6), fontSize: 12, fontWeight: FontWeight.w700),
-          ),
+          const Text('System Health: Secure', style: TextStyle(color: AppTheme.deepNavyBlue, fontSize: 18, fontWeight: FontWeight.w900))
         ],
       ),
     );
@@ -235,7 +187,7 @@ class _AdminBackupPageState extends State<AdminBackupPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.5), fontSize: 12, fontWeight: FontWeight.w900)),
+          Text(label, style: TextStyle(color: AppTheme.deepNavyBlue.withOpacity(0.8), fontSize: 13, fontWeight: FontWeight.w900)),
           Text(value, style: const TextStyle(color: AppTheme.deepNavyBlue, fontSize: 16, fontWeight: FontWeight.w900)),
         ],
       ),
@@ -248,9 +200,10 @@ class _AdminBackupPageState extends State<AdminBackupPage> {
       child: LinearProgressIndicator(
         value: _progress,
         minHeight: 12,
-        backgroundColor: Colors.white.withValues(alpha: 0.2),
+        backgroundColor: Colors.white.withOpacity(0.2),
         valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.deepNavyBlue),
       ),
     );
   }
 }
+

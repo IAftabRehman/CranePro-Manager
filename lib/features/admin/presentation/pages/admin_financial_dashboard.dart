@@ -2,65 +2,29 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:extend_crane_services/core/themes/app_theme.dart';
-import 'package:extend_crane_services/shared/global_widgets/custom_button.dart';
 
 class AdminFinancialDashboard extends StatelessWidget {
   const AdminFinancialDashboard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: AppTheme.lavenderBlueGradient,
-        ),
-        child: SafeArea(
-          child: CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              _buildHeader(context),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    const SizedBox(height: 24),
-                    _buildTopAnalyticsCards(),
-                    const SizedBox(height: 48),
-                    _buildExpenditureSection(),
-                    const SizedBox(height: 48),
-                    _buildRecentTransactionsSection(),
-                    const SizedBox(height: 48),
-                  ]),
-                ),
-              ),
-            ],
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              _buildTopAnalyticsCards(),
+              const SizedBox(height: 48),
+              _buildExpenditureSection(context),
+              const SizedBox(height: 48),
+              _buildRecentTransactionsSection(),
+              const SizedBox(height: 48),
+            ]),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return SliverAppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.deepNavyBlue),
-        onPressed: () => Navigator.pop(context),
-      ),
-      title: const Text(
-        'FINANCIAL COMMAND CENTER',
-        style: TextStyle(
-          color: AppTheme.deepNavyBlue,
-          fontSize: 18,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 2.0,
-        ),
-      ),
-      centerTitle: true,
-      floating: true,
+      ],
     );
   }
 
@@ -68,14 +32,15 @@ class AdminFinancialDashboard extends StatelessWidget {
     return Column(
       children: [
         Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
               child: _build3DFinancialCard(
                 'TOTAL REVENUE',
                 '450,000',
                 Icons.account_balance_wallet_rounded,
+                null,
                 AppTheme.deepNavyBlue,
-                offsetY: -10,
               ),
             ),
             const SizedBox(width: 16),
@@ -84,8 +49,8 @@ class AdminFinancialDashboard extends StatelessWidget {
                 'OPERATIONAL COST',
                 '125,500',
                 Icons.speed_rounded,
-                Colors.amber.shade900,
-                offsetY: 10,
+                null,
+                Colors.red.shade900,
               ),
             ),
           ],
@@ -95,6 +60,7 @@ class AdminFinancialDashboard extends StatelessWidget {
           'NET BUSINESS PROFIT',
           '324,500',
           Icons.trending_up_rounded,
+          18.0,
           Colors.green.shade900,
           isMain: true,
         ),
@@ -102,46 +68,48 @@ class AdminFinancialDashboard extends StatelessWidget {
     );
   }
 
-  Widget _build3DFinancialCard(String title, String amount, IconData icon, Color color, {double offsetY = 0, bool isMain = false}) {
+  Widget _build3DFinancialCard(
+    String title,
+    String amount,
+    IconData icon,
+    double? fontSize,
+    Color color, {
+    double offsetY = 0,
+    bool isMain = false,
+  }) {
     return Transform(
-      transform: Matrix4.translationValues(0, offsetY, 0)..setEntry(3, 2, 0.002),
+      transform: Matrix4.translationValues(0, offsetY, 0)
+        ..setEntry(3, 2, 0.002),
       child: Container(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.15),
+          color: Colors.white.withOpacity(0.15),
           borderRadius: BorderRadius.circular(32),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
+          border: Border.all(color: Colors.white.withOpacity(0.4)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
+              color: Colors.black.withOpacity(0.1),
               blurRadius: 30,
               offset: const Offset(0, 20),
             ),
           ],
         ),
         child: Column(
-          crossAxisAlignment: isMain ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Row(
-              mainAxisAlignment: isMain ? MainAxisAlignment.center : MainAxisAlignment.start,
-              children: [
-                Icon(icon, color: color, size: isMain ? 32 : 24),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: AppTheme.deepNavyBlue.withValues(alpha: 0.6),
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-              ],
+            Text(
+              title,
+              style: TextStyle(
+                color: AppTheme.deepNavyBlue.withOpacity(0.6),
+                fontSize: fontSize ?? 12,
+                fontWeight: FontWeight.w900,
+              ),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
             Row(
-              mainAxisAlignment: isMain ? MainAxisAlignment.center : MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   amount,
@@ -171,56 +139,106 @@ class AdminFinancialDashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildExpenditureSection() {
+  Widget _buildExpenditureSection(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 360;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           'EXPENSE BREAKDOWN',
-          style: TextStyle(color: AppTheme.deepNavyBlue, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.5),
+          style: TextStyle(
+            color: AppTheme.deepNavyBlue,
+            fontSize: 16,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.5,
+          ),
         ),
         const SizedBox(height: 32),
         Container(
-          height: 250,
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.2),
+            color: Colors.white.withOpacity(0.2),
             borderRadius: BorderRadius.circular(32),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
+            border: Border.all(color: Colors.white.withOpacity(0.4)),
           ),
-          child: Row(
-            children: [
-              Expanded(
-                flex: 4,
-                child: PieChart(
-                  PieChartData(
-                    sectionsSpace: 0,
-                    centerSpaceRadius: 40,
-                    sections: [
-                      PieChartSectionData(color: AppTheme.deepNavyBlue, value: 45, title: '45%', radius: 50, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                      PieChartSectionData(color: Colors.amber.shade700, value: 30, title: '30%', radius: 50, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                      PieChartSectionData(color: Colors.red.shade900, value: 25, title: '25%', radius: 50, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 24),
-              Expanded(
-                flex: 5,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+          child: isSmallScreen
+              ? Column(
                   children: [
-                    _buildExpenseIndicator('Fuel Costs', 45, AppTheme.deepNavyBlue),
-                    const SizedBox(height: 16),
-                    _buildExpenseIndicator('Maintenance', 30, Colors.amber.shade700),
-                    const SizedBox(height: 16),
-                    _buildExpenseIndicator('Partners', 25, Colors.red.shade900),
+                    SizedBox(height: 180, child: _buildPieChart()),
+                    const SizedBox(height: 32),
+                    _buildExpenseIndicators(),
+                  ],
+                )
+              : Row(
+                  children: [
+                    Expanded(
+                      flex: 4,
+                      child: SizedBox(height: 200, child: _buildPieChart()),
+                    ),
+                    const SizedBox(width: 24),
+                    Expanded(flex: 5, child: _buildExpenseIndicators()),
                   ],
                 ),
-              ),
-            ],
-          ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildPieChart() {
+    return PieChart(
+      PieChartData(
+        sectionsSpace: 0,
+        centerSpaceRadius: 35,
+        sections: [
+          PieChartSectionData(
+            color: Colors.black,
+            value: 45,
+            title: '45%',
+            radius: 45,
+            titleStyle: const TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          PieChartSectionData(
+            color: Colors.yellow,
+            value: 30,
+            title: '30%',
+            radius: 45,
+            titleStyle: const TextStyle(
+              color: Colors.black,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          PieChartSectionData(
+            color: Colors.red.shade900,
+            value: 25,
+            title: '25%',
+            radius: 45,
+            titleStyle: const TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExpenseIndicators() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildExpenseIndicator('Fuel Costs', 45, Colors.black),
+        const SizedBox(height: 16),
+        _buildExpenseIndicator('Maintenance', 30, Colors.yellow),
+        const SizedBox(height: 16),
+        _buildExpenseIndicator('Partners', 25, Colors.red),
       ],
     );
   }
@@ -232,8 +250,22 @@ class AdminFinancialDashboard extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppTheme.deepNavyBlue)),
-            Text('$percent%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: color)),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.deepNavyBlue,
+              ),
+            ),
+            Text(
+              '$percent%',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+                color: color,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 8),
@@ -241,7 +273,7 @@ class AdminFinancialDashboard extends StatelessWidget {
           borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(
             value: percent / 100,
-            backgroundColor: Colors.white.withValues(alpha: 0.3),
+            backgroundColor: Colors.white.withOpacity(0.3),
             valueColor: AlwaysStoppedAnimation<Color>(color),
             minHeight: 6,
           ),
@@ -252,10 +284,30 @@ class AdminFinancialDashboard extends StatelessWidget {
 
   Widget _buildRecentTransactionsSection() {
     final transactions = [
-      {'client': 'Emaar Sites', 'date': '24 Mar 2024', 'profit': '12,500', 'type': 'High Value'},
-      {'client': 'Binladin Group', 'date': '22 Mar 2024', 'profit': '8,200', 'type': 'Standard'},
-      {'client': 'Al-Fajr Projects', 'date': '20 Mar 2024', 'profit': '15,000', 'type': 'High Value'},
-      {'client': 'Dubai Metro', 'date': '18 Mar 2024', 'profit': '9,800', 'type': 'Standard'},
+      {
+        'client': 'Emaar Sites',
+        'date': '24 Mar 2024',
+        'profit': '12,500',
+        'type': 'High Value',
+      },
+      {
+        'client': 'Binladin Group',
+        'date': '22 Mar 2024',
+        'profit': '8,200',
+        'type': 'Standard',
+      },
+      {
+        'client': 'Al-Fajr Projects',
+        'date': '20 Mar 2024',
+        'profit': '15,000',
+        'type': 'High Value',
+      },
+      {
+        'client': 'Dubai Metro',
+        'date': '18 Mar 2024',
+        'profit': '9,800',
+        'type': 'Standard',
+      },
     ];
 
     return Column(
@@ -263,7 +315,12 @@ class AdminFinancialDashboard extends StatelessWidget {
       children: [
         const Text(
           'RECENT HIGH-VALUE LOGS',
-          style: TextStyle(color: AppTheme.deepNavyBlue, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.5),
+          style: TextStyle(
+            color: AppTheme.deepNavyBlue,
+            fontSize: 16,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.5,
+          ),
         ),
         const SizedBox(height: 24),
         ...transactions.map((tx) => _buildTransactionTile(tx)),
@@ -276,23 +333,40 @@ class AdminFinancialDashboard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
+        color: Colors.white.withOpacity(0.15),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+        border: Border.all(color: Colors.white.withOpacity(0.3)),
       ),
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: AppTheme.deepNavyBlue.withValues(alpha: 0.1),
-            child: const Icon(Icons.receipt_long_rounded, color: AppTheme.deepNavyBlue),
+            backgroundColor: AppTheme.deepNavyBlue.withOpacity(0.1),
+            child: const Icon(
+              Icons.receipt_long_rounded,
+              color: AppTheme.deepNavyBlue,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(tx['client']!, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: AppTheme.deepNavyBlue)),
-                Text(tx['date']!, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: AppTheme.deepNavyBlue.withValues(alpha: 0.6))),
+                Text(
+                  tx['client']!,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                    color: AppTheme.deepNavyBlue,
+                  ),
+                ),
+                Text(
+                  tx['date']!,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                    color: AppTheme.deepNavyBlue.withOpacity(0.6),
+                  ),
+                ),
               ],
             ),
           ),
@@ -302,15 +376,37 @@ class AdminFinancialDashboard extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(tx['profit']!, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: AppTheme.deepNavyBlue)),
+                  Text(
+                    tx['profit']!,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 18,
+                      color: AppTheme.deepNavyBlue,
+                    ),
+                  ),
                   const SizedBox(width: 4),
                   const Padding(
                     padding: EdgeInsets.only(bottom: 4),
-                    child: Text('AED', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 10, color: AppTheme.deepNavyBlue)),
+                    child: Text(
+                      'AED',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 10,
+                        color: AppTheme.deepNavyBlue,
+                      ),
+                    ),
                   ),
                 ],
               ),
-              Text(tx['type']!, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 10, color: Colors.green.shade700, letterSpacing: 0.5)),
+              Text(
+                tx['type']!,
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 10,
+                  color: Colors.green.shade700,
+                  letterSpacing: 0.5,
+                ),
+              ),
             ],
           ),
         ],

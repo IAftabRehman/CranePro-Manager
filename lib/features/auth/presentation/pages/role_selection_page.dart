@@ -17,6 +17,7 @@ class RoleSelectionPage extends StatefulWidget {
 class _RoleSelectionPageState extends State<RoleSelectionPage> {
   int _logoTapCount = 0;
   DateTime? _lastLogoTap;
+  bool _isNavigating = false;
 
   void _handleLogoTap() {
     final now = DateTime.now();
@@ -29,11 +30,15 @@ class _RoleSelectionPageState extends State<RoleSelectionPage> {
 
     if (_logoTapCount == 3) { // Exactly 3 taps
       _logoTapCount = 0;
+      if (_isNavigating) return;
+      
+      setState(() => _isNavigating = true);
       HapticFeedback.mediumImpact(); // Subtle vibration for Admin
+      
       Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const AdminLoginPage()),
-      );
+      ).then((_) => setState(() => _isNavigating = false));
     }
   }
 
@@ -109,7 +114,7 @@ class _RoleSelectionPageState extends State<RoleSelectionPage> {
                               const SizedBox(width: 24),
                               Expanded(
                                 child: RoleCard3D(
-                                  title: 'VIEWER / CLIENT',
+                                  title: 'VIEWER',
                                   subtitle: 'Real-time Project Tracking',
                                   icon: Icons.visibility_rounded,
                                   onTap: () => Navigator.push(
@@ -133,7 +138,7 @@ class _RoleSelectionPageState extends State<RoleSelectionPage> {
                               ),
                               const SizedBox(height: 30),
                               RoleCard3D(
-                                title: 'VIEWER / CLIENT',
+                                title: 'VIEWER',
                                 subtitle: 'Real-time Project Tracking',
                                 icon: Icons.visibility_rounded,
                                 onTap: () => Navigator.push(
@@ -161,10 +166,12 @@ class RoleCard3D extends StatefulWidget {
   final String subtitle;
   final IconData icon;
   final VoidCallback onTap;
+  final double? boxWidth;
 
   const RoleCard3D({
     super.key,
     required this.title,
+    this.boxWidth,
     required this.subtitle,
     required this.icon,
     required this.onTap,
@@ -176,6 +183,7 @@ class RoleCard3D extends StatefulWidget {
 
 class _RoleCard3DState extends State<RoleCard3D> {
   bool _isPressed = false;
+  double? get boxWidth => null;
 
   @override
   Widget build(BuildContext context) {
@@ -193,7 +201,7 @@ class _RoleCard3DState extends State<RoleCard3D> {
           ..setEntry(3, 2, 0.001) // Depth perception
           ..scale(_isPressed ? 0.95 : 1.0), // Scale effect
         child: Container(
-          width: 200,
+          width: boxWidth ?? 250,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
             // TASK: Sinking effect shadows
