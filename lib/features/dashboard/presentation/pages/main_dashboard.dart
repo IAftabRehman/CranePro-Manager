@@ -110,7 +110,7 @@ class _MainDashboardState extends State<MainDashboard>
                   builder: (_) => MidnightStatusModal(
                     date: DateTime.now().subtract(const Duration(days: 1)),
                     quotation: QuotationModel(
-                      quotationId: 'mock_1',
+                      id: 'mock_1',
                       operatorId: 'mock_op',
                       clientName: 'Street Client',
                       siteLocation: 'Musaffah M-27',
@@ -547,7 +547,7 @@ class _MainDashboardState extends State<MainDashboard>
                                             const Duration(days: 1),
                                           ),
                                           quotation: QuotationModel(
-                                            quotationId: 'mock_1',
+                                            id: 'mock_1',
                                             operatorId: 'mock_op',
                                             clientName: 'Street Client',
                                             siteLocation: 'Musaffah M-27',

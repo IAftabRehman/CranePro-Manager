@@ -19,10 +19,32 @@ class QuotationServiceEntry {
   }) : startDate = startDate ?? DateTime.now();
 
   String get formattedDate => DateFormat('MMM dd, yyyy').format(startDate);
+
+  Map<String, dynamic> toMap() {
+    return {
+      'serviceName': serviceName,
+      'duration': duration,
+      'location': location,
+      'price': price,
+      'startDate': Timestamp.fromDate(startDate),
+    };
+  }
+
+  factory QuotationServiceEntry.fromMap(Map<String, dynamic> map) {
+    return QuotationServiceEntry(
+      serviceName: map['serviceName'] ?? '',
+      duration: map['duration'] ?? '',
+      location: map['location'] ?? '',
+      price: (map['price'] as num?)?.toDouble() ?? 0.0,
+      startDate: map['startDate'] is Timestamp 
+          ? (map['startDate'] as Timestamp).toDate() 
+          : DateTime.now(),
+    );
+  }
 }
 
 class QuotationModel {
-  final String quotationId;
+  final String id;
   final String operatorId;
   final String clientName;
   final String siteLocation;
@@ -30,21 +52,21 @@ class QuotationModel {
   final double totalAmount;
   final double advancePaid;
   final double balanceAmount;
-  final QuotationStatus status;
+  final String status;
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime workDate;
-  final String? pdfUrl;
   final bool isMidnightUpdateRequired;
-
-  // Keep these for UI compatibility if needed
+  
+  // UI & Business Logic Fields
   final String companyName;
   final List<QuotationServiceEntry> entries;
   final List<String> terms;
   final String? cancellationReason;
+  final String? pdfUrl;
 
   QuotationModel({
-    required this.quotationId,
+    required this.id,
     required this.operatorId,
     required this.clientName,
     required this.siteLocation,
@@ -52,17 +74,74 @@ class QuotationModel {
     required this.totalAmount,
     this.advancePaid = 0.0,
     required this.balanceAmount,
-    this.status = QuotationStatus.pending,
+    this.status = 'pending',
     required this.createdAt,
     required this.updatedAt,
     required this.workDate,
-    this.pdfUrl,
     this.isMidnightUpdateRequired = true,
     this.companyName = '',
     this.entries = const [],
     this.terms = const [],
     this.cancellationReason,
+    this.pdfUrl,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'operatorId': operatorId,
+      'clientName': clientName,
+      'siteLocation': siteLocation,
+      'serviceType': serviceType,
+      'totalAmount': totalAmount,
+      'advancePaid': advancePaid,
+      'balanceAmount': totalAmount - advancePaid,
+      'status': status,
+      'createdAt': Timestamp.fromDate(createdAt),
+      'updatedAt': Timestamp.fromDate(updatedAt),
+      'workDate': Timestamp.fromDate(workDate),
+      'isMidnightUpdateRequired': isMidnightUpdateRequired,
+      'companyName': companyName,
+      'entries': entries.map((e) => e.toMap()).toList(),
+      'terms': terms,
+      'cancellationReason': cancellationReason,
+      'pdfUrl': pdfUrl,
+    };
+  }
+
+  factory QuotationModel.fromMap(Map<String, dynamic> map, {String? docId}) {
+    final double total = (map['totalAmount'] as num?)?.toDouble() ?? 0.0;
+    final double advance = (map['advancePaid'] as num?)?.toDouble() ?? 0.0;
+
+    return QuotationModel(
+      id: docId ?? map['id'] ?? '',
+      operatorId: map['operatorId'] ?? '',
+      clientName: map['clientName'] ?? '',
+      siteLocation: map['siteLocation'] ?? '',
+      serviceType: map['serviceType'] ?? '',
+      totalAmount: total,
+      advancePaid: advance,
+      balanceAmount: total - advance,
+      status: map['status'] ?? 'pending',
+      createdAt: map['createdAt'] is Timestamp 
+          ? (map['createdAt'] as Timestamp).toDate() 
+          : DateTime.now(),
+      updatedAt: map['updatedAt'] is Timestamp 
+          ? (map['updatedAt'] as Timestamp).toDate() 
+          : DateTime.now(),
+      workDate: map['workDate'] is Timestamp 
+          ? (map['workDate'] as Timestamp).toDate() 
+          : DateTime.now(),
+      isMidnightUpdateRequired: map['isMidnightUpdateRequired'] ?? true,
+      companyName: map['companyName'] ?? '',
+      entries: (map['entries'] as List? ?? [])
+          .map((e) => QuotationServiceEntry.fromMap(e as Map<String, dynamic>))
+          .toList(),
+      terms: List<String>.from(map['terms'] ?? []),
+      cancellationReason: map['cancellationReason'],
+      pdfUrl: map['pdfUrl'],
+    );
+  }
 
   QuotationModel copyWith({
     String? clientName,
@@ -70,78 +149,38 @@ class QuotationModel {
     String? serviceType,
     double? totalAmount,
     double? advancePaid,
-    double? balanceAmount,
-    QuotationStatus? status,
+    String? status,
     DateTime? updatedAt,
     DateTime? workDate,
-    String? pdfUrl,
     bool? isMidnightUpdateRequired,
+    String? companyName,
+    List<QuotationServiceEntry>? entries,
+    List<String>? terms,
     String? cancellationReason,
+    String? pdfUrl,
   }) {
+    final double newTotal = totalAmount ?? this.totalAmount;
+    final double newAdvance = advancePaid ?? this.advancePaid;
+
     return QuotationModel(
-      quotationId: quotationId,
+      id: id,
       operatorId: operatorId,
       clientName: clientName ?? this.clientName,
       siteLocation: siteLocation ?? this.siteLocation,
       serviceType: serviceType ?? this.serviceType,
-      totalAmount: totalAmount ?? this.totalAmount,
-      advancePaid: advancePaid ?? this.advancePaid,
-      balanceAmount: balanceAmount ?? this.balanceAmount,
+      totalAmount: newTotal,
+      advancePaid: newAdvance,
+      balanceAmount: newTotal - newAdvance,
       status: status ?? this.status,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       workDate: workDate ?? this.workDate,
-      pdfUrl: pdfUrl ?? this.pdfUrl,
       isMidnightUpdateRequired: isMidnightUpdateRequired ?? this.isMidnightUpdateRequired,
-      companyName: companyName,
-      entries: entries,
-      terms: terms,
+      companyName: companyName ?? this.companyName,
+      entries: entries ?? this.entries,
+      terms: terms ?? this.terms,
       cancellationReason: cancellationReason ?? this.cancellationReason,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'quotationId': quotationId,
-      'operatorId': operatorId,
-      'clientName': clientName,
-      'siteLocation': siteLocation,
-      'serviceType': serviceType,
-      'totalAmount': totalAmount,
-      'advancePaid': advancePaid,
-      'balanceAmount': balanceAmount,
-      'status': status.name,
-      'createdAt': Timestamp.fromDate(createdAt),
-      'updatedAt': FieldValue.serverTimestamp(),
-      'workDate': Timestamp.fromDate(workDate),
-      'pdfUrl': pdfUrl,
-      'isMidnightUpdateRequired': isMidnightUpdateRequired,
-      'companyName': companyName,
-      'cancellationReason': cancellationReason,
-    };
-  }
-
-  factory QuotationModel.fromMap(Map<String, dynamic> map, {String? docId}) {
-    return QuotationModel(
-      quotationId: docId ?? map['quotationId'] ?? '',
-      operatorId: map['operatorId'] ?? '',
-      clientName: map['clientName'] ?? '',
-      siteLocation: map['siteLocation'] ?? '',
-      serviceType: map['serviceType'] ?? '',
-      totalAmount: (map['totalAmount'] as num?)?.toDouble() ?? 0.0,
-      advancePaid: (map['advancePaid'] as num?)?.toDouble() ?? 0.0,
-      balanceAmount: (map['balanceAmount'] as num?)?.toDouble() ?? 0.0,
-      status: QuotationStatus.values.firstWhere(
-        (e) => e.name == map['status'],
-        orElse: () => QuotationStatus.pending,
-      ),
-      createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      updatedAt: (map['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      workDate: (map['workDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      pdfUrl: map['pdfUrl'],
-      isMidnightUpdateRequired: map['isMidnightUpdateRequired'] ?? true,
-      companyName: map['companyName'] ?? '',
-      cancellationReason: map['cancellationReason'],
+      pdfUrl: pdfUrl ?? this.pdfUrl,
     );
   }
 

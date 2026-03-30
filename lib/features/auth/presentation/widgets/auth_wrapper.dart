@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../controllers/login_notifier.dart';
 import '../pages/pending_approval_page.dart';
 import '../pages/role_selection_page.dart';
-import '../../admin/presentation/pages/admin_control_page.dart';
-import '../../dashboard/presentation/pages/main_dashboard.dart';
-import '../../../core/themes/app_theme.dart';
+import '../../../admin/presentation/pages/admin_control_page.dart';
+import '../../../dashboard/presentation/pages/main_dashboard.dart';
+import '../../../../core/themes/app_theme.dart';
 
 class AuthWrapper extends ConsumerWidget {
   const AuthWrapper({super.key});

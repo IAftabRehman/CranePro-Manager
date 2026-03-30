@@ -227,7 +227,7 @@ class _AddQuotationPageState extends State<AddQuotationPage> {
                       ElevatedButton(
                         onPressed: () {
                           final data = QuotationModel(
-                            quotationId: DateTime.now().millisecondsSinceEpoch.toString(),
+                            id: DateTime.now().millisecondsSinceEpoch.toString(),
                             operatorId: 'mock_operator_id', // TODO: Get from Auth
                             clientName: _clientController.text,
                             siteLocation: _entries.isNotEmpty ? _entries.first.location : '',
@@ -237,6 +237,7 @@ class _AddQuotationPageState extends State<AddQuotationPage> {
                             createdAt: DateTime.now(),
                             updatedAt: DateTime.now(),
                             workDate: _entries.isNotEmpty ? _entries.first.startDate : DateTime.now(),
+                            isMidnightUpdateRequired: true,
                             entries: _entries,
                             terms: _terms.where((t) => t.isNotEmpty).toList(),
                           );
