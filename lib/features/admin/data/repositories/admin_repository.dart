@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../auth/data/models/user_model.dart';
+
+import '../../../auth/data/models/user_model.dart';
 
 class AdminRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -32,9 +33,18 @@ class AdminRepository {
   }
 
   /// Toggles the block status of a user.
-  Future<void> toggleBlockUser(String userId, bool isBlocked) async {
-    await _firestore.collection('users').doc(userId).update({
-      'isBlocked': isBlocked,
+  Future<void> toggleBlockUser(String uid, bool blockStatus) async {
+    await _firestore.collection('users').doc(uid).update({
+      'isBlocked': blockStatus,
+    });
+  }
+
+  /// Updates user status, approval, and role in a single operation.
+  Future<void> updateUserStatus(String uid, bool isApproved, String role) async {
+    await _firestore.collection('users').doc(uid).update({
+      'isAdminApproved': isApproved,
+      'role': role,
+      'rejectionReason': isApproved ? FieldValue.delete() : null,
     });
   }
 }

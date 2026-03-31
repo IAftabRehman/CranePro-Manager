@@ -1,88 +1,104 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../controllers/login_notifier.dart';
 import '../pages/pending_approval_page.dart';
 import '../pages/role_selection_page.dart';
+import '../pages/blocked_account_page.dart';
 import '../../../admin/presentation/pages/admin_control_page.dart';
 import '../../../dashboard/presentation/pages/main_dashboard.dart';
+import '../../data/models/user_model.dart';
 import '../../../../core/themes/app_theme.dart';
 
-class AuthWrapper extends ConsumerWidget {
+class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authStateChangesProvider);
-
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 500),
-      transitionBuilder: (child, animation) => FadeTransition(
-        opacity: animation,
-        child: child,
-      ),
-      child: authState.when(
-        data: (user) {
-          if (user == null) {
-            return const RoleSelectionPage(key: ValueKey('role_selection'));
-          }
-
-          final userProfile = ref.watch(currentUserProvider);
-
-          return userProfile.when(
-            data: (profile) {
-              if (profile == null) {
-                return const RoleSelectionPage(key: ValueKey('role_selection_null'));
-              }
-
-              // SMART ROUTING LOGIC
-              // 1. Admin Bypass & Routing
-              if (profile.role == 'admin') {
-                return const AdminControlPage(key: ValueKey('admin_panel'));
-              }
-
-              // 2. Approval Guard for non-admins
-              if (!profile.isAdminApproved) {
-                return const PendingApprovalPage(key: ValueKey('pending_approval'));
-              }
-
-              // 3. Role-Specific Dashboards
-              if (profile.role == 'viewer') {
-                return const MainDashboard(
-                  key: ValueKey('viewer_dash'),
-                  isViewer: true,
-                );
-              }
-
-              // Default: Operator Dashboard
-              return const MainDashboard(key: ValueKey('operator_dash'));
-            },
-            loading: () => const Scaffold(
-              key: ValueKey('loading_profile'),
-              body: Center(
-                child: CircularProgressIndicator(color: AppTheme.deepNavyBlue),
-              ),
-            ),
-            error: (err, _) => Scaffold(
-              key: ValueKey('error_profile'),
-              body: Center(
-                child: Text('Profile Error: $err'),
-              ),
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          debugPrint("AuthWrapper: AuthState is WAITING...");
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(color: AppTheme.deepNavyBlue),
             ),
           );
-        },
-        loading: () => const Scaffold(
-          key: ValueKey('loading_auth'),
-          body: Center(
-            child: CircularProgressIndicator(color: AppTheme.deepNavyBlue),
-          ),
-        ),
-        error: (err, _) => Scaffold(
-          key: ValueKey('error_auth'),
-          body: Center(
-            child: Text('Auth Error: $err'),
-          ),
-        ),
-      ),
+        }
+
+        final user = snapshot.data;
+        if (user == null) {
+          debugPrint("AuthWrapper: No user found. Routing to RoleSelectionPage.");
+          return const RoleSelectionPage();
+        }
+
+        debugPrint("AuthWrapper: User logged in: ${user.uid}. Listening to Firestore profile...");
+
+        return StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
+          builder: (context, userSnapshot) {
+            if (userSnapshot.connectionState == ConnectionState.waiting) {
+              debugPrint("AuthWrapper: Firestore profile stream - WAITING...");
+              return const Scaffold(
+                body: Center(
+                  child: CircularProgressIndicator(color: AppTheme.deepNavyBlue),
+                ),
+              );
+            }
+
+            if (userSnapshot.hasError) {
+              debugPrint("AuthWrapper: Firestore Error: ${userSnapshot.error}");
+              return Scaffold(
+                body: Center(child: Text('Database Error: ${userSnapshot.error}')),
+              );
+            }
+
+            if (!userSnapshot.hasData || !userSnapshot.data!.exists) {
+              debugPrint("AuthWrapper: [MISSING PROFILE] UID: ${user.uid} authenticated but doc not found.");
+              return const Scaffold(
+                body: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.person_off_rounded, size: 64, color: Colors.amber),
+                      SizedBox(height: 16),
+                      Text("Profile Not Found", style: TextStyle(color: Colors.white, fontSize: 18)),
+                      SizedBox(height: 8),
+                      Text("Contact support if you believe this is an error.", style: TextStyle(color: Colors.white70)),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            final userData = userSnapshot.data!.data() as Map<String, dynamic>;
+            final currentUser = UserModel.fromMap(userData);
+            
+            final role = currentUser.role;
+            final isAdminApproved = currentUser.isAdminApproved;
+            final isBlocked = currentUser.isBlocked;
+
+            debugPrint("Current User Role from Firestore: $role (Approved: $isAdminApproved, Blocked: $isBlocked)");
+
+            // CRITICAL: Block Guard
+            if (isBlocked) {
+              debugPrint("AuthWrapper: Account BLOCKED. Routing to BlockedAccountPage");
+              return BlockedAccountPage(user: currentUser);
+            }
+
+            if (role == 'admin') {
+              debugPrint("AuthWrapper: Routing to AdminControlPage");
+              return const AdminControlPage();
+            } else if (isAdminApproved == true) {
+              debugPrint("AuthWrapper: Routing to MainDashboard");
+              return const MainDashboard();
+            } else {
+              debugPrint("AuthWrapper: Routing to PendingApprovalPage with User Data");
+              return PendingApprovalPage(user: currentUser);
+            }
+          },
+        );
+      },
     );
   }
 }

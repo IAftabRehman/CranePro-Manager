@@ -1,7 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_button.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_text_field.dart';
-import 'package:extend_crane_services/features/admin/presentation/pages/admin_control_page.dart';
 
 class AdminLoginPage extends StatefulWidget {
   const AdminLoginPage({super.key});
@@ -24,24 +25,71 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
   }
 
   void _handleLogin() async {
-    if (!_formKey.currentState!.validate()) {
+    if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
-      // Simulating Admin Authentication
-      await Future.delayed(const Duration(seconds: 2));
-      
-      if (mounted) {
-        setState(() => _isLoading = false);
-        
-        // Success Mock Logic
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Admin Access Granted!'), backgroundColor: Colors.green),
+      try {
+        // 1. Firebase Authentication
+        final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
         );
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const AdminControlPage()),
-        );
+        final user = userCredential.user;
+        if (user != null && mounted) {
+          // 2. Fetch Firestore profile to verify Admin status immediately
+          final userDoc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .get();
+
+          if (!userDoc.exists || userDoc.data()?['role'] != 'admin') {
+            // Not an admin!
+            await FirebaseAuth.instance.signOut();
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Access Denied: Not an authorized Administrator account.'),
+                  backgroundColor: Colors.redAccent,
+                ),
+              );
+            }
+            return;
+          }
+
+          // 3. Success Feedback
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Authentication Successful! Initiating Admin Handshake...'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          
+          // 4. Pop until original screen to let AuthWrapper take over
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
+      } on FirebaseAuthException catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.message ?? 'Authentication Failed'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('An unexpected error occurred: $e'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
       }
     }
   }
@@ -126,7 +174,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                       SizedBox(
                         width: double.infinity,
                         child: CraneButton(
-                          text: 'AUTHENTICATE',
+                          text: 'Authenticate',
                           onPressed: _handleLogin,
                           isLoading: _isLoading,
                         ),
@@ -137,7 +185,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                       TextButton(
                         onPressed: () => Navigator.pop(context),
                         child: Text(
-                          'RETURN TO PUBLIC AREA',
+                          'Return To Public Area',
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.3),
                             fontSize: 12,

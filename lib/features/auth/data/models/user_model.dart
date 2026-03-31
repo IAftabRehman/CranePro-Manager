@@ -83,7 +83,7 @@ class UserModel {
       id: map['id'] ?? '',
       fullName: map['fullName'] ?? '',
       email: map['email'] ?? '',
-      role: map['role'] ?? 'viewer',
+      role: map['role'] ?? 'operator',
       isAdminApproved: map['isAdminApproved'] ?? false,
       isBlocked: map['isBlocked'] ?? false,
       rejectionReason: map['rejectionReason'],

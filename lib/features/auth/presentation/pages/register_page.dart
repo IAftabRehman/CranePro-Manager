@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_button.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_text_field.dart';
 import 'package:extend_crane_services/core/themes/app_theme.dart';
-import 'package:extend_crane_services/features/auth/presentation/pages/pending_approval_page.dart';
 import 'package:extend_crane_services/features/auth/presentation/controllers/signup_notifier.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
@@ -47,10 +46,10 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     ref.listen<AsyncValue<void>>(signupProvider, (previous, next) {
       next.when(
         data: (_) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const PendingApprovalPage()),
-          );
+          // No need to manually push PendingApprovalPage. 
+          // AuthWrapper in main.dart is listening to authStateChanges and Firestore.
+          // We just pop back to the root to let AuthWrapper take over.
+          Navigator.of(context).popUntil((route) => route.isFirst);
         },
         error: (err, _) {
           ScaffoldMessenger.of(context).showSnackBar(

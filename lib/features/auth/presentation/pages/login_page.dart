@@ -42,10 +42,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       next.when(
         data: (_) {
           // AuthWrapper in main.dart will automatically handle the navigation
-          // based on the successfully changed authState and userProfile.
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Login Successful!')),
           );
+          // Return to root to trigger AuthWrapper reactive update
+          Navigator.of(context).popUntil((route) => route.isFirst);
         },
         error: (err, _) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -128,8 +129,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: () => Navigator.push(
-                        context, 
+                      onPressed: () => Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => const ForgotPasswordPage())
                       ),
                       child: const Text(

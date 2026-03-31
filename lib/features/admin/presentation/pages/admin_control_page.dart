@@ -1,4 +1,6 @@
 import 'dart:ui';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:extend_crane_services/core/themes/app_theme.dart';
 import 'package:extend_crane_services/features/admin/presentation/pages/admin_financial_dashboard.dart';
@@ -19,11 +21,8 @@ class AdminControlPage extends StatefulWidget {
 class _AdminControlPageState extends State<AdminControlPage> {
   int _currentIndex = 0;
 
-  void _handleLogout() {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => const RoleSelectionPage()),
-      (route) => false,
-    );
+  void _handleLogout() async {
+    await FirebaseAuth.instance.signOut();
   }
 
   @override
@@ -64,7 +63,7 @@ class _AdminControlPageState extends State<AdminControlPage> {
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.withOpacity(0.5),
+            color: Colors.blue.withValues(alpha: 0.5),
             blurRadius: 20,
             offset: const Offset(0, -10),
           ),
@@ -77,7 +76,7 @@ class _AdminControlPageState extends State<AdminControlPage> {
         backgroundColor: Colors.black26,
         selectedItemColor: Colors.green,
         iconSize: 20,
-        selectedIconTheme: IconThemeData(
+        selectedIconTheme: const IconThemeData(
           size: 30
         ),
         unselectedItemColor: Colors.white,
