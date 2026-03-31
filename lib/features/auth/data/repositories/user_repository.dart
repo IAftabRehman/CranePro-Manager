@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user_model.dart';
 import 'dart:developer';
 
@@ -40,4 +41,23 @@ class UserRepository {
       return null;
     }
   }
+
+  /// Streams all operators who are approved by admin and not blocked.
+  Stream<List<UserModel>> getApprovedOperatorsStream() {
+    return _firestore
+        .collection('users')
+        .where('role', isEqualTo: 'operator')
+        .where('isAdminApproved', isEqualTo: true)
+        .where('isBlocked', isEqualTo: false)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) => UserModel.fromMap(doc.data())).toList();
+    });
+  }
 }
+
+final userRepositoryProvider = Provider((ref) => UserRepository());
+
+final approvedOperatorsProvider = StreamProvider<List<UserModel>>((ref) {
+  return ref.watch(userRepositoryProvider).getApprovedOperatorsStream();
+});

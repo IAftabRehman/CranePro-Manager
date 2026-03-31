@@ -3,26 +3,44 @@ import 'package:extend_crane_services/features/quotation/presentation/pages/pdf_
 import 'package:extend_crane_services/features/quotation/presentation/pages/terms_management_page.dart';
 import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
 import 'package:flutter/material.dart';
-import 'package:extend_crane_services/core/utils/responsive.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_text_field.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../data/repositories/quotation_repository.dart';
+import 'package:extend_crane_services/core/themes/app_theme.dart';
 
-class AddQuotationPage extends StatefulWidget {
+class AddQuotationPage extends ConsumerStatefulWidget {
   const AddQuotationPage({super.key});
 
   @override
-  State<AddQuotationPage> createState() => _AddQuotationPageState();
+  ConsumerState<AddQuotationPage> createState() => _AddQuotationPageState();
 }
 
-class _AddQuotationPageState extends State<AddQuotationPage> {
+class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
   final _clientController = TextEditingController();
+  final _advancePaidController = TextEditingController();
   final List<String> _terms = ['Diesel will be provided by client', '10-12 Hours shift duty'];
-  final List<QuotationServiceEntry> _entries = [QuotationServiceEntry(
-    serviceName: '',
-    duration: '',
-    location: '',
-    price: 0.0,
-  )];
-  
+  final List<QuotationServiceEntry> _entries = [
+    QuotationServiceEntry(
+      serviceName: '',
+      duration: '',
+      location: '',
+      price: 0.0,
+    )
+  ];
+
+  bool _isSaving = false;
+
+  @override
+  void dispose() {
+    _clientController.dispose();
+    _advancePaidController.dispose();
+    super.dispose();
+  }
+
+  double get _totalPrice => _entries.fold(0, (sum, item) => sum + item.price);
+  double get _advancePaid => double.tryParse(_advancePaidController.text) ?? 0.0;
+
   void _addEntry() {
     setState(() {
       _entries.add(QuotationServiceEntry(
@@ -55,8 +73,6 @@ class _AddQuotationPageState extends State<AddQuotationPage> {
     }
   }
 
-  double get _totalPrice => _entries.fold(0, (sum, item) => sum + item.price);
-
   Future<void> _selectDate(int index) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -66,17 +82,17 @@ class _AddQuotationPageState extends State<AddQuotationPage> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.dark(
-              primary: Colors.amber, // Header aur selected date ka color
-              onPrimary: Colors.black, // Header text ka color
-              surface: Color(0xFF1A1F3D), // Calendar background (Premium Gradient se match karne ke liye)
-              onSurface: Colors.white, // Dates aur days ka text color
-              secondary: Colors.amber, // "Save" aur "Cancel" buttons ka text color
+            colorScheme: const ColorScheme.dark(
+              primary: Colors.amber,
+              onPrimary: Colors.black,
+              surface: Color(0xFF1A1F3D),
+              onSurface: Colors.white,
+              secondary: Colors.amber,
             ),
             textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
                 foregroundColor: Colors.amber,
-                textStyle: TextStyle(fontWeight: FontWeight.bold),
+                textStyle: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -92,176 +108,240 @@ class _AddQuotationPageState extends State<AddQuotationPage> {
     }
   }
 
+  void _handleSave() async {
+    setState(() => _isSaving = true);
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw Exception("User not authenticated");
+
+      final total = _totalPrice;
+      final advance = _advancePaid;
+
+      final data = QuotationModel(
+        id: '', // Firestore will assign
+        operatorId: user.uid,
+        clientName: _clientController.text,
+        siteLocation: _entries.isNotEmpty ? _entries.first.location : '',
+        serviceType: _entries.isNotEmpty ? _entries.first.serviceName : '',
+        totalAmount: total,
+        advancePaid: advance,
+        balanceAmount: total - advance,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        workDate: _entries.isNotEmpty ? _entries.first.startDate : DateTime.now(),
+        entries: _entries,
+        terms: _terms.where((t) => t.isNotEmpty).toList(),
+      );
+
+      // Save to Firestore
+      await ref.read(quotationRepositoryProvider).createQuotation(data);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Quotation Saved Successfully!'),
+            backgroundColor: AppTheme.deepNavyBlue,
+          ),
+        );
+
+        // Then preview PDF
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => PdfPreviewPage(data: data)),
+        );
+      }
+    } on FirebaseException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Firebase Error: ${e.message}'),
+            backgroundColor: AppTheme.deepNavyBlue,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: AppTheme.deepNavyBlue,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final screenHeight = Responsive.screenHeight(context);
 
     return PremiumScaffold(
       appBar: AppBar(
-        title: Text("Quotation Generator", style: TextStyle(fontWeight: FontWeight.bold),),
+        title: const Text("Quotation Generator", style: TextStyle(fontWeight: FontWeight.bold),),
         centerTitle: true,
         backgroundColor: Colors.blue.withAlpha(41),
         elevation: 10,
         shadowColor: Colors.blue,
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.all(24),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 800),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Single Full Width Client Input
-                      const _SectionLabel('Client Information'),
-                      CraneInput(
-                        controller: _clientController,
-                        hintText: 'Client or Company Name (Optional)',
-                        prefixIcon: const Icon(Icons.business_outlined, size: 20),
-                      ),
-
-                      const SizedBox(height: 30),
-                      const _SectionLabel('Service Entries'),
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _entries.length,
-                        itemBuilder: (context, index) {
-                          return _ServiceCard(
-                            index: index,
-                            entry: _entries[index],
-                            onRemove: () => _removeEntry(index),
-                            onDateTap: () => _selectDate(index),
-                            onPriceChanged: (val) {
-                              setState(() {
-                                _entries[index].price = double.tryParse(val) ?? 0.0;
-                              });
-                            },
-                          );
-                        },
-                      ),
-                      TextButton.icon(
-                        onPressed: _addEntry,
-                        icon: const Icon(Icons.add_circle, size: 24),
-                        label: const Text('Add Another Services', style: TextStyle(fontWeight: FontWeight.bold)),
-                        style: TextButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15)
+          Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.all(24),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 800),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const _SectionLabel('Client Information'),
+                          CraneInput(
+                            controller: _clientController,
+                            hintText: 'Client or Company Name (Optional)',
+                            prefixIcon: const Icon(Icons.business_outlined, size: 20),
                           ),
-                          backgroundColor: theme.colorScheme.secondary,
-                          foregroundColor: theme.colorScheme.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                      ),
 
-                      const SizedBox(height: 50),
-                      const _SectionLabel('Terms and Conditions'),
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.white.withOpacity(0.1)),
-                        ),
-                        child: Column(
-                          children: [
-                            Row(
+                          const SizedBox(height: 30),
+                          const _SectionLabel('Service Entries'),
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: _entries.length,
+                            itemBuilder: (context, index) {
+                              return _ServiceCard(
+                                index: index,
+                                entry: _entries[index],
+                                onRemove: () => _removeEntry(index),
+                                onDateTap: () => _selectDate(index),
+                                onPriceChanged: (val) {
+                                  setState(() {
+                                    _entries[index].price = double.tryParse(val) ?? 0.0;
+                                  });
+                                },
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          TextButton.icon(
+                            onPressed: _addEntry,
+                            icon: const Icon(Icons.add_circle, size: 24),
+                            label: const Text('Add Another Services', style: TextStyle(fontWeight: FontWeight.bold)),
+                            style: TextButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15)
+                              ),
+                              backgroundColor: theme.colorScheme.secondary,
+                              foregroundColor: theme.colorScheme.primary,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
+                          ),
+
+                          const SizedBox(height: 30),
+                          const _SectionLabel('Payment Summary'),
+                          CraneInput(
+                            controller: _advancePaidController,
+                            hintText: 'Advance Paid (AED)',
+                            keyboardType: TextInputType.number,
+                            prefixIcon: const Icon(Icons.payments_outlined, size: 20),
+                            onChanged: (val) => setState(() {}), // Trigger total update
+                          ),
+
+                          const SizedBox(height: 50),
+                          const _SectionLabel('Terms and Conditions'),
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                            ),
+                            child: Column(
                               children: [
-                                const Icon(Icons.description_outlined, color: Colors.white70, size: 24),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text('${_terms.length} Terms Added', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
-                                      Text('Click below to edit or add more points.', style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12)),
-                                    ],
+                                Row(
+                                  children: [
+                                    const Icon(Icons.description_outlined, color: Colors.white70, size: 24),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text('${_terms.length} Terms Added', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
+                                          Text('Click below to edit or add more points.', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12)),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const Divider(height: 32, color: Colors.white10),
+                                ElevatedButton(
+                                  onPressed: _navigateToTerms,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.white.withValues(alpha: 0.05),
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    minimumSize: const Size(double.infinity, 48),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
                                   ),
+                                  child: const Text('Manage Terms and Conditions', style: TextStyle(fontWeight: FontWeight.w400, fontSize: 15, letterSpacing: 0.2, wordSpacing: 2)),
                                 ),
                               ],
                             ),
-                            const Divider(height: 32, color: Colors.white10),
-                            ElevatedButton(
-                              onPressed: _navigateToTerms,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white.withOpacity(0.05),
-                                foregroundColor: Colors.white,
-                                elevation: 0,
-                                minimumSize: const Size(double.infinity, 48),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: BorderSide(color: Colors.white.withOpacity(0.05))),
-                              ),
-                              child: Text('Manage Terms and Conditions', style: TextStyle(fontWeight: FontWeight.w400, fontSize: 15, letterSpacing: 0.2, wordSpacing: 2)),
-                            ),
-                          ],
-                        ),
-                      ),
+                          ),
 
-                      const SizedBox(height: 40),
-                      // Grand Total Card (AED)
-                      Container(
-                        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 18),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.secondary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: theme.colorScheme.secondary.withOpacity(0.1)),
-                          boxShadow: [BoxShadow(color: theme.colorScheme.secondary.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, 8))],
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('Estimated Total', style: TextStyle(color: theme.colorScheme.secondary, fontSize: 15)),
-                            Text(
-                              'AED ${_totalPrice.toStringAsFixed(0)}',
-                              style: TextStyle(color: theme.colorScheme.secondary, fontSize: 20, fontWeight: FontWeight.bold),
+                          const SizedBox(height: 40),
+                          Container(
+                            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 18),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.secondary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: theme.colorScheme.secondary.withValues(alpha: 0.1)),
+                              boxShadow: [BoxShadow(color: theme.colorScheme.secondary.withValues(alpha: 0.1), blurRadius: 15, offset: const Offset(0, 8))],
                             ),
-                          ],
-                        ),
-                      ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Estimated Total', style: TextStyle(color: theme.colorScheme.secondary, fontSize: 15)),
+                                Text(
+                                  'AED ${_totalPrice.toStringAsFixed(0)}',
+                                  style: TextStyle(color: theme.colorScheme.secondary, fontSize: 20, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
 
-                      const SizedBox(height: 30),
-                      ElevatedButton(
-                        onPressed: () {
-                          final data = QuotationModel(
-                            id: DateTime.now().millisecondsSinceEpoch.toString(),
-                            operatorId: 'mock_operator_id', // TODO: Get from Auth
-                            clientName: _clientController.text,
-                            siteLocation: _entries.isNotEmpty ? _entries.first.location : '',
-                            serviceType: _entries.isNotEmpty ? _entries.first.serviceName : '',
-                            totalAmount: _totalPrice,
-                            balanceAmount: _totalPrice,
-                            createdAt: DateTime.now(),
-                            updatedAt: DateTime.now(),
-                            workDate: _entries.isNotEmpty ? _entries.first.startDate : DateTime.now(),
-                            isMidnightUpdateRequired: true,
-                            entries: _entries,
-                            terms: _terms.where((t) => t.isNotEmpty).toList(),
-                          );
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => PdfPreviewPage(data: data)),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: theme.colorScheme.secondary,
-                          foregroundColor: theme.colorScheme.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 15),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                          elevation: 4,
-                        ),
-                        child: const Text('Generate PDF', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, letterSpacing: 1.1)),
+                          const SizedBox(height: 30),
+                          ElevatedButton(
+                            onPressed: _handleSave,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: theme.colorScheme.secondary,
+                              foregroundColor: theme.colorScheme.primary,
+                              padding: const EdgeInsets.symmetric(vertical: 15),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                              elevation: 4,
+                            ),
+                            child: const Text('Save & Generate PDF', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, letterSpacing: 1.1)),
+                          ),
+                          const SizedBox(height: 60),
+                        ],
                       ),
-                      const SizedBox(height: 60),
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
           ),
+          if (_isSaving)
+            Container(
+              color: Colors.black54,
+              child: const Center(
+                child: CircularProgressIndicator(color: Colors.amber),
+              ),
+            ),
         ],
       ),
     );
@@ -298,17 +378,15 @@ class _ServiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Container(
       margin: const EdgeInsets.only(top: 20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
         boxShadow: [
-          BoxShadow(color: Colors.blue.withOpacity(0.07), blurRadius: 10, offset: const Offset(7, 7)),
+          BoxShadow(color: Colors.blue.withValues(alpha: 0.07), blurRadius: 10, offset: const Offset(7, 7)),
         ],
       ),
       child: Column(
@@ -324,21 +402,21 @@ class _ServiceCard extends StatelessWidget {
           const Divider(color: Colors.white10),
           const SizedBox(height: 12),
           
-          _FieldLabel('Service Type'),
+          const _FieldLabel('Service Type'),
           CraneInput(
             hintText: 'e.g., 50 Ton Crane Hire',
             onChanged: (val) => entry.serviceName = val,
           ),
           
           const SizedBox(height: 20),
-          _FieldLabel('Duration'),
+          const _FieldLabel('Duration'),
           CraneInput(
             hintText: 'e.g., 3 Days',
             onChanged: (val) => entry.duration = val,
           ),
           
           const SizedBox(height: 20),
-          _FieldLabel('Price (AED)'),
+          const _FieldLabel('Price (AED)'),
           CraneInput(
             hintText: '0.00',
             prefixText: 'AED ',
@@ -347,23 +425,23 @@ class _ServiceCard extends StatelessWidget {
           ),
           
           const SizedBox(height: 20),
-          _FieldLabel('Location'),
+          const _FieldLabel('Location'),
           CraneInput(
             hintText: 'Worksite location',
             onChanged: (val) => entry.location = val,
           ),
           
           const SizedBox(height: 20),
-          _FieldLabel('Starting Date'),
+          const _FieldLabel('Starting Date'),
           InkWell(
             onTap: onDateTap,
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.white.withOpacity(0.05)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
               ),
               child: Row(
                 children: [
@@ -392,4 +470,3 @@ class _FieldLabel extends StatelessWidget {
     );
   }
 }
-

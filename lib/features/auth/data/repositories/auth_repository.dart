@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import '../models/user_model.dart';
 import 'user_repository.dart';
 import 'dart:developer';
@@ -11,6 +12,7 @@ class AuthRepository {
   /// Signs up a new user with email and password and creates their Firestore profile.
   /// TASK 1 Implementation: Exact 3-step flow.
   Future<void> signUp(String email, String password, UserModel user) async {
+    await FirebaseCrashlytics.instance.log("Action: signUp - Email: $email");
     try {
       // 1. Create user in Firebase Auth
       final UserCredential credential = await _auth.createUserWithEmailAndPassword(
@@ -53,6 +55,7 @@ class AuthRepository {
 
   /// Signs in a user with email and password and returns their profile.
   Future<UserModel> signInWithEmail(String email, String password) async {
+    await FirebaseCrashlytics.instance.log("Action: signInWithEmail - Email: $email");
     try {
       final UserCredential credential = await _auth.signInWithEmailAndPassword(
         email: email,
@@ -90,6 +93,7 @@ class AuthRepository {
 
   /// Signs out the current user.
   Future<void> signOut() async {
+    await FirebaseCrashlytics.instance.log("Action: signOut");
     await _auth.signOut();
   }
 }

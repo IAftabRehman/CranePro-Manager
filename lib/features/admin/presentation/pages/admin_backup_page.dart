@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:extend_crane_services/core/themes/app_theme.dart';
@@ -136,6 +137,15 @@ class _AdminBackupPageState extends State<AdminBackupPage> {
               child: const Text('Restore From Resent File', style: TextStyle(color: Colors.red, fontSize: 15)),
             ),
           ],
+          const SizedBox(height: 100),
+          // Hidden Debug Area for Step 3-19 Validation
+          Opacity(
+            opacity: 0.1,
+            child: TextButton(
+              onPressed: () => FirebaseCrashlytics.instance.crash(),
+              child: const Text('DEBUG: FORCE CRASH', style: TextStyle(color: Colors.black, fontSize: 10)),
+            ),
+          ),
         ],
       ),
     );

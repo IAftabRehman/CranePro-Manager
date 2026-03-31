@@ -8,6 +8,8 @@ class CraneButton extends StatelessWidget {
   final bool isOutlined;
   final IconData? icon;
   final Color? loaderColor;
+  final Color? backgroundColor;
+  final Color? shadowColor;
 
   const CraneButton({
     super.key,
@@ -17,6 +19,8 @@ class CraneButton extends StatelessWidget {
     this.isOutlined = false,
     this.icon,
     this.loaderColor,
+    this.backgroundColor,
+    this.shadowColor,
   });
   @override
   @override
@@ -65,11 +69,11 @@ class CraneButton extends StatelessWidget {
           : ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: theme.colorScheme.secondary,
+          backgroundColor: backgroundColor ?? theme.colorScheme.secondary,
           foregroundColor: theme.colorScheme.primary,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           elevation: 8,
-          shadowColor: theme.colorScheme.secondary,
+          shadowColor: shadowColor ?? (backgroundColor ?? theme.colorScheme.secondary),
         ),
         child: buttonChild,
       ),

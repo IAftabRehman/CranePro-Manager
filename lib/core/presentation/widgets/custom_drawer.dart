@@ -96,8 +96,7 @@ class CustomDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem(BuildContext context, IconData icon, String title, ThemeData theme, {bool isAdminOnly = false}) {
-    // In a real app, check user role here
+  Widget _buildNavItem(BuildContext context, IconData icon, String title, ThemeData theme) {
     final isSelected = activeRoute == title;
     
     return Padding(

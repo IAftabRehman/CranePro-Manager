@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class ExpenseModel {
   final String id;
   final String operatorId;
-  final String category; // 'Fuel', 'Repair', 'Salary', 'Other'
+  final String category; // 'Fuel', 'Maintenance', 'Salary', 'Other'
   final double amount;
   final String description;
   final DateTime date;
@@ -26,7 +26,7 @@ class ExpenseModel {
       'category': category,
       'amount': amount,
       'description': description,
-      'date': Timestamp.fromDate(date), // TASK 2: Convert DateTime to Timestamp
+      'date': Timestamp.fromDate(date),
       'attachmentUrl': attachmentUrl,
     };
   }
@@ -36,11 +36,11 @@ class ExpenseModel {
       id: docId ?? map['id'] ?? '',
       operatorId: map['operatorId'] ?? '',
       category: map['category'] ?? 'Other',
-      amount: double.parse((map['amount'] ?? 0).toString()), // TASK 2: prevent int/double mismatch
+      amount: (map['amount'] as num?)?.toDouble() ?? 0.0,
       description: map['description'] ?? '',
       date: map['date'] is Timestamp 
           ? (map['date'] as Timestamp).toDate() 
-          : DateTime.now(), // TASK 2: Handle Timestamp
+          : DateTime.now(),
       attachmentUrl: map['attachmentUrl'],
     );
   }

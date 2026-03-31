@@ -29,6 +29,7 @@ class _MainDashboardState extends State<MainDashboard>
   @override
   void initState() {
     super.initState();
+
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
@@ -171,9 +172,9 @@ class _MainDashboardState extends State<MainDashboard>
           aspectRatio: 1.0,
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.08),
+              color: Colors.white.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
             ),
             padding: EdgeInsets.all(
               Responsive.scale(context, 16).clamp(12.0, 24.0),
@@ -235,7 +236,7 @@ class _MainDashboardState extends State<MainDashboard>
       color: Colors.black38,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.white.withOpacity(0.5)),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.5)),
       ),
       child: ListTile(
         contentPadding: EdgeInsets.symmetric(
@@ -245,7 +246,7 @@ class _MainDashboardState extends State<MainDashboard>
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: const Icon(Icons.precision_manufacturing, color: Color(0xFFFFB300)),
@@ -357,7 +358,7 @@ class _MainDashboardState extends State<MainDashboard>
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.8),
+                    color: Colors.red.withValues(alpha: 0.8),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black38,
@@ -396,7 +397,7 @@ class _MainDashboardState extends State<MainDashboard>
                               vertical: 8,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.2),
+                              color: Colors.black.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -567,8 +568,8 @@ class _MainDashboardState extends State<MainDashboard>
                                     child: Container(
                                       padding: const EdgeInsets.all(16),
                                       decoration: BoxDecoration(
-                                        color: Colors.redAccent.withOpacity(
-                                          0.8,
+                                        color: Colors.redAccent.withValues(
+                                          alpha: 0.8,
                                         ),
                                         borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
@@ -577,8 +578,8 @@ class _MainDashboardState extends State<MainDashboard>
                                         ),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: Colors.redAccent.withOpacity(
-                                              0.5,
+                                            color: Colors.redAccent.withValues(
+                                              alpha: 0.5,
                                             ),
                                             blurRadius: 10,
                                             spreadRadius: 2,

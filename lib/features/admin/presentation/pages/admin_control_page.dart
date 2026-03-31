@@ -1,15 +1,13 @@
-import 'dart:ui';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:extend_crane_services/core/themes/app_theme.dart';
 import 'package:extend_crane_services/features/admin/presentation/pages/admin_financial_dashboard.dart';
-import 'package:extend_crane_services/features/admin/presentation/pages/admin_export_page.dart';
+import 'package:extend_crane_services/features/admin/presentation/pages/admin_reports_page.dart';
 import 'package:extend_crane_services/features/admin/presentation/pages/admin_activity_logs_page.dart';
 import 'package:extend_crane_services/features/admin/presentation/pages/admin_audit_trail_page.dart';
 import 'package:extend_crane_services/features/admin/presentation/pages/admin_backup_page.dart';
-import 'package:extend_crane_services/features/auth/presentation/pages/role_selection_page.dart';
 import 'package:extend_crane_services/features/admin/presentation/pages/user_management_page.dart';
+import 'package:extend_crane_services/features/admin/presentation/pages/fleet_management_page.dart';
 
 class AdminControlPage extends StatefulWidget {
   const AdminControlPage({super.key});
@@ -30,8 +28,9 @@ class _AdminControlPageState extends State<AdminControlPage> {
     final List<Widget> pages = [
       const AdminFinancialDashboard(),
       const UserManagementPage(),
+      const FleetManagementPage(),
       const AdminActivityLogsPage(),
-      const AdminExportPage(),
+      const AdminReportsPage(),
       _buildSecurityModule(),
     ];
 
@@ -98,6 +97,10 @@ class _AdminControlPageState extends State<AdminControlPage> {
             label: 'Users',
           ),
           BottomNavigationBarItem(
+            icon: Icon(Icons.construction_rounded),
+            label: 'Fleet',
+          ),
+          BottomNavigationBarItem(
             icon: Icon(Icons.history_edu_rounded),
             label: 'Logs',
           ),
@@ -118,8 +121,9 @@ class _AdminControlPageState extends State<AdminControlPage> {
     final titles = [
       'Financial Overview',
       'User Management',
+      'Fleet & Crane Management',
       'Live Activity Tracker',
-      'Report Export Hub',
+      'Advanced Reports & Search',
       'Security & Data Hub',
     ];
     return Padding(
