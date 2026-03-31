@@ -31,7 +31,7 @@ class _RoleSelectionPageState extends State<RoleSelectionPage> {
     if (_logoTapCount == 3) { // Exactly 3 taps
       _logoTapCount = 0;
       if (_isNavigating) return;
-      
+
       setState(() => _isNavigating = true);
       HapticFeedback.mediumImpact(); // Subtle vibration for Admin
       

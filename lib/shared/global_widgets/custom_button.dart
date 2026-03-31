@@ -7,6 +7,7 @@ class CraneButton extends StatelessWidget {
   final bool isLoading;
   final bool isOutlined;
   final IconData? icon;
+  final Color? loaderColor;
 
   const CraneButton({
     super.key,
@@ -15,6 +16,7 @@ class CraneButton extends StatelessWidget {
     this.isLoading = false,
     this.isOutlined = false,
     this.icon,
+    this.loaderColor,
   });
   @override
   @override
@@ -28,7 +30,7 @@ class CraneButton extends StatelessWidget {
       child: CircularProgressIndicator(
         strokeWidth: 3,
         valueColor: AlwaysStoppedAnimation<Color>(
-            isOutlined ? theme.colorScheme.secondary : theme.colorScheme.primary),
+            loaderColor ?? (isOutlined ? theme.colorScheme.secondary : theme.colorScheme.primary)),
       ),
     )
         : Row(

@@ -127,7 +127,7 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> with SingleTi
                         )
                       else
                         const Text(
-                          'Bahadar Khan is reviewing your request. You will be granted access once approved.',
+                          'Admin is reviewing your request. You will be access once approved.\nIf you have been waiting for too long, please contact Admin at +92 332 3220916.',
                           style: TextStyle(
                             color: AppTheme.deepNavyBlue,
                             fontSize: 16,

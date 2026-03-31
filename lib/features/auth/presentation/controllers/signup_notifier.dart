@@ -31,10 +31,10 @@ class SignupNotifier extends StateNotifier<AsyncValue<void>> {
         isAdminApproved: false, // Default to false
       );
 
-      await _authRepository.signUpWithEmail(
-        email: email,
-        password: password,
-        user: user,
+      await _authRepository.signUp(
+        email,
+        password,
+        user,
       );
 
       state = const AsyncValue.data(null);

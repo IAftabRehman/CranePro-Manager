@@ -170,6 +170,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     text: 'SignUp',
                     onPressed: _handleRegister,
                     isLoading: ref.watch(signupProvider).isLoading,
+                    loaderColor: AppTheme.deepNavyBlue,
                   ),
                   
                   const SizedBox(height: 24),

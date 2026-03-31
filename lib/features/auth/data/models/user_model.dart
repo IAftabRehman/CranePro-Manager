@@ -32,6 +32,7 @@ class UserModel {
   });
 
   UserModel copyWith({
+    String? id,
     String? fullName,
     String? email,
     String? role,
@@ -45,7 +46,7 @@ class UserModel {
     DateTime? lastLogin,
   }) {
     return UserModel(
-      id: id,
+      id: id ?? this.id,
       fullName: fullName ?? this.fullName,
       email: email ?? this.email,
       role: role ?? this.role,
@@ -66,7 +67,7 @@ class UserModel {
       'fullName': fullName,
       'email': email,
       'role': role,
-      'isAdminApproved': isAdminApproved,
+      'isAdminApproved': false, // Mandatory approval required for all signups
       'isBlocked': isBlocked,
       'rejectionReason': rejectionReason,
       'fcmToken': fcmToken,

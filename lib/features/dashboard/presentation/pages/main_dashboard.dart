@@ -14,7 +14,8 @@ import '../widgets/midnight_status_modal.dart';
 import '../../../../core/utils/responsive.dart';
 
 class MainDashboard extends StatefulWidget {
-  const MainDashboard({super.key});
+  final bool isViewer;
+  const MainDashboard({super.key, this.isViewer = false});
 
   @override
   State<MainDashboard> createState() => _MainDashboardState();
@@ -33,8 +34,10 @@ class _MainDashboardState extends State<MainDashboard>
       duration: const Duration(milliseconds: 1000),
     )..repeat(reverse: true);
 
-    // TASK 1: Mock 12:00 AM Notification Trigger
-    _checkAndShowMidnightPopup();
+    // TASK 1: Mock 12:00 AM Notification Trigger (Only for non-viewers)
+    if (!widget.isViewer) {
+      _checkAndShowMidnightPopup();
+    }
   }
 
   void _checkAndShowMidnightPopup() {
@@ -291,8 +294,8 @@ class _MainDashboardState extends State<MainDashboard>
     final useSidebar = screenWidth > 900;
 
     return PremiumScaffold(
-      drawer: useSidebar ? null : CustomDrawer(activeRoute: 'Dashboard', isViewer: false),
-      floatingActionButton: Row(
+      drawer: useSidebar ? null : CustomDrawer(activeRoute: 'Dashboard', isViewer: widget.isViewer),
+      floatingActionButton: widget.isViewer ? null : Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           FloatingActionButton.extended(
@@ -342,8 +345,8 @@ class _MainDashboardState extends State<MainDashboard>
                 gradient: AppTheme.lavenderBlueGradient,
               ),
             ),
-            // TASK 3: Persistent Sticky Red Bar
-            if (_pendingCount > 0)
+            // TASK 3: Persistent Sticky Red Bar (Only for non-viewers)
+            if (!widget.isViewer && _pendingCount > 0)
               Positioned(
                 top: 0,
                 left: 0,
@@ -527,7 +530,7 @@ class _MainDashboardState extends State<MainDashboard>
                               ]),
                             ),
                           ),
-                          if (_pendingCount > 0)
+                          if (!widget.isViewer && _pendingCount > 0)
                             SliverToBoxAdapter(
                               child: Padding(
                                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),

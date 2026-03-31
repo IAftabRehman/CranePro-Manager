@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
 import 'user_repository.dart';
 import 'dart:developer';
@@ -8,20 +9,9 @@ class AuthRepository {
   final UserRepository _userRepository = UserRepository();
 
   /// Signs up a new user with email and password and creates their Firestore profile.
-  Future<void> signUpWithEmail({
-    required String email,
-    required String password,
-    required UserModel user,
-  }) async {
+  /// TASK 1 Implementation: Exact 3-step flow.
+  Future<void> signUp(String email, String password, UserModel user) async {
     try {
-      // Security Check: Ensure 'admin' role is not assignable via public signup.
-      if (user.role == 'admin') {
-        throw FirebaseAuthException(
-          code: 'unauthorized-role',
-          message: 'Admin role is not assignable via public signup.',
-        );
-      }
-
       // 1. Create user in Firebase Auth
       final UserCredential credential = await _auth.createUserWithEmailAndPassword(
         email: email,
@@ -29,33 +19,30 @@ class AuthRepository {
       );
 
       if (credential.user != null) {
-        // Create correctly assigned model with Firebase UID
-        final finalUser = UserModel(
+        // 2. Use the returned User.uid to set 'user.id'
+        final finalUser = user.copyWith(
           id: credential.user!.uid,
-          fullName: user.fullName,
-          email: user.email,
-          role: user.role,
-          isAdminApproved: false, // Default to false
-          phoneNumber: user.phoneNumber,
+          isAdminApproved: false,
           createdAt: DateTime.now(),
         );
 
-        // 3. Call UserRepository().createUserInFirestore(user)
-        await _userRepository.createUserInFirestore(finalUser);
+        // 3. Call FirebaseFirestore.instance.collection('users').doc(user.id).set(user.toMap())
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(finalUser.id)
+            .set(finalUser.toMap());
+        
         log("User profile initialized for UID: ${credential.user!.uid}");
       }
     } on FirebaseAuthException catch (e) {
       log("Auth Exception: ${e.code} - ${e.message}");
-      // Handle Firebase Exceptions as requested
-      String errorMessage = 'Signup fail ho gaya. Dobara koshish karein.';
+      String errorMessage = 'SignUp is failed, please try again.';
       if (e.code == 'email-already-in-use') {
-        errorMessage = 'Ye email pehle se maujood hai. Kuch aur use karein.';
+        errorMessage = 'This email is already Used in SignUp, Use another email';
       } else if (e.code == 'weak-password') {
-        errorMessage = 'Password bohat kamzor hai. Kam az kam 6 characters use karein.';
+        errorMessage = 'Password is week, make it strong';
       } else if (e.code == 'invalid-email') {
-        errorMessage = 'Email address theek nahi hai.';
-      } else if (e.code == 'unauthorized-role') {
-        errorMessage = 'Aap admin nahi ban sakte. Ghalat role select kiya gaya hai.';
+        errorMessage = 'Email is not a correct formate';
       }
       throw Exception(errorMessage);
     } catch (e) {
@@ -83,15 +70,15 @@ class AuthRepository {
       }
     } on FirebaseAuthException catch (e) {
       log("Auth Exception: ${e.code} - ${e.message}");
-      String errorMessage = 'Login fail ho gaya. Login details check karein.';
+      String errorMessage = 'Login is failed, please check your email and password are correct.';
       if (e.code == 'user-not-found') {
-        errorMessage = 'Ye email registered nahi hai.';
+        errorMessage = 'Ye email is not register, firstly go to signUp and create account.';
       } else if (e.code == 'wrong-password') {
-        errorMessage = 'Password ghalat hai.';
+        errorMessage = 'Password is wrong.';
       } else if (e.code == 'user-disabled') {
-        errorMessage = 'Aapka account disable kar diya gaya hai.';
+        errorMessage = 'This account is block by Admin please contact "+92 332 3220916".';
       } else if (e.code == 'invalid-email') {
-        errorMessage = 'Email address theek nahi hai.';
+        errorMessage = 'Email address is not correct';
       }
       throw Exception(errorMessage);
     } catch (e) {
@@ -99,6 +86,7 @@ class AuthRepository {
       rethrow;
     }
   }
+
 
   /// Signs out the current user.
   Future<void> signOut() async {

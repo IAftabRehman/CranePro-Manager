@@ -1,3 +1,4 @@
+import 'package:extend_crane_services/features/auth/presentation/pages/role_selection_page.dart';
 import 'package:extend_crane_services/features/reports/presentation/pages/maintenance_log_viewer_page.dart';
 import 'package:extend_crane_services/features/reports/presentation/pages/work_history_viewer_page.dart';
 import 'package:extend_crane_services/features/settings/presentation/pages/settings_page.dart';
@@ -159,8 +160,7 @@ class CustomDrawer extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       child: ListTile(
         onTap: () {
-           Navigator.pop(context);
-           Navigator.of(context).popUntil((route) => route.isFirst);
+           Navigator.push(context, MaterialPageRoute(builder: (context) => RoleSelectionPage()));
         },
         leading: const Icon(Icons.logout, color: Colors.redAccent),
         title: const Text(
