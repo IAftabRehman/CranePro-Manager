@@ -7,7 +7,6 @@ import 'package:extend_crane_services/features/admin/presentation/pages/admin_ac
 import 'package:extend_crane_services/features/admin/presentation/pages/admin_audit_trail_page.dart';
 import 'package:extend_crane_services/features/admin/presentation/pages/admin_backup_page.dart';
 import 'package:extend_crane_services/features/admin/presentation/pages/user_management_page.dart';
-import 'package:extend_crane_services/features/admin/presentation/pages/fleet_management_page.dart';
 
 class AdminControlPage extends StatefulWidget {
   const AdminControlPage({super.key});
@@ -28,7 +27,6 @@ class _AdminControlPageState extends State<AdminControlPage> {
     final List<Widget> pages = [
       const AdminFinancialDashboard(),
       const UserManagementPage(),
-      const FleetManagementPage(),
       const AdminActivityLogsPage(),
       const AdminReportsPage(),
       _buildSecurityModule(),
@@ -97,10 +95,6 @@ class _AdminControlPageState extends State<AdminControlPage> {
             label: 'Users',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.construction_rounded),
-            label: 'Fleet',
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.history_edu_rounded),
             label: 'Logs',
           ),
@@ -121,7 +115,6 @@ class _AdminControlPageState extends State<AdminControlPage> {
     final titles = [
       'Financial Overview',
       'User Management',
-      'Fleet & Crane Management',
       'Live Activity Tracker',
       'Advanced Reports & Search',
       'Security & Data Hub',
@@ -171,8 +164,9 @@ class _AdminControlPageState extends State<AdminControlPage> {
           const Expanded(
             child: TabBarView(
               children: [AdminBackupPage(), AdminAuditTrailPage()],
-            ),
+            )
           ),
+
         ],
       ),
     );

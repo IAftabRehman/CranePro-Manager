@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class BackupStatus {
   final DateTime lastBackupDate;
   final String fileSize;
@@ -13,7 +15,7 @@ class BackupStatus {
 
   Map<String, dynamic> toMap() {
     return {
-      'lastBackupDate': lastBackupDate.toIso8601String(),
+      'lastBackupDate': Timestamp.fromDate(lastBackupDate),
       'fileSize': fileSize,
       'isSuccess': isSuccess,
       'backupType': backupType,
@@ -22,7 +24,7 @@ class BackupStatus {
 
   factory BackupStatus.fromMap(Map<String, dynamic> map) {
     return BackupStatus(
-      lastBackupDate: DateTime.parse(map['lastBackupDate']),
+      lastBackupDate: (map['lastBackupDate'] as Timestamp).toDate(),
       fileSize: map['fileSize'] ?? '0 KB',
       isSuccess: map['isSuccess'] ?? false,
       backupType: map['backupType'] ?? 'Manual',

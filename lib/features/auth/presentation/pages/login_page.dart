@@ -41,11 +41,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     ref.listen<AsyncValue<void>>(loginProvider, (previous, next) {
       next.when(
         data: (_) {
-          // AuthWrapper in main.dart will automatically handle the navigation
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Login Successful!')),
           );
-          // Return to root to trigger AuthWrapper reactive update
+          // Return to root to let AuthWrapper handle dashboard redirection
           Navigator.of(context).popUntil((route) => route.isFirst);
         },
         error: (err, _) {

@@ -6,6 +6,7 @@ import '../pages/role_selection_page.dart';
 import '../pages/blocked_account_page.dart';
 import '../../../admin/presentation/pages/admin_control_page.dart';
 import '../../../dashboard/presentation/pages/main_dashboard.dart';
+import '../../../dashboard/presentation/pages/viewer_dashboard.dart';
 import '../../data/models/user_model.dart';
 
 class AuthWrapper extends StatelessWidget {
@@ -18,9 +19,7 @@ class AuthWrapper extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
+            body: Center(child: CircularProgressIndicator()),
           );
         }
 
@@ -30,13 +29,14 @@ class AuthWrapper extends StatelessWidget {
         }
 
         return StreamBuilder<DocumentSnapshot>(
-          stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
+          stream: FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .snapshots(),
           builder: (context, userSnapshot) {
             if (userSnapshot.connectionState == ConnectionState.waiting) {
               return const Scaffold(
-                body: Center(
-                  child: CircularProgressIndicator(),
-                ),
+                body: Center(child: CircularProgressIndicator()),
               );
             }
 
@@ -46,6 +46,10 @@ class AuthWrapper extends StatelessWidget {
             }
 
             final userData = userSnapshot.data!.data() as Map<String, dynamic>;
+            
+            // TASK 3: Debug Print
+            print("Checking Role: ${userData['role']}");
+
             final role = userData['role'];
             final isAdminApproved = userData['isAdminApproved'] ?? false;
             final isBlocked = userData['isBlocked'] ?? false;
@@ -60,6 +64,9 @@ class AuthWrapper extends StatelessWidget {
             if (role == 'admin') {
               return const AdminControlPage();
             } else if (isAdminApproved == true) {
+              if (role == 'viewer') {
+                return const ViewerDashboard();
+              }
               return const MainDashboard();
             } else {
               return const WaitingRoomPage();

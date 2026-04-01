@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 enum AuditAction { edit, delete }
 
 class AuditEntry {
@@ -32,14 +34,14 @@ class AuditEntry {
       'action': action.name,
       'beforeValues': beforeValues,
       'afterValues': afterValues,
-      'timestamp': timestamp.toIso8601String(),
+      'timestamp': Timestamp.fromDate(timestamp),
       'isDeleted': isDeleted,
     };
   }
 
-  factory AuditEntry.fromMap(Map<String, dynamic> map) {
+  factory AuditEntry.fromMap(Map<String, dynamic> map, {String? docId}) {
     return AuditEntry(
-      id: map['id'] ?? '',
+      id: docId ?? map['id'] ?? '',
       userName: map['userName'] ?? '',
       targetType: map['targetType'] ?? '',
       targetName: map['targetName'] ?? '',
@@ -49,7 +51,7 @@ class AuditEntry {
       ),
       beforeValues: Map<String, String>.from(map['beforeValues'] ?? {}),
       afterValues: Map<String, String>.from(map['afterValues'] ?? {}),
-      timestamp: DateTime.parse(map['timestamp'] ?? DateTime.now().toIso8601String()),
+      timestamp: (map['timestamp'] as Timestamp).toDate(),
       isDeleted: map['isDeleted'] ?? false,
     );
   }

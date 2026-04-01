@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 enum LogCategory {
@@ -33,20 +34,22 @@ class ActivityLog {
       'userName': userName,
       'category': category.name,
       'message': message,
-      'timestamp': timestamp.toIso8601String(),
+      'timestamp': Timestamp.fromDate(timestamp),
     };
   }
 
-  factory ActivityLog.fromMap(Map<String, dynamic> map) {
+  factory ActivityLog.fromMap(Map<String, dynamic> map, {String? docId}) {
     return ActivityLog(
-      id: map['id'] ?? '',
+      id: docId ?? map['id'] ?? '',
       userName: map['userName'] ?? '',
       category: LogCategory.values.firstWhere(
         (e) => e.name == map['category'],
         orElse: () => LogCategory.work,
       ),
       message: map['message'] ?? '',
-      timestamp: DateTime.parse(map['timestamp'] ?? DateTime.now().toIso8601String()),
+      timestamp: map['timestamp'] is Timestamp 
+          ? (map['timestamp'] as Timestamp).toDate() 
+          : DateTime.now(),
     );
   }
 }

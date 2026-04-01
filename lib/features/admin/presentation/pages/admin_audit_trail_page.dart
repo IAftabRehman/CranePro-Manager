@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:extend_crane_services/core/themes/app_theme.dart';
 import 'package:extend_crane_services/features/admin/data/models/audit_entry.dart';
 import 'package:extend_crane_services/features/admin/presentation/widgets/audit_diff_widget.dart';
+import 'package:extend_crane_services/features/admin/data/repositories/admin_repository.dart';
 
 class AdminAuditTrailPage extends StatefulWidget {
   const AdminAuditTrailPage({super.key});
@@ -14,41 +15,8 @@ class AdminAuditTrailPage extends StatefulWidget {
 
 class _AdminAuditTrailPageState extends State<AdminAuditTrailPage> {
   final TextEditingController _searchController = TextEditingController();
+  final AdminRepository _adminRepository = AdminRepository();
   String _searchQuery = '';
-
-  final List<AuditEntry> _auditTrail = [
-    AuditEntry(
-      id: '1',
-      userName: 'Aftab Rehman',
-      targetType: 'Quotation',
-      targetName: 'Emaar Sites',
-      action: AuditAction.edit,
-      beforeValues: {'Total Amount': '12,500 AED', 'Crane Type': '50 Ton Crane'},
-      afterValues: {'Total Amount': '15,000 AED', 'Crane Type': '100 Ton Crane'},
-      timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-    ),
-    AuditEntry(
-      id: '2',
-      userName: 'John Doe',
-      targetType: 'Maintenance',
-      targetName: 'Crane #55',
-      action: AuditAction.edit,
-      beforeValues: {'Parts Cost': '500 AED'},
-      afterValues: {'Parts Cost': '1,200 AED'},
-      timestamp: DateTime.now().subtract(const Duration(hours: 5)),
-    ),
-    AuditEntry(
-      id: '3',
-      userName: 'Ali Qasim',
-      targetType: 'Quotation',
-      targetName: 'Dubai Metro',
-      action: AuditAction.delete,
-      beforeValues: {'Date': '24 Mar 2024', 'Amount': '22,000 AED'},
-      afterValues: {},
-      timestamp: DateTime.now().subtract(const Duration(days: 1)),
-      isDeleted: true,
-    ),
-  ];
 
   @override
   void initState() {
@@ -64,8 +32,8 @@ class _AdminAuditTrailPageState extends State<AdminAuditTrailPage> {
     super.dispose();
   }
 
-  List<AuditEntry> _getFilteredEntries(bool showDeleted) {
-    return _auditTrail.where((e) {
+  List<AuditEntry> _filterEntries(List<AuditEntry> auditTrail, bool showDeleted) {
+    return auditTrail.where((e) {
       final matchesStatus = e.isDeleted == showDeleted;
       final matchesSearch = e.userName.toLowerCase().contains(_searchQuery) ||
                             e.targetName.toLowerCase().contains(_searchQuery);
@@ -75,48 +43,55 @@ class _AdminAuditTrailPageState extends State<AdminAuditTrailPage> {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: Column(
-        children: [
-          const SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-            child: Text(
-              "Check Edit\nor Deleted History of Operators",
-              style: TextStyle(
-                color: Color(0xFFFFB300),
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+    return StreamBuilder<List<AuditEntry>>(
+      stream: _adminRepository.getAuditTrailStream(),
+      builder: (context, snapshot) {
+        final auditTrail = snapshot.data ?? [];
+
+        return DefaultTabController(
+          length: 2,
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+                child: Text(
+                  "Check Edit\nor Deleted History of Operators",
+                  style: TextStyle(
+                    color: Color(0xFFFFB300),
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const TabBar(
-            tabs: [
-              Tab(text: 'Edits'),
-              Tab(text: 'Deleted'),
+              const TabBar(
+                tabs: [
+                  Tab(text: 'Edits'),
+                  Tab(text: 'Deleted'),
+                ],
+                labelColor: Colors.black,
+                indicatorColor: Colors.black,
+                labelStyle: TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
+                unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+              ),
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    _buildAuditList(auditTrail, false),
+                    _buildAuditList(auditTrail, true),
+                  ],
+                ),
+              ),
             ],
-            labelColor: Colors.black,
-            indicatorColor: Colors.black,
-            labelStyle: TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
-            unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
           ),
-          Expanded(
-            child: TabBarView(
-              children: [
-                _buildAuditList(false),
-                _buildAuditList(true),
-              ],
-            ),
-          ),
-        ],
-      ),
+        );
+      }
     );
   }
 
-  Widget _buildAuditList(bool showDeleted) {
-    final entries = _getFilteredEntries(showDeleted);
+  Widget _buildAuditList(List<AuditEntry> auditTrail, bool showDeleted) {
+    final entries = _filterEntries(auditTrail, showDeleted);
 
     if (entries.isEmpty) {
       return Center(

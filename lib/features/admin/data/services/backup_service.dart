@@ -2,8 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:extend_crane_services/features/admin/data/models/backup_status.dart';
+import 'package:extend_crane_services/features/admin/data/repositories/admin_repository.dart';
 
 class BackupService {
+  final AdminRepository _repository = AdminRepository();
+
   Future<BackupStatus> createManualBackup({
     required List<dynamic> users,
     required List<dynamic> quotations,
@@ -18,25 +21,42 @@ class BackupService {
       'auditTrail': auditTrail,
     };
 
-    // 2. Serialize and Compress Simulation
     final jsonString = jsonEncode(backupData);
-    final fileName = "CranePro_Backup_${DateTime.now().millisecondsSinceEpoch}.json";
+    final snapshotId = "snapshot_${DateTime.now().millisecondsSinceEpoch}";
     
-    // 3. Local Storage I/O
-    final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/$fileName');
-    await file.writeAsString(jsonString);
+    // 3. Cloud Snapshot Upload
+    await _repository.uploadSnapshot(snapshotId, backupData);
 
     // 4. Calculate File Size
     final sizeInBytes = jsonString.length;
     final sizeInKB = (sizeInBytes / 1024).toStringAsFixed(2);
 
-    return BackupStatus(
+    final status = BackupStatus(
       lastBackupDate: DateTime.now(),
       fileSize: "$sizeInKB KB",
       isSuccess: true,
       backupType: 'Manual',
     );
+
+    // 5. Log Metadata to Firestore
+    await _repository.logBackupStatus(status);
+
+    return status;
+  }
+
+  Future<bool> restoreFromSnapshot(BackupStatus status) async {
+    try {
+      final snapshotId = "snapshot_${status.lastBackupDate.millisecondsSinceEpoch}";
+      final data = await _repository.fetchSnapshot(snapshotId);
+      
+      if (data == null) return false;
+
+      await _repository.performSystemRestore(data);
+      return true;
+    } catch (e) {
+      print('Cloud Restore Error: $e');
+      return false;
+    }
   }
 
   Future<bool> restoreFromLatestBackup() async {

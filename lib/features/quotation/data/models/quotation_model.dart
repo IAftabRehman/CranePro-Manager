@@ -11,7 +11,7 @@ class QuotationServiceEntry {
   DateTime startDate;
 
   QuotationServiceEntry({
-    this.serviceName = '50 Ton Crane',
+    this.serviceName = 'Standard Service',
     this.duration = '1 Day',
     this.location = '',
     this.price = 0.0,
