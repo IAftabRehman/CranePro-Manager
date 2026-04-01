@@ -34,27 +34,47 @@ class ActivityTrackerWidget extends StatelessWidget {
       separatorBuilder: (context, index) => Divider(color: AppTheme.deepNavyBlue.withOpacity(0.1)),
       itemBuilder: (context, index) {
         final activity = activities[index];
+        
+        // Detection Logic
         final isUser = activity.containsKey('email') && !activity.containsKey('clientName');
+        final isWorkOrder = activity.containsKey('workOrderId');
+        final isBill = !isUser && !isWorkOrder;
+
         final timestamp = (activity['createdAt'] as Timestamp).toDate();
+
+        // UI Configuration based on activity type
+        IconData iconData = Icons.receipt_long_rounded;
+        Color iconColor = AppTheme.deepNavyBlue;
+        String titleText = "";
+
+        if (isUser) {
+          iconData = Icons.person_add_rounded;
+          titleText = "New User: ${activity['fullName'] ?? 'Unknown'} joined as ${activity['role'] ?? 'user'}";
+        } else if (isWorkOrder) {
+          iconData = Icons.engineering_rounded;
+          iconColor = Colors.orange.shade800;
+          titleText = "Work Generated: ${activity['operatorName'] ?? 'Operator'} started job for ${activity['clientName'] ?? 'Unknown'}";
+        } else if (isBill) {
+          iconData = Icons.receipt_long_rounded;
+          titleText = "New Bill: ${activity['operatorName'] ?? 'Operator'} created a quotation for ${activity['clientName'] ?? 'Unknown'}";
+        }
 
         return ListTile(
           contentPadding: EdgeInsets.zero,
           leading: Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppTheme.deepNavyBlue.withOpacity(0.1),
+              color: iconColor.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
-              isUser ? Icons.person_add_rounded : Icons.receipt_long_rounded,
-              color: AppTheme.deepNavyBlue,
+              iconData,
+              color: iconColor,
               size: 24,
             ),
           ),
           title: Text(
-            isUser 
-                ? "New User: ${activity['fullName'] ?? 'Unknown'} joined as ${activity['role'] ?? 'user'}"
-                : "New Bill: ${activity['operatorName'] ?? 'Operator'} created a quotation for ${activity['clientName'] ?? 'Unknown'}",
+            titleText,
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w900,

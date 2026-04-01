@@ -1,25 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
 import 'package:extend_crane_services/features/maintenance/presentation/pages/add_maintenance_page.dart';
+import 'package:extend_crane_services/features/maintenance/presentation/providers/maintenance_providers.dart';
+import '../../../dashboard/presentation/pages/main_dashboard.dart';
 
-class MaintenanceHistoryPage extends StatelessWidget {
+class MaintenanceHistoryPage extends ConsumerWidget {
   const MaintenanceHistoryPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Mock data for demonstration
-    final List<Map<String, dynamic>> maintenanceEntries = [
-      {'date': DateTime.now().subtract(const Duration(days: 2)), 'reason': 'Hydraulic Pipe Replacement', 'amount': 1200.0, 'category': 'Repair'},
-      {'date': DateTime.now().subtract(const Duration(days: 5)), 'reason': 'Engine Oil & Filter Change', 'amount': 850.0, 'category': 'Service'},
-      {'date': DateTime.now().subtract(const Duration(days: 12)), 'reason': 'Tyre Pressure Sensor Fix', 'amount': 300.0, 'category': 'Repair'},
-      {'date': DateTime.now().subtract(const Duration(days: 20)), 'reason': 'Brake Pad Replacement', 'amount': 1500.0, 'category': 'Safety'},
-    ];
-
-    double monthlyTotal = maintenanceEntries.fold(0, (sum, item) => sum + (item['amount'] as double));
+  Widget build(BuildContext context, WidgetRef ref) {
+    final maintenanceAsync = ref.watch(operatorMaintenanceProvider);
+    final monthlyTotal = ref.watch(operatorMonthlyMaintenanceTotalProvider);
 
     return PremiumScaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MainDashboard()))
+        ),
         title: const Text(
           'Maintenance History',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -74,9 +74,9 @@ class MaintenanceHistoryPage extends StatelessWidget {
                             fontWeight: FontWeight.w900,
                           ),
                         ),
-                        const Text(
-                          'This Month (March)',
-                          style: TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.bold),
+                        Text(
+                          'This Month (${DateFormat('MMMM').format(DateTime.now())})',
+                          style: const TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -110,65 +110,83 @@ class MaintenanceHistoryPage extends StatelessWidget {
 
             // History List
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                itemCount: maintenanceEntries.length,
-                itemBuilder: (context, index) {
-                  final entry = maintenanceEntries[index];
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white.withOpacity(0.05)),
-                    ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.all(16),
-                      leading: Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.05),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.build_circle_outlined, color: Colors.white),
-                      ),
-                      title: Text(
-                        entry['reason'],
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+              child: maintenanceAsync.when(
+                data: (entries) {
+                  if (entries.isEmpty) {
+                    return const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const SizedBox(height: 4),
-                          Text(
-                            DateFormat('dd MMM yyyy').format(entry['date']),
-                            style: const TextStyle(color: Colors.white54, fontSize: 12),
-                          ),
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.amber.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              entry['category'],
-                              style: const TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold),
-                            ),
-                          ),
+                          Icon(Icons.build_circle_outlined, color: Colors.white24, size: 64),
+                          SizedBox(height: 16),
+                          Text('No maintenance entries found.', style: TextStyle(color: Colors.white38)),
                         ],
                       ),
-                      trailing: Text(
-                        'AED ${entry['amount'].toStringAsFixed(0)}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 16,
+                    );
+                  }
+                  return ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    itemCount: entries.length,
+                    itemBuilder: (context, index) {
+                      final entry = entries[index];
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.white.withOpacity(0.05)),
                         ),
-                      ),
-                    ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.all(16),
+                          leading: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.05),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.build_circle_outlined, color: Colors.white),
+                          ),
+                          title: Text(
+                            entry.description,
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 4),
+                              Text(
+                                DateFormat('dd MMM yyyy').format(entry.date),
+                                style: const TextStyle(color: Colors.white54, fontSize: 12),
+                              ),
+                              const SizedBox(height: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  entry.category,
+                                  style: const TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                          ),
+                          trailing: Text(
+                            'AED ${entry.amount.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   );
                 },
+                loading: () => const Center(child: CircularProgressIndicator(color: Colors.amber)),
+                error: (err, _) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.redAccent))),
               ),
             ),
           ],

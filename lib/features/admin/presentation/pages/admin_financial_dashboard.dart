@@ -29,7 +29,7 @@ class AdminFinancialDashboard extends ConsumerWidget {
                   const SizedBox(height: 48),
                   _buildExpenditureSection(context, summary),
                   const SizedBox(height: 48),
-                  _buildRecentTransactionsSection(),
+                  _buildRecentTransactionsSection(ref),
                   const SizedBox(height: 48),
                 ]),
               ),
@@ -103,7 +103,6 @@ class AdminFinancialDashboard extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          // Use the requested lavenderBlueGradient as base
           gradient: AppTheme.lavenderBlueGradient,
           borderRadius: BorderRadius.circular(32),
           border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
@@ -186,23 +185,26 @@ class AdminFinancialDashboard extends ConsumerWidget {
             border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           ),
           child: summary.totalExpenses == 0 
-              ? const Center(child: Text('No expenses recorded yet', style: TextStyle(color: Colors.white60)))
+              ? const SizedBox(
+                  height: 100,
+                  child: Center(child: Text('No expenses recorded yet', style: TextStyle(color: Colors.white60)))
+                )
               : isSmallScreen
                   ? Column(
                       children: [
-                        SizedBox(height: 180, child: _buildPieChart()),
+                        SizedBox(height: 180, child: _buildPieChart(summary)),
                         const SizedBox(height: 32),
-                        _buildExpenseIndicators(),
+                        _buildExpenseIndicators(summary),
                       ],
                     )
                   : Row(
                       children: [
                         Expanded(
                           flex: 4,
-                          child: SizedBox(height: 200, child: _buildPieChart()),
+                          child: SizedBox(height: 200, child: _buildPieChart(summary)),
                         ),
                         const SizedBox(width: 24),
-                        Expanded(flex: 5, child: _buildExpenseIndicators()),
+                        Expanded(flex: 5, child: _buildExpenseIndicators(summary)),
                       ],
                     ),
         ),
@@ -210,60 +212,66 @@ class AdminFinancialDashboard extends ConsumerWidget {
     );
   }
 
-  Widget _buildPieChart() {
+  Widget _buildPieChart(FinancialSummary summary) {
+    final List<Color> palette = [
+      Colors.amber, 
+      Colors.lightBlueAccent, 
+      Colors.redAccent, 
+      Colors.greenAccent, 
+      Colors.purpleAccent
+    ];
+    
+    int index = 0;
+    final sections = summary.categoryBreakdown.entries.map((entry) {
+      final color = palette[index % palette.length];
+      final percentage = (entry.value / summary.totalExpenses) * 100;
+      index++;
+      
+      return PieChartSectionData(
+        color: color,
+        value: entry.value,
+        title: '${percentage.toStringAsFixed(0)}%',
+        radius: 45,
+        titleStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
+      );
+    }).toList();
+
     return PieChart(
       PieChartData(
         sectionsSpace: 0,
         centerSpaceRadius: 35,
-        sections: [
-          PieChartSectionData(
-            color: Colors.black,
-            value: 45,
-            title: '45%',
-            radius: 45,
-            titleStyle: const TextStyle(
-              color: Colors.white,
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          PieChartSectionData(
-            color: Colors.yellow,
-            value: 30,
-            title: '30%',
-            radius: 45,
-            titleStyle: const TextStyle(
-              color: Colors.black,
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          PieChartSectionData(
-            color: Colors.red.shade900,
-            value: 25,
-            title: '25%',
-            radius: 45,
-            titleStyle: const TextStyle(
-              color: Colors.white,
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
+        sections: sections,
       ),
     );
   }
 
-  Widget _buildExpenseIndicators() {
+  Widget _buildExpenseIndicators(FinancialSummary summary) {
+    final List<Color> palette = [
+      Colors.amber, 
+      Colors.lightBlueAccent, 
+      Colors.redAccent, 
+      Colors.greenAccent, 
+      Colors.purpleAccent
+    ];
+    
+    int index = 0;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _buildExpenseIndicator('Fuel Costs', 45, Colors.black),
-        const SizedBox(height: 16),
-        _buildExpenseIndicator('Maintenance', 30, Colors.yellow),
-        const SizedBox(height: 16),
-        _buildExpenseIndicator('Partners', 25, Colors.red),
-      ],
+      children: summary.categoryBreakdown.entries.map((entry) {
+        final color = palette[index % palette.length];
+        final percentage = (entry.value / summary.totalExpenses) * 100;
+        index++;
+        return Column(
+          children: [
+            _buildExpenseIndicator(entry.key, percentage, color),
+            const SizedBox(height: 16),
+          ],
+        );
+      }).toList(),
     );
   }
 
@@ -283,7 +291,7 @@ class AdminFinancialDashboard extends ConsumerWidget {
               ),
             ),
             Text(
-              '$percent%',
+              '${percent.toStringAsFixed(1)}%',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w900,
@@ -306,15 +314,8 @@ class AdminFinancialDashboard extends ConsumerWidget {
     );
   }
 
-  Widget _buildRecentTransactionsSection() {
-    final transactions = [
-      {
-        'client': 'Mock Realtime Sync',
-        'date': 'Status: Ready',
-        'profit': '0',
-        'type': 'Reactive',
-      },
-    ];
+  Widget _buildRecentTransactionsSection(WidgetRef ref) {
+    final expensesAsync = ref.watch(allExpensesProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -329,12 +330,28 @@ class AdminFinancialDashboard extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 24),
-        ...transactions.map((tx) => _buildTransactionTile(tx)),
+        expensesAsync.when(
+          data: (expenses) {
+            if (expenses.isEmpty) {
+              return const Center(child: Text('No transactions yet', style: TextStyle(color: Colors.white60)));
+            }
+            return ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: expenses.length > 10 ? 10 : expenses.length,
+              itemBuilder: (context, index) => _buildTransactionTile(expenses[index]),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.accentGold)),
+          error: (err, _) => Text('Error loading transactions: $err', style: const TextStyle(color: Colors.redAccent)),
+        ),
       ],
     );
   }
 
-  Widget _buildTransactionTile(Map<String, String> tx) {
+  Widget _buildTransactionTile(dynamic expense) {
+    final dateStr = DateFormat('dd MMM, yyyy').format(expense.date);
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
@@ -358,15 +375,17 @@ class AdminFinancialDashboard extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  tx['client']!,
+                  expense.description.isEmpty ? expense.category : expense.description,
                   style: const TextStyle(
                     fontWeight: FontWeight.w900,
                     fontSize: 16,
                     color: Colors.white,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  tx['date']!,
+                  dateStr,
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 12,
@@ -383,7 +402,7 @@ class AdminFinancialDashboard extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    tx['profit']!,
+                    expense.amount.toStringAsFixed(0),
                     style: const TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 18,
@@ -405,7 +424,7 @@ class AdminFinancialDashboard extends ConsumerWidget {
                 ],
               ),
               Text(
-                tx['type']!,
+                expense.category.toUpperCase(),
                 style: const TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 10,

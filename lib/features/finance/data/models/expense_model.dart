@@ -32,8 +32,14 @@ class ExpenseModel {
   }
 
   factory ExpenseModel.fromMap(Map<String, dynamic> map, {String? docId}) {
+    // Priority: docId (Firestore ID) -> map['id'] -> empty string
+    String finalId = docId ?? '';
+    if (finalId.isEmpty && map.containsKey('id')) {
+      finalId = map['id']?.toString() ?? '';
+    }
+
     return ExpenseModel(
-      id: docId ?? map['id'] ?? '',
+      id: finalId,
       operatorId: map['operatorId'] ?? '',
       category: map['category'] ?? 'Other',
       amount: (map['amount'] as num?)?.toDouble() ?? 0.0,

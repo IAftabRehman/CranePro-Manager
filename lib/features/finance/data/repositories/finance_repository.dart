@@ -10,11 +10,31 @@ class FinancialSummary {
   final double totalRevenue;
   final double totalExpenses;
   final double netProfit;
+  final Map<String, double> categoryBreakdown;
 
   FinancialSummary({
     required this.totalRevenue,
     required this.totalExpenses,
     required this.netProfit,
+    this.categoryBreakdown = const {},
+  });
+}
+
+class OperatorStats {
+  final double totalEarnings;
+  final double totalExpenses;
+  final double netBalance;
+  final int totalQuotes;
+  final int activeJobs;
+  final int maintenanceCount;
+
+  OperatorStats({
+    required this.totalEarnings,
+    required this.totalExpenses,
+    required this.netBalance,
+    this.totalQuotes = 0,
+    this.activeJobs = 0,
+    this.maintenanceCount = 0,
   });
 }
 
@@ -32,6 +52,7 @@ class FinanceRepository {
       (revenueSnap, expenseSnap) {
         double revenue = 0.0;
         double expenses = 0.0;
+        final Map<String, double> breakdown = {};
 
         for (var doc in revenueSnap.docs) {
           final data = doc.data() as Map<String, dynamic>;
@@ -40,13 +61,18 @@ class FinanceRepository {
 
         for (var doc in expenseSnap.docs) {
           final data = doc.data() as Map<String, dynamic>;
-          expenses += (data['amount'] as num?)?.toDouble() ?? 0.0;
+          final amount = (data['amount'] as num?)?.toDouble() ?? 0.0;
+          final category = data['category']?.toString() ?? 'Other';
+          
+          expenses += amount;
+          breakdown[category] = (breakdown[category] ?? 0.0) + amount;
         }
 
         return FinancialSummary(
           totalRevenue: revenue,
           totalExpenses: expenses,
           netProfit: revenue - expenses,
+          categoryBreakdown: breakdown,
         );
       },
     );
@@ -142,6 +168,143 @@ class FinanceRepository {
       return [];
     }
   }
+
+  /// TASK 1: Implement personal analytics for Operator.
+  /// Combines quotations (Earnings) and Expenses for real-time dashboard.
+  Stream<OperatorStats> getOperatorStatsStream(String uid) {
+    final revenueStream = _firestore
+        .collection('quotations')
+        .where('operatorId', isEqualTo: uid)
+        .snapshots();
+
+    final expenseStream = _firestore
+        .collection('expenses')
+        .where('operatorId', isEqualTo: uid)
+        .snapshots();
+
+    return Rx.combineLatest2<QuerySnapshot, QuerySnapshot, OperatorStats>(
+      revenueStream,
+      expenseStream,
+      (revenueSnap, expenseSnap) {
+        double revenue = 0.0;
+        double expenses = 0.0;
+        int activeJobs = 0;
+        int maintenanceCount = 0;
+
+        for (var doc in revenueSnap.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+          revenue += (data['totalAmount'] as num?)?.toDouble() ?? 0.0;
+          
+          final status = (data['status'] ?? 'pending').toString().toLowerCase();
+          if (status == 'pending' || status == 'in progress') {
+            activeJobs++;
+          }
+        }
+
+        for (var doc in expenseSnap.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+          expenses += (data['amount'] as num?)?.toDouble() ?? 0.0;
+          
+          final category = (data['category'] ?? 'Other').toString();
+          if (category == 'Maintenance') {
+            maintenanceCount++;
+          }
+        }
+
+        return OperatorStats(
+          totalEarnings: revenue,
+          totalExpenses: expenses,
+          netBalance: revenue - expenses,
+          totalQuotes: revenueSnap.docs.length,
+          activeJobs: activeJobs,
+          maintenanceCount: maintenanceCount,
+        );
+      },
+    );
+  }
+
+  /// TASK 1: Stream of mixed recent activity (Last 5 jobs/expenses).
+  Stream<List<dynamic>> getOperatorRecentActivity(String uid) {
+    final quotationStream = _firestore
+        .collection('quotations')
+        .where('operatorId', isEqualTo: uid)
+        .snapshots();
+        
+    final expenseStream = _firestore
+        .collection('expenses')
+        .where('operatorId', isEqualTo: uid)
+        .snapshots();
+
+    return Rx.combineLatest2<QuerySnapshot, QuerySnapshot, List<dynamic>>(
+      quotationStream,
+      expenseStream,
+      (quoteSnap, expenseSnap) {
+        final list = <dynamic>[];
+        for (var doc in quoteSnap.docs) {
+           final data = doc.data() as Map<String, dynamic>?;
+           if (data == null) continue;
+           
+           final createdAt = data['createdAt'];
+           list.add({
+             'type': 'job',
+             'description': data['clientName'] ?? 'Crane Job',
+             'amount': (data['totalAmount'] as num?)?.toDouble() ?? 0.0,
+             'date': createdAt is Timestamp ? createdAt.toDate() : DateTime.now(),
+           });
+        }
+        for (var doc in expenseSnap.docs) {
+           final data = doc.data() as Map<String, dynamic>?;
+           if (data == null) continue;
+
+           final date = data['date'];
+           list.add({
+             'type': 'expense',
+             'description': data['description'] ?? 'Expense',
+             'amount': (data['amount'] as num?)?.toDouble() ?? 0.0,
+             'date': date is Timestamp ? date.toDate() : DateTime.now(),
+           });
+        }
+        list.sort((a, b) => (b['date'] as DateTime).compareTo(a['date'] as DateTime));
+        return list.take(5).toList();
+      },
+    );
+  }
+
+  /// TASK 4 (Step 20-3): Raw stream of all expenses (Full bypass).
+  /// This version has NO index requirements. Sorting and filtering must happen in Dart.
+  Stream<List<ExpenseModel>> getRawExpensesStream() {
+    return _firestore
+        .collection('expenses')
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ExpenseModel.fromMap(doc.data(), docId: doc.id))
+            .toList());
+  }
+
+  /// TASK 4 (Step 20-3): Stream of personal expenses (Operator view).
+  /// This version avoids composite index requirements for flexible filtering.
+  Stream<List<ExpenseModel>> getOperatorExpensesStream(String uid) {
+    return _firestore
+        .collection('expenses')
+        .where('operatorId', isEqualTo: uid)
+        .orderBy('date', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ExpenseModel.fromMap(doc.data(), docId: doc.id))
+            .toList());
+  }
+
+  /// TASK 4 (Step 20-3): Stream of ALL expenses (Admin view).
+  /// This version avoids composite index requirements for flexible filtering.
+  Stream<List<ExpenseModel>> getAllExpensesStreamIndexFree() {
+    return _firestore
+        .collection('expenses')
+        .orderBy('date', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ExpenseModel.fromMap(doc.data(), docId: doc.id))
+            .toList());
+  }
 }
 
 final financeRepositoryProvider = Provider((ref) => FinanceRepository());
@@ -152,4 +315,12 @@ final financialSummaryProvider = StreamProvider<FinancialSummary>((ref) {
 
 final allExpensesProvider = StreamProvider<List<ExpenseModel>>((ref) {
   return ref.watch(financeRepositoryProvider).getAllExpensesStream();
+});
+
+final operatorStatsProvider = StreamProvider.family<OperatorStats, String>((ref, uid) {
+  return ref.watch(financeRepositoryProvider).getOperatorStatsStream(uid);
+});
+
+final operatorRecentActivityProvider = StreamProvider.family<List<dynamic>, String>((ref, uid) {
+  return ref.watch(financeRepositoryProvider).getOperatorRecentActivity(uid);
 });

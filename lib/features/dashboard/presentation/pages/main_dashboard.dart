@@ -11,17 +11,21 @@ import 'package:extend_crane_services/core/presentation/widgets/custom_drawer.da
 import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
 import '../widgets/midnight_status_modal.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/utils/responsive.dart';
+import '../../../../features/finance/data/repositories/finance_repository.dart';
+import '../../../auth/presentation/controllers/login_notifier.dart';
 
-class MainDashboard extends StatefulWidget {
+class MainDashboard extends ConsumerStatefulWidget {
   final bool isViewer;
   const MainDashboard({super.key, this.isViewer = false});
 
   @override
-  State<MainDashboard> createState() => _MainDashboardState();
+  ConsumerState<MainDashboard> createState() => _MainDashboardState();
 }
 
-class _MainDashboardState extends State<MainDashboard>
+class _MainDashboardState extends ConsumerState<MainDashboard>
     with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
   final int _pendingCount = 2; // Mocking 2 pending reports for demonstration
@@ -104,6 +108,14 @@ class _MainDashboardState extends State<MainDashboard>
             ],
           ),
           actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text(
+              'Cancel',
+              style: TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),),
+            const Spacer(),
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
@@ -291,13 +303,14 @@ class _MainDashboardState extends State<MainDashboard>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final screenWidth = Responsive.screenWidth(context);
+    final userAsync = ref.watch(currentUserProvider);
+    final screenWidth = MediaQuery.of(context).size.width;
     final useSidebar = screenWidth > 900;
 
     return PremiumScaffold(
       drawer: useSidebar ? null : CustomDrawer(activeRoute: 'Dashboard', isViewer: widget.isViewer),
       floatingActionButton: widget.isViewer ? null : Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisSize: MainAxisSize.min,
         children: [
           FloatingActionButton.extended(
             heroTag: 'direct_work',
@@ -317,7 +330,7 @@ class _MainDashboardState extends State<MainDashboard>
             backgroundColor: Colors.amber,
             foregroundColor: Colors.black,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(width: 12),
           FloatingActionButton.extended(
             heroTag: 'quotation',
             onPressed: () {
@@ -336,364 +349,326 @@ class _MainDashboardState extends State<MainDashboard>
           ),
         ],
       ),
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Container(
-              width: double.infinity,
-              height: double.infinity,
-              decoration: const BoxDecoration(
-                gradient: AppTheme.lavenderBlueGradient,
-              ),
-            ),
-            // TASK 3: Persistent Sticky Red Bar (Only for non-viewers)
-            if (!widget.isViewer && _pendingCount > 0)
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: 0.8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black38,
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: SafeArea(
-                    bottom: false,
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.warning_rounded,
-                          color: Colors.white,
-                          size: 25,
-                        ),
-                        const SizedBox(width: 12),
-                        const Expanded(
-                          child: Text(
-                            'Pending Report: Street Client at Musaffah. Update now!',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                        InkWell(
-                          onTap: () {
-                            // Trigger update modal
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              'Update Now',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+      body: userAsync.when(
+        data: (user) {
+          if (user == null) return const Center(child: Text('User session ended.'));
+          final statsAsync = ref.watch(operatorStatsProvider(user.id));
+          final activityAsync = ref.watch(operatorRecentActivityProvider(user.id));
+
+          return SafeArea(
+            child: Stack(
+              children: [
+                Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  decoration: const BoxDecoration(
+                    gradient: AppTheme.lavenderBlueGradient,
                   ),
                 ),
-              ),
-        
-            Padding(
-              padding: EdgeInsets.only(top: _pendingCount > 0 ? 60 : 0),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final isTablet = constraints.maxWidth > 600;
-                  final crossAxisCount = isTablet ? 4 : 2;
-                  return Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1200),
-                      child: CustomScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        slivers: [
-                          SliverAppBar(
-                            expandedHeight: Responsive.scale(
-                              context,
-                              0,
-                            ).clamp(00.0, 00.0),
-                            floating: true,
-                            pinned: false,
-                            backgroundColor: Colors.transparent,
-                            elevation: 0,
-                            title: Text(
-                              'Welcome Aftab 👋',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: Responsive.scale(
-                                  context,
-                                  12,
-                                ).clamp(16.0, 24.0),
+                // Persistence Header Logic for Pending Tasks
+                if (!widget.isViewer && _pendingCount > 0)
+                  _buildPendingBanner(context),
+
+                Padding(
+                  padding: EdgeInsets.only(top: _pendingCount > 0 ? 60 : 0),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isTablet = constraints.maxWidth > 600;
+                      return Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 1200),
+                          child: CustomScrollView(
+                            physics: const BouncingScrollPhysics(),
+                            slivers: [
+                              _buildDashboardAppBar(theme, user.fullName),
+                              
+                              // 4 Summary Cards Grid
+                              statsAsync.when(
+                                data: (stats) => _buildStatsGrid(context, stats, isTablet),
+                                loading: () => const SliverToBoxAdapter(
+                                  child: Center(child: CircularProgressIndicator(color: Colors.amber)),
+                                ),
+                                error: (err, _) => SliverToBoxAdapter(
+                                  child: Center(child: Text('Error loading stats: $err', style: const TextStyle(color: Colors.redAccent))),
+                                ),
                               ),
-                            ),
-                            actions: [
-                              IconButton(
-                                onPressed: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const NotificationScreen(),
+
+                              if (!widget.isViewer && _pendingCount > 0)
+                                SliverToBoxAdapter(
+                                  child: Padding(
+                                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                                    child: FadeTransition(
+                                      opacity: Tween<double>(
+                                        begin: 0.4,
+                                        end: 1.0,
+                                      ).animate(_pulseController),
+                                      child: InkWell(
+                                        onTap: () {
+                                          showModalBottomSheet(
+                                            context: context,
+                                            isScrollControlled: true,
+                                            backgroundColor: Colors.transparent,
+                                            builder: (_) => MidnightStatusModal(
+                                              date: DateTime.now().subtract(
+                                                const Duration(days: 1),
+                                              ),
+                                              quotation: QuotationModel(
+                                                id: 'mock_1',
+                                                operatorId: 'mock_op',
+                                                clientName: 'Street Client',
+                                                siteLocation: 'Musaffah M-27',
+                                                serviceType: '50 Ton Crane',
+                                                totalAmount: 1000,
+                                                balanceAmount: 1000,
+                                                createdAt: DateTime.now(),
+                                                updatedAt: DateTime.now(),
+                                                workDate: DateTime.now(),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.all(16),
+                                          decoration: BoxDecoration(
+                                            color: Colors.redAccent.withValues(
+                                              alpha: 0.8,
+                                            ),
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(
+                                              color: Colors.blue,
+                                              width: 2,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.redAccent.withValues(
+                                                  alpha: 0.5,
+                                                ),
+                                                blurRadius: 10,
+                                                spreadRadius: 2,
+                                              ),
+                                            ],
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.warning_amber_rounded,
+                                                color: Colors.white,
+                                                size: 28,
+                                              ),
+                                              const SizedBox(width: 16),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                                  children: [
+                                                    const Text(
+                                                      'Action Required',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 15,
+                                                        letterSpacing: 1.1,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      'Work Update Required for: Street Client',
+                                                      style: const TextStyle(
+                                                        color: Colors.white70,
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 13,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              const Icon(
+                                                Icons.arrow_forward_ios,
+                                                color: Colors.white,
+                                                size: 18,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
-                                icon: const Icon(
-                                  Icons.notifications_active_outlined,
-                                  color: Colors.white,
-                                  size: 24,
+
+                              // Recent Activity Section
+                              SliverPadding(
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                sliver: SliverList(
+                                  delegate: SliverChildListDelegate([
+                                    Text(
+                                      'Recent Activity',
+                                      style: theme.textTheme.displayLarge?.copyWith(
+                                        fontSize: 20,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    activityAsync.when(
+                                      data: (activities) {
+                                        if (activities.isEmpty) {
+                                          return const Center(child: Text('No recent jobs found.', style: TextStyle(color: Colors.white38)));
+                                        }
+                                        return Column(
+                                          children: activities.map((act) => _buildLiveActivityTile(context, act)).toList(),
+                                        );
+                                      },
+                                      loading: () => const Center(child: CircularProgressIndicator(color: Colors.amber)),
+                                      error: (err, _) => Center(child: Text('Error loading activities', style: const TextStyle(color: Colors.redAccent))),
+                                    ),
+                                  ]),
                                 ),
                               ),
-                              IconButton(
-                                onPressed: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => SettingsPage(),
-                                  ),
-                                ),
-                                icon: const Icon(
-                                  Icons.person_outline,
-                                  color: Colors.white,
-                                  size: 24,
-                                ),
-                              ),
+                              const SliverToBoxAdapter(child: SizedBox(height: 100)),
                             ],
                           ),
-                          SliverPadding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: Responsive.scale(
-                                context,
-                                24,
-                              ).clamp(16.0, 32.0),
-                              vertical: Responsive.scale(
-                                context,
-                                24,
-                              ).clamp(16.0, 32.0),
-                            ),
-                            sliver: SliverGrid(
-                              gridDelegate:
-                                  SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: crossAxisCount,
-                                    crossAxisSpacing: 16,
-                                    mainAxisSpacing: 16,
-                                    childAspectRatio: 1.0,
-                                  ),
-                              delegate: SliverChildListDelegate([
-                                _buildSummaryCard(
-                                  context,
-                                  'Total Quotes',
-                                  '142',
-                                  Icons.request_quote,
-                                  theme.colorScheme.primary,
-                                ),
-                                _buildSummaryCard(
-                                  context,
-                                  'Active Jobs',
-                                  '18',
-                                  Icons.engineering,
-                                  theme.colorScheme.secondary,
-                                  null,
-                                ),
-                                _buildSummaryCard(
-                                  context,
-                                  'Maintenance',
-                                  '3',
-                                  Icons.build,
-                                  Colors.redAccent,
-                                  const MaintenanceHistoryPage(),
-                                ),
-                                _buildSummaryCard(
-                                  context,
-                                  'Earnings',
-                                  '\$42k',
-                                  Icons.monetization_on,
-                                  Colors.green,
-                                  const EarningsReportPage(),
-                                ),
-                              ]),
-                            ),
-                          ),
-                          if (!widget.isViewer && _pendingCount > 0)
-                            SliverToBoxAdapter(
-                              child: Padding(
-                                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                                child: FadeTransition(
-                                  opacity: Tween<double>(
-                                    begin: 0.4,
-                                    end: 1.0,
-                                  ).animate(_pulseController),
-                                  child: InkWell(
-                                    onTap: () {
-                                      showModalBottomSheet(
-                                        context: context,
-                                        isScrollControlled: true,
-                                        backgroundColor: Colors.transparent,
-                                        builder: (_) => MidnightStatusModal(
-                                          date: DateTime.now().subtract(
-                                            const Duration(days: 1),
-                                          ),
-                                          quotation: QuotationModel(
-                                            id: 'mock_1',
-                                            operatorId: 'mock_op',
-                                            clientName: 'Street Client',
-                                            siteLocation: 'Musaffah M-27',
-                                            serviceType: '50 Ton Crane',
-                                            totalAmount: 1000,
-                                            balanceAmount: 1000,
-                                            createdAt: DateTime.now(),
-                                            updatedAt: DateTime.now(),
-                                            workDate: DateTime.now(),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        color: Colors.redAccent.withValues(
-                                          alpha: 0.8,
-                                        ),
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: Colors.blue,
-                                          width: 2,
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.redAccent.withValues(
-                                              alpha: 0.5,
-                                            ),
-                                            blurRadius: 10,
-                                            spreadRadius: 2,
-                                          ),
-                                        ],
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.warning_amber_rounded,
-                                            color: Colors.white,
-                                            size: 28,
-                                          ),
-                                          const SizedBox(width: 16),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                              children: [
-                                                const Text(
-                                                  'Action Required',
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 15,
-                                                    letterSpacing: 1.1,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  'Work Update Required for: Street Client',
-                                                  style: const TextStyle(
-                                                    color: Colors.white70,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 13,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          const Icon(
-                                            Icons.arrow_forward_ios,
-                                            color: Colors.white,
-                                            size: 18,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          SliverPadding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: Responsive.scale(
-                                context,
-                                24,
-                              ).clamp(16.0, 32.0),
-                            ).copyWith(bottom: 100),
-                            // Padding to avoid FAB overlapping lists
-                            sliver: SliverList(
-                              delegate: SliverChildListDelegate([
-                                const SizedBox(height: 20),
-                                Container(
-                                  margin: const EdgeInsets.only(bottom: 10),
-                                  child: Text(
-                                    'Recent Quotations',
-                                    style: theme.textTheme.displayLarge?.copyWith(
-                                      fontSize: Responsive.scale(
-                                        context,
-                                        20,
-                                      ).clamp(18.0, 24.0),
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                                _buildRecentQuoteTile(
-                                  context,
-                                  'Emaar Constructions',
-                                  'Downtown Dubai',
-                                  '\$4,500',
-                                  'Today, 10:30 AM',
-                                ),
-                                _buildRecentQuoteTile(
-                                  context,
-                                  'Al-Nakheel Group',
-                                  'Palm Jumeirah',
-                                  '\$12,000',
-                                  'Yesterday, 2:15 PM',
-                                ),
-                                _buildRecentQuoteTile(
-                                  context,
-                                  'Binladin Contracting',
-                                  'Jeddah Tower',
-                                  '\$85,000',
-                                  'Mar 24',
-                                ),
-                                _buildRecentQuoteTile(
-                                  context,
-                                  'City Transport Co.',
-                                  'Warehouse 42',
-                                  '\$1,200',
-                                  'Mar 22',
-                                ),
-                              ]),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, _) => Center(child: Text('Auth error: $err')),
+      ),
+    );
+  }
+
+  Widget _buildPendingBanner(BuildContext context) {
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.red.withValues(alpha: 0.8),
+          boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 10, offset: Offset(0, 2))],
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: Row(
+            children: [
+              const Icon(Icons.warning_rounded, color: Colors.white, size: 25),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Pending Mid-Night Updates. Please update status now!',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {}, // Trigger modal
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black.withValues(alpha: 0.2),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  elevation: 0,
+                ),
+                child: const Text('Update Now', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDashboardAppBar(ThemeData theme, String? name) {
+    return SliverAppBar(
+      floating: true,
+      pinned: false,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      title: Text(
+        'Welcome ${name ?? 'Operator'} 👋',
+        style: theme.textTheme.titleMedium?.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
+        ),
+      ),
+      actions: [
+        IconButton(
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationScreen())),
+          icon: const Icon(Icons.notifications_active_outlined, color: Colors.white),
+        ),
+        IconButton(
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SettingsPage())),
+          icon: const Icon(Icons.person_outline, color: Colors.white),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatsGrid(BuildContext context, OperatorStats stats, bool isTablet) {
+    return SliverPadding(
+      padding: const EdgeInsets.all(16),
+      sliver: SliverGrid(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: isTablet ? 4 : 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 1.0,
+        ),
+        delegate: SliverChildListDelegate([
+          _buildSummaryCard(context, 'Total Quotes', '${stats.totalQuotes}', Icons.request_quote, Colors.blue),
+          _buildSummaryCard(context, 'Active Jobs', '${stats.activeJobs}', Icons.engineering, Colors.orange),
+          _buildSummaryCard(context, 'Maintenance', '${stats.maintenanceCount}', Icons.build, Colors.redAccent, const MaintenanceHistoryPage()),
+          _buildSummaryCard(context, 'Earnings', 'AED ${stats.totalEarnings.toStringAsFixed(0)}', Icons.monetization_on, Colors.green, const EarningsReportPage()),
+        ]),
+      ),
+    );
+  }
+
+  Widget _buildLiveActivityTile(BuildContext context, dynamic act) {
+    final isJob = act['type'] == 'job';
+    final dateStr = DateFormat('dd MMM, hh:mm a').format(act['date']);
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 0,
+      color: Colors.black.withValues(alpha: 0.5),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.5)),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: (isJob ? Colors.green : Colors.amber).withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            isJob ? Icons.precision_manufacturing : Icons.receipt_long_outlined,
+            color: isJob ? Colors.greenAccent : Colors.amberAccent,
+            size: 20,
+          ),
+        ),
+        title: Text(
+          act['description'],
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14),
+        ),
+        subtitle: Text(
+          dateStr,
+          style: const TextStyle(color: Colors.white70, fontSize: 11),
+        ),
+        trailing: Text(
+          '${isJob ? '+' : '-'} ${act['amount'].toStringAsFixed(0)} AED',
+          style: TextStyle(
+            color: isJob ? Colors.greenAccent : Colors.redAccent,
+            fontWeight: FontWeight.w900,
+            fontSize: 14,
+          ),
         ),
       ),
     );

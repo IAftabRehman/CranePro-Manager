@@ -1,7 +1,9 @@
 import 'package:extend_crane_services/features/auth/presentation/pages/role_selection_page.dart';
+import 'package:extend_crane_services/features/quotation/presentation/pages/add_quotation_page.dart';
 import 'package:extend_crane_services/features/reports/presentation/pages/maintenance_log_viewer_page.dart';
 import 'package:extend_crane_services/features/reports/presentation/pages/work_history_viewer_page.dart';
 import 'package:extend_crane_services/features/settings/presentation/pages/settings_page.dart';
+import 'package:extend_crane_services/features/home/presentation/pages/operator_stats_page.dart';
 import 'package:flutter/material.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
 import 'package:extend_crane_services/core/themes/app_theme.dart';
@@ -10,6 +12,7 @@ import 'package:extend_crane_services/features/maintenance/presentation/pages/ma
 import 'package:extend_crane_services/features/reports/presentation/pages/earnings_report_page.dart';
 
 import '../../../features/dashboard/presentation/pages/viewer_dashboard.dart';
+import '../../../features/operations/presentation/widgets/direct_work_modal.dart';
 
 class CustomDrawer extends StatelessWidget {
   final String activeRoute;
@@ -38,7 +41,7 @@ class CustomDrawer extends StatelessWidget {
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                children: isViewer 
+                children: isViewer
                   ? [
                       _buildNavItem(context, Icons.dashboard_outlined, 'Dashboard', theme),
                       _buildNavItem(context, Icons.bar_chart_outlined, 'Work Reports', theme),
@@ -48,8 +51,8 @@ class CustomDrawer extends StatelessWidget {
                   : [
                       _buildNavItem(context, Icons.dashboard_outlined, 'Dashboard', theme),
                       _buildNavItem(context, Icons.file_copy_outlined, 'Generate Quotation', theme),
-                      _buildNavItem(context, Icons.flash_on_outlined, 'Direct Work Entry', theme),
                       _buildNavItem(context, Icons.build_circle_outlined, 'Maintenance & Expenses', theme),
+                      _buildNavItem(context, Icons.analytics_outlined, 'My Analytics', theme),
                       _buildNavItem(context, Icons.bar_chart_outlined, 'Reports & Analytics', theme),
                       // _buildNavItem(context, Icons.admin_panel_settings, 'Admin', theme, isAdminOnly: true),
                       _buildNavItem(context, Icons.person, 'Profile', theme),
@@ -123,8 +126,14 @@ class CustomDrawer extends StatelessWidget {
             case 'Maintenance & Expenses':
               destination = const MaintenanceHistoryPage();
               break;
+            case 'Generate Quotation':
+              destination = const AddQuotationPage();
+              break;
             case 'Profile':
               destination = SettingsPage(isViewer: isViewer);
+              break;
+            case 'My Analytics':
+              destination = const OperatorStatsPage();
               break;
             default:
               return;

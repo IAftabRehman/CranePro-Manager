@@ -145,6 +145,157 @@ class PdfService {
     return pdf.save();
   }
 
+  static Future<Uint8List> generateOperatorMonthlyReport(
+    dynamic operator, // UserModel but using dynamic for easier context passing if needed
+    List<QuotationModel> quotations,
+    List<dynamic> expenses, // ExpenseModel
+  ) async {
+    final pdf = pw.Document();
+    final now = DateTime.now();
+    final monthName = DateFormat('MMMM yyyy').format(now);
+
+    final totalEarnings = quotations.fold(0.0, (sum, q) => sum + q.totalAmount);
+    final totalExpenses = expenses.fold(0.0, (sum, e) => sum + (e.amount as double));
+    final netBalance = totalEarnings - totalExpenses;
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(40),
+        build: (pw.Context context) {
+          return [
+            // Header
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                   pw.Text('CRANEPRO MANAGER', style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold, color: PdfColors.blue800)),
+                   pw.Text('Operator Monthly Performance Report', style: pw.TextStyle(fontSize: 12, color: PdfColors.grey700)),
+                  ],
+                ),
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: [
+                    pw.Text(monthName, style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                    pw.Text('Generated: ${DateFormat('dd MMM yyyy').format(now)}', style: const pw.TextStyle(fontSize: 8)),
+                  ],
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 20),
+            pw.Divider(thickness: 2, color: PdfColors.blue800),
+            pw.SizedBox(height: 20),
+
+            // Operator Details
+            pw.Container(
+              padding: const pw.EdgeInsets.all(16),
+              decoration: pw.BoxDecoration(color: PdfColors.blue50, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8))),
+              child: pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text('Operator Name:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                      pw.Text(operator.fullName ?? 'Operator', style: const pw.TextStyle(fontSize: 12)),
+                    ],
+                  ),
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    children: [
+                      pw.Text('Employee ID:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                      pw.Text(operator.id.substring(0, 8).toUpperCase(), style: const pw.TextStyle(fontSize: 12)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            pw.SizedBox(height: 30),
+
+            // Financial Summary Cards
+            pw.Row(
+              children: [
+                _buildReportSummaryCard('Total Earnings', 'AED ${totalEarnings.toStringAsFixed(2)}', PdfColors.green800),
+                pw.SizedBox(width: 10),
+                _buildReportSummaryCard('Total Expenses', 'AED ${totalExpenses.toStringAsFixed(2)}', PdfColors.red800),
+                pw.SizedBox(width: 10),
+                _buildReportSummaryCard('Net Balance', 'AED ${netBalance.toStringAsFixed(2)}', PdfColors.blue800),
+              ],
+            ),
+            pw.SizedBox(height: 40),
+
+            // Detailed Work History
+            pw.Text('Detailed Work History', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+            pw.SizedBox(height: 10),
+            pw.Table(
+              border: pw.TableBorder.all(color: PdfColors.grey300),
+              columnWidths: {
+                0: const pw.FlexColumnWidth(1.5),
+                1: const pw.FlexColumnWidth(3),
+                2: const pw.FlexColumnWidth(1.5),
+                3: const pw.FlexColumnWidth(1.5),
+              },
+              children: [
+                pw.TableRow(
+                  decoration: const pw.BoxDecoration(color: PdfColors.blue100),
+                  children: [
+                    _buildTableCell('Date', isHeader: true),
+                    _buildTableCell('Client / Description', isHeader: true),
+                    _buildTableCell('Type', isHeader: true),
+                    _buildTableCell('Amount', isHeader: true),
+                  ],
+                ),
+                ...quotations.map((q) => pw.TableRow(
+                  children: [
+                    _buildTableCell(DateFormat('dd MMM').format(q.workDate)),
+                    _buildTableCell(q.clientName),
+                    _buildTableCell('JOB', color: PdfColors.green800),
+                    _buildTableCell(q.totalAmount.toStringAsFixed(2), align: pw.Alignment.centerRight),
+                  ],
+                )),
+                ...expenses.map((e) => pw.TableRow(
+                  children: [
+                    _buildTableCell(DateFormat('dd MMM').format(e.date)),
+                    _buildTableCell(e.description),
+                    _buildTableCell('EXPENSE', color: PdfColors.red800),
+                    _buildTableCell(e.amount.toStringAsFixed(2), align: pw.Alignment.centerRight),
+                  ],
+                )),
+              ],
+            ),
+
+            pw.SizedBox(height: 40),
+            pw.Text('End of monthly report summary.', style: pw.TextStyle(fontSize: 8, color: PdfColors.grey500)),
+          ];
+        },
+      ),
+    );
+
+    return pdf.save();
+  }
+
+  static pw.Widget _buildReportSummaryCard(String title, String value, PdfColor color) {
+    return pw.Expanded(
+      child: pw.Container(
+        padding: const pw.EdgeInsets.all(12),
+        decoration: pw.BoxDecoration(
+          border: pw.Border.all(color: color, width: 1),
+          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+        ),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.center,
+          children: [
+            pw.Text(title, style: const pw.TextStyle(fontSize: 8)),
+            pw.SizedBox(height: 4),
+            pw.Text(value, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: color)),
+          ],
+        ),
+      ),
+    );
+  }
+
   static pw.Widget _buildInfoRow(String label, String value, {bool isBold = false}) {
     return pw.Padding(
       padding: const pw.EdgeInsets.symmetric(vertical: 2),
@@ -159,7 +310,7 @@ class PdfService {
     );
   }
 
-  static pw.Widget _buildTableCell(String text, {bool isHeader = false, pw.Alignment align = pw.Alignment.centerLeft}) {
+  static pw.Widget _buildTableCell(String text, {bool isHeader = false, pw.Alignment align = pw.Alignment.centerLeft, PdfColor? color}) {
     return pw.Padding(
       padding: const pw.EdgeInsets.all(8),
       child: pw.Align(
@@ -167,8 +318,8 @@ class PdfService {
         child: pw.Text(
           text,
           style: pw.TextStyle(
-            fontSize: 10,
-            color: isHeader ? PdfColors.white : PdfColors.black,
+            fontSize: 8,
+            color: color ?? (isHeader ? PdfColors.blue800 : PdfColors.black),
             fontWeight: isHeader ? pw.FontWeight.bold : null,
           ),
         ),

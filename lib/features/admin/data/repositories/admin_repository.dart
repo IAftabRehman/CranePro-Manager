@@ -87,7 +87,7 @@ class AdminRepository {
     });
   }
 
-  /// Returns a combined stream of User Signups and Quotations for Activity Tracking.
+  /// Returns a combined stream of User Signups, Quotations, and Work Orders for Activity Tracking.
   Stream<List<Map<String, dynamic>>> getCombinedActivityStream() {
     final usersStream = _firestore
         .collection('users')
@@ -103,12 +103,23 @@ class AdminRepository {
         .snapshots()
         .map((s) => s.docs.map((d) => d.data()..['id'] = d.id).toList());
 
-    return CombineLatestStream.combine2<List<Map<String, dynamic>>,
-        List<Map<String, dynamic>>, List<Map<String, dynamic>>>(
+    final workOrdersStream = _firestore
+        .collection('work_orders')
+        .orderBy('createdAt', descending: true)
+        .limit(15)
+        .snapshots()
+        .map((s) => s.docs.map((d) => d.data()..['id'] = d.id).toList());
+
+    return CombineLatestStream.combine3<
+        List<Map<String, dynamic>>,
+        List<Map<String, dynamic>>,
+        List<Map<String, dynamic>>,
+        List<Map<String, dynamic>>>(
       usersStream,
       quotationsStream,
-      (users, quotations) {
-        final combined = [...users, ...quotations];
+      workOrdersStream,
+      (users, quotations, workOrders) {
+        final combined = [...users, ...quotations, ...workOrders];
         combined.sort((a, b) {
           final aTime = (a['createdAt'] as Timestamp).toDate();
           final bTime = (b['createdAt'] as Timestamp).toDate();
