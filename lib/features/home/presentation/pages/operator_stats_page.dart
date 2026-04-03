@@ -312,14 +312,10 @@ class OperatorStatsPage extends ConsumerWidget {
 
     try {
       final repo = ref.read(financeRepositoryProvider);
-      
-      // Fetch current month's quotations & expenses
       final now = DateTime.now();
-      final startOfMonth = DateTime(now.year, now.month, 1);
       
       // In a real production app, you'd use a repository method that filters by date.
       // For this implementation, we reuse the existing data available in the providers.
-      final quotations = await repo.getOperatorExpensesStream(user.id).first; // Reusing logic for month if possible
       final expenses = await repo.getOperatorExpensesStream(user.id).first; 
 
       final pdfBytes = await PdfService.generateOperatorMonthlyReport(

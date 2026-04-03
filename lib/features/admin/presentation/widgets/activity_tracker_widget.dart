@@ -15,7 +15,7 @@ class ActivityTrackerWidget extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.history_rounded, size: 48, color: AppTheme.deepNavyBlue.withOpacity(0.3)),
+            Icon(Icons.history_rounded, size: 48, color: AppTheme.deepNavyBlue.withValues(alpha: 0.3)),
             const SizedBox(height: 16),
             const Text(
               'No recent activity',
@@ -31,7 +31,7 @@ class ActivityTrackerWidget extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       itemCount: activities.length,
-      separatorBuilder: (context, index) => Divider(color: AppTheme.deepNavyBlue.withOpacity(0.1)),
+      separatorBuilder: (context, index) => Divider(color: AppTheme.deepNavyBlue.withValues(alpha: 0.1)),
       itemBuilder: (context, index) {
         final activity = activities[index];
         
@@ -64,7 +64,7 @@ class ActivityTrackerWidget extends StatelessWidget {
           leading: Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
+              color: iconColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -85,7 +85,7 @@ class ActivityTrackerWidget extends StatelessWidget {
             timeago.format(timestamp),
             style: TextStyle(
               fontSize: 12,
-              color: AppTheme.deepNavyBlue.withOpacity(0.6),
+              color: AppTheme.deepNavyBlue.withValues(alpha: 0.6),
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -94,3 +94,4 @@ class ActivityTrackerWidget extends StatelessWidget {
     );
   }
 }
+

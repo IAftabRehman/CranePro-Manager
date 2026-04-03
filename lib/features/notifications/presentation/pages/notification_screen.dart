@@ -107,7 +107,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       direction: DismissDirection.endToStart,
       background: Container(
         decoration: BoxDecoration(
-          color: Colors.redAccent.withOpacity(0.2),
+          color: Colors.redAccent.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(16),
         ),
         alignment: Alignment.centerRight,
@@ -117,11 +117,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
       onDismissed: (_) => _removeNotification(item.id),
       child: Card(
         elevation: 0,
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(
-            color: item.isRead ? Colors.white10 : Colors.amber.withOpacity(0.3),
+            color: item.isRead ? Colors.white10 : Colors.amber.withValues(alpha: 0.3),
             width: 1.5,
           ),
         ),
@@ -138,7 +138,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.amber.withOpacity(0.1),
+                          color: Colors.amber.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(Icons.pending_actions_rounded, color: Colors.amber, size: 20),
@@ -213,7 +213,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
           Container(
             padding: const EdgeInsets.all(40),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withValues(alpha: 0.05),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -237,3 +237,4 @@ class _NotificationScreenState extends State<NotificationScreen> {
     );
   }
 }
+

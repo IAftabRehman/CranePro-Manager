@@ -45,7 +45,7 @@ class _AdminExportPageState extends State<AdminExportPage> {
             datePickerTheme: DatePickerThemeData(
               backgroundColor: Colors.transparent,
               // Inner background transparent
-              rangeSelectionBackgroundColor: Colors.red.withOpacity(0.4),
+              rangeSelectionBackgroundColor: Colors.red.withValues(alpha: 0.4),
               dayStyle: const TextStyle(fontWeight: FontWeight.w900),
             ),
             textButtonTheme: TextButtonThemeData(
@@ -214,9 +214,9 @@ class _AdminExportPageState extends State<AdminExportPage> {
       child: Container(
         padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.25),
+          color: Colors.white.withValues(alpha: 0.25),
           borderRadius: BorderRadius.circular(28),
-          border: Border.all(color: Colors.white.withOpacity(0.4)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
         ),
         child: Row(
           children: [
@@ -308,7 +308,7 @@ class _AdminExportPageState extends State<AdminExportPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(20),
       ),
       child: SwitchListTile(
@@ -328,3 +328,4 @@ class _AdminExportPageState extends State<AdminExportPage> {
     );
   }
 }
+

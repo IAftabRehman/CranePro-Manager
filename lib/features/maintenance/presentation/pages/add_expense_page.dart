@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_button.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_text_field.dart';
-import 'package:extend_crane_services/features/reports/presentation/pages/expense_analysis_page.dart';
 import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
 import 'package:extend_crane_services/features/auth/presentation/controllers/login_notifier.dart';
 import 'package:extend_crane_services/features/finance/data/models/expense_model.dart';
@@ -133,9 +132,9 @@ class _AddExpensePageState extends ConsumerState<AddExpensePage> {
     return Container(
       height: height,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: CustomPaint(
         painter: DashedRectPainter(color: Colors.white, strokeWidth: 1, gap: 5.0),
@@ -147,7 +146,7 @@ class _AddExpensePageState extends ConsumerState<AddExpensePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.add_a_photo, size: 48, color: theme.colorScheme.secondary.withOpacity(0.8)),
+              Icon(Icons.add_a_photo, size: 48, color: theme.colorScheme.secondary.withValues(alpha: 0.8)),
               const SizedBox(height: 12),
               const Text(
                 'Upload Receipt / Photo',
@@ -191,19 +190,19 @@ class _AddExpensePageState extends ConsumerState<AddExpensePage> {
             children: [
               ActionChip(
                 label: const Text('+ Diesel Refill'),
-                backgroundColor: Colors.white.withOpacity(0.1),
+                backgroundColor: Colors.white.withValues(alpha: 0.1),
                 labelStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 onPressed: () => _applyQuickTag('Diesel Refill', 'Fuel'),
               ),
               ActionChip(
                 label: const Text('+ Crane Service'),
-                backgroundColor: Colors.white.withOpacity(0.1),
+                backgroundColor: Colors.white.withValues(alpha: 0.1),
                 labelStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 onPressed: () => _applyQuickTag('Crane Standard Service', 'Maintenance'),
               ),
               ActionChip(
                 label: const Text('+ RTA Permit'),
-                backgroundColor: Colors.white.withOpacity(0.1),
+                backgroundColor: Colors.white.withValues(alpha: 0.1),
                 labelStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 onPressed: () => _applyQuickTag('RTA Road Permit', 'Permit'),
               ),
@@ -229,7 +228,7 @@ class _AddExpensePageState extends ConsumerState<AddExpensePage> {
               hintText: 'Select Category',
               hintStyle: const TextStyle(color: Colors.white38),
               filled: true,
-              fillColor: Colors.white.withOpacity(0.05),
+              fillColor: Colors.white.withValues(alpha: 0.05),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white12)),
               focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.colorScheme.secondary, width: 2)),
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -290,10 +289,10 @@ class _AddExpensePageState extends ConsumerState<AddExpensePage> {
                   // Total Expense Summary Card - Hidden during entry for focus if needed, but keeping for UI consistency
                   Card(
                     elevation: 0,
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withValues(alpha: 0.05),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(color: Colors.white.withOpacity(0.05)),
+                      side: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
                     ),
                     child: Container(
                       padding: const EdgeInsets.all(24),
@@ -310,7 +309,7 @@ class _AddExpensePageState extends ConsumerState<AddExpensePage> {
                           ),
                           Container(
                             padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(color: Colors.amber.withOpacity(0.1), shape: BoxShape.circle),
+                            decoration: BoxDecoration(color: Colors.amber.withValues(alpha: 0.1), shape: BoxShape.circle),
                             child: const Icon(Icons.account_balance_wallet, color: Colors.amber, size: 32),
                           ),
                         ],
@@ -353,8 +352,8 @@ class _AddExpensePageState extends ConsumerState<AddExpensePage> {
             horizontal: Responsive.scale(context, 16).clamp(16.0, 32.0),
           ),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
-            border: Border(top: BorderSide(color: Colors.white.withOpacity(0.05))),
+            color: Colors.white.withValues(alpha: 0.05),
+            border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -387,7 +386,7 @@ class DashedRectPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color.withOpacity(0.5)
+      ..color = color.withValues(alpha: 0.5)
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
 
@@ -414,3 +413,4 @@ class DashedRectPainter extends CustomPainter {
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
+

@@ -8,6 +8,7 @@ class WorkOrderModel {
   final String clientName;
   final String siteLocation;
   final String status;
+  final double totalPrice;
   final DateTime createdAt;
 
   WorkOrderModel({
@@ -18,6 +19,7 @@ class WorkOrderModel {
     required this.clientName,
     required this.siteLocation,
     this.status = 'pending_approval',
+    this.totalPrice = 0.0,
     required this.createdAt,
   });
 
@@ -30,6 +32,7 @@ class WorkOrderModel {
       'clientName': clientName,
       'siteLocation': siteLocation,
       'status': status,
+      'totalPrice': totalPrice,
       'createdAt': Timestamp.fromDate(createdAt),
     };
   }
@@ -43,6 +46,7 @@ class WorkOrderModel {
       clientName: map['clientName'] ?? '',
       siteLocation: map['siteLocation'] ?? '',
       status: map['status'] ?? 'pending_approval',
+      totalPrice: (map['totalPrice'] as num?)?.toDouble() ?? 0.0,
       createdAt: map['createdAt'] is Timestamp 
           ? (map['createdAt'] as Timestamp).toDate() 
           : DateTime.now(),

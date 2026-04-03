@@ -131,7 +131,7 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: Colors.white.withOpacity(0.05),
+                      fillColor: Colors.white.withValues(alpha: 0.05),
                       hintText: 'Enter reason for rejection...',
                       hintStyle: const TextStyle(color: Colors.white24),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -335,7 +335,6 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
   }
 
   Widget _buildUserCard(UserModel user) {
-    final theme = Theme.of(context);
     final String formattedDate = user.createdAt != null 
         ? DateFormat('MMM dd, yyyy').format(user.createdAt!) 
         : 'Unknown';
@@ -385,8 +384,8 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: isApproved 
-            ? Colors.green.withOpacity(0.2) 
-            : Colors.amber.withOpacity(0.2),
+            ? Colors.green.withValues(alpha: 0.2) 
+            : Colors.amber.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isApproved ? Colors.green : Colors.amber,
@@ -405,3 +404,4 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
     );
   }
 }
+

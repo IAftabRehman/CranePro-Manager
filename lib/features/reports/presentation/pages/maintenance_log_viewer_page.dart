@@ -128,16 +128,16 @@ class _MaintenanceLogViewerPageState extends State<MaintenanceLogViewerPage> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.4),
+        color: Colors.white.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.3)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.orange.withOpacity(0.15),
+              color: Colors.orange.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: Icon(Icons.build_circle_rounded, color: Colors.orange.shade900, size: 24),
@@ -158,7 +158,7 @@ class _MaintenanceLogViewerPageState extends State<MaintenanceLogViewerPage> {
                 Text(
                   date,
                   style: TextStyle(
-                    color: AppTheme.deepNavyBlue.withOpacity(0.6),
+                    color: AppTheme.deepNavyBlue.withValues(alpha: 0.6),
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
                   ),
@@ -179,3 +179,4 @@ class _MaintenanceLogViewerPageState extends State<MaintenanceLogViewerPage> {
     );
   }
 }
+

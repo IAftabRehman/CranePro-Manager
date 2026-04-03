@@ -97,7 +97,7 @@ class _AdminAuditTrailPageState extends State<AdminAuditTrailPage> {
       return Center(
         child: Text(
           showDeleted ? 'Recycle Bin is Empty' : 'No Changes Logged',
-          style: TextStyle(color: AppTheme.deepNavyBlue.withOpacity(0.5), fontWeight: FontWeight.w800),
+          style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.5), fontWeight: FontWeight.w800),
         ),
       );
     }
@@ -114,9 +114,9 @@ class _AdminAuditTrailPageState extends State<AdminAuditTrailPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.3)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
@@ -142,7 +142,7 @@ class _AdminAuditTrailPageState extends State<AdminAuditTrailPage> {
                         ),
                         Text(
                           '${entry.targetType} - ${entry.userName}',
-                          style: TextStyle(color: AppTheme.deepNavyBlue.withOpacity(0.6), fontSize: 12, fontWeight: FontWeight.w700),
+                          style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.6), fontSize: 12, fontWeight: FontWeight.w700),
                         ),
                       ],
                     ),
@@ -157,7 +157,7 @@ class _AdminAuditTrailPageState extends State<AdminAuditTrailPage> {
               ),
               subtitle: Text(
                 DateFormat('MMM dd, HH:mm').format(entry.timestamp),
-                style: TextStyle(color: AppTheme.deepNavyBlue.withOpacity(0.4), fontSize: 10, fontWeight: FontWeight.w800),
+                style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.4), fontSize: 10, fontWeight: FontWeight.w800),
               ),
               children: [
                 Padding(
@@ -197,7 +197,7 @@ class _AdminAuditTrailPageState extends State<AdminAuditTrailPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(e.key, style: TextStyle(color: AppTheme.deepNavyBlue.withOpacity(0.6), fontSize: 12, fontWeight: FontWeight.w700)),
+              Text(e.key, style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.6), fontSize: 12, fontWeight: FontWeight.w700)),
               Text(e.value, style: const TextStyle(color: AppTheme.deepNavyBlue, fontSize: 13, fontWeight: FontWeight.w800)),
             ],
           ),
@@ -206,3 +206,4 @@ class _AdminAuditTrailPageState extends State<AdminAuditTrailPage> {
     );
   }
 }
+

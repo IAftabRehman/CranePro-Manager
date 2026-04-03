@@ -229,9 +229,9 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
+                  color: Colors.green.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.green.withOpacity(0.1)),
+                  border: Border.all(color: Colors.green.withValues(alpha: 0.1)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -275,7 +275,7 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: isActive ? Colors.amber.withOpacity(0.2) : Colors.white.withOpacity(0.05),
+          color: isActive ? Colors.amber.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: isActive ? Colors.amber : Colors.white12),
         ),
@@ -307,3 +307,4 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
     );
   }
 }
+

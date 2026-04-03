@@ -338,7 +338,7 @@ class _PdfPreviewPageState extends ConsumerState<PdfPreviewPage> {
       children: [
         CircleAvatar(
           radius: 28,
-          backgroundColor: color.withOpacity(0.1),
+          backgroundColor: color.withValues(alpha: 0.1),
           child: Icon(icon, color: color, size: 28),
         ),
         const SizedBox(height: 8),
@@ -373,9 +373,9 @@ class _PdfPreviewPageState extends ConsumerState<PdfPreviewPage> {
               vertical: 8,
             ),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withValues(alpha: 0.05),
               border: Border(
-                bottom: BorderSide(color: Colors.white.withOpacity(0.1)),
+                bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
               ),
             ),
             child: Row(
@@ -426,9 +426,9 @@ class _PdfPreviewPageState extends ConsumerState<PdfPreviewPage> {
             horizontal: Responsive.scale(context, 16).clamp(16.0, 32.0),
           ),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             border: Border(
-              top: BorderSide(color: Colors.white.withOpacity(0.1)),
+              top: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
             ),
           ),
           child: Row(
@@ -475,7 +475,7 @@ class _PdfPreviewPageState extends ConsumerState<PdfPreviewPage> {
           horizontal: Responsive.isMobile(context) ? 24 : 48,
         ),
         decoration: BoxDecoration(
-          color: isPrimary ? color : color.withOpacity(0.1),
+          color: isPrimary ? color : color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -497,3 +497,4 @@ class _PdfPreviewPageState extends ConsumerState<PdfPreviewPage> {
     );
   }
 }
+

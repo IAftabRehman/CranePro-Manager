@@ -89,9 +89,44 @@ class QuotationRepository {
       }).toList();
     });
   }
+
+  /// NEW: Fetches the first (oldest) pending quotation to force user action.
+  Stream<QuotationModel?> watchFirstPendingQuotation(String uid) {
+    return _firestore
+        .collection('quotations')
+        .where('operatorId', isEqualTo: uid)
+        .where('status', isEqualTo: 'pending')
+        .orderBy('createdAt', descending: false)
+        .limit(1)
+        .snapshots()
+        .map((snapshot) {
+      if (snapshot.docs.isEmpty) return null;
+      return QuotationModel.fromMap(
+        snapshot.docs.first.data(),
+        docId: snapshot.docs.first.id,
+      );
+    });
+  }
+
+  /// NEW: Update the status of a specific quotation document.
+  Future<void> updateQuotationStatus(String docId, String status) async {
+    try {
+      await _firestore.collection('quotations').doc(docId).update({
+        'status': status,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e, stack) {
+      FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Failed to update quotation status');
+      rethrow;
+    }
+  }
 }
 
 final quotationRepositoryProvider = Provider((ref) => QuotationRepository());
+
+final firstPendingQuotationProvider = StreamProvider.family<QuotationModel?, String>((ref, uid) {
+  return ref.watch(quotationRepositoryProvider).watchFirstPendingQuotation(uid);
+});
 
 final allQuotationsProvider = StreamProvider<List<QuotationModel>>((ref) {
   return ref.watch(quotationRepositoryProvider).getAllQuotationsStream();

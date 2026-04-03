@@ -41,7 +41,6 @@ class AdminReportsPage extends ConsumerWidget {
   }
 
   Widget _buildFilterHeader(BuildContext context, WidgetRef ref) {
-    final searchQuery = ref.watch(reportSearchQueryProvider);
     final dateRange = ref.watch(reportDateRangeProvider);
     final statusFilter = ref.watch(reportStatusFilterProvider);
 

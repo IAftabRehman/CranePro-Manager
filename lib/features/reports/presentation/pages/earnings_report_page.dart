@@ -3,15 +3,18 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
 import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:extend_crane_services/features/auth/presentation/controllers/login_notifier.dart';
+import 'package:extend_crane_services/features/finance/data/repositories/finance_repository.dart';
 
-class EarningsReportPage extends StatefulWidget {
+class EarningsReportPage extends ConsumerStatefulWidget {
   const EarningsReportPage({super.key});
 
   @override
-  State<EarningsReportPage> createState() => _EarningsReportPageState();
+  ConsumerState<EarningsReportPage> createState() => _EarningsReportPageState();
 }
 
-class _EarningsReportPageState extends State<EarningsReportPage> {
+class _EarningsReportPageState extends ConsumerState<EarningsReportPage> {
   DateTime _fromDate = DateTime.now().subtract(const Duration(days: 30));
   DateTime _toDate = DateTime.now();
 
@@ -47,6 +50,7 @@ class _EarningsReportPageState extends State<EarningsReportPage> {
     final theme = Theme.of(context);
     final isTablet = Responsive.isTablet(context);
     final screenWidth = Responsive.screenWidth(context);
+    final userAsync = ref.watch(currentUserProvider);
 
     return PremiumScaffold(
       appBar: AppBar(
@@ -56,37 +60,44 @@ class _EarningsReportPageState extends State<EarningsReportPage> {
         elevation: 0,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: EdgeInsets.symmetric(
-            horizontal: Responsive.scale(context, 16).clamp(16.0, 32.0),
-            vertical: 24,
-          ),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1000),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Date Range Picker Header
-                  _buildDateRangeHeader(theme),
-                  const SizedBox(height: 24),
+        child: userAsync.when(
+          data: (user) {
+            if (user == null) return const Center(child: Text('User session not found.'));
+            
+            final reportAsync = ref.watch(operatorDetailedReportProvider((uid: user.id, start: _fromDate, end: _toDate)));
 
-                  // Pie Chart Card
-                  _buildPieChartCard(theme, isTablet),
-                  const SizedBox(height: 24),
-
-                  // Bar Chart Card
-                  _buildBarChartCard(theme, isTablet),
-                  const SizedBox(height: 24),
-
-                  // Summary Tiles
-                  _buildSummaryGrid(theme, screenWidth),
-                  const SizedBox(height: 32),
-                ],
+            return reportAsync.when(
+              data: (report) => SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.scale(context, 16).clamp(16.0, 32.0),
+                  vertical: 24,
+                ),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1000),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildDateRangeHeader(theme),
+                        const SizedBox(height: 24),
+                        _buildPieChartCard(theme, isTablet, report),
+                        const SizedBox(height: 24),
+                        _buildBarChartCard(theme, isTablet, report),
+                        const SizedBox(height: 24),
+                        _buildSummaryGrid(theme, screenWidth, report),
+                        const SizedBox(height: 32),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ),
+              loading: () => const Center(child: CircularProgressIndicator(color: Colors.amber)),
+              error: (err, stack) => Center(child: Text('Error loading report: $err', style: const TextStyle(color: Colors.redAccent))),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, stack) => Center(child: Text('Auth error: $err')),
         ),
       ),
     );
@@ -98,9 +109,9 @@ class _EarningsReportPageState extends State<EarningsReportPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -129,7 +140,11 @@ class _EarningsReportPageState extends State<EarningsReportPage> {
     );
   }
 
-  Widget _buildPieChartCard(ThemeData theme, bool isTablet) {
+  Widget _buildPieChartCard(ThemeData theme, bool isTablet, OperatorEarningsReport report) {
+    final grossTotal = report.quotationIncome + report.directWorkIncome;
+    final commissionPercent = grossTotal > 0 ? (report.partnerCommission / grossTotal) * 100 : 0.0;
+    final netPercent = grossTotal > 0 ? (report.netProfit / grossTotal) * 100 : 100.0;
+
     final pieChart = AspectRatio(
       aspectRatio: 1,
       child: PieChart(
@@ -138,15 +153,15 @@ class _EarningsReportPageState extends State<EarningsReportPage> {
           centerSpaceRadius: 40,
           sections: [
             PieChartSectionData(
-              value: 75,
-              title: '75%',
+              value: netPercent,
+              title: '${netPercent.toStringAsFixed(0)}%',
               radius: 50,
               color: theme.colorScheme.primary,
               titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
             ),
             PieChartSectionData(
-              value: 25,
-              title: '25%',
+              value: commissionPercent,
+              title: '${commissionPercent.toStringAsFixed(0)}%',
               radius: 50,
               color: theme.colorScheme.secondary,
               titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -168,10 +183,10 @@ class _EarningsReportPageState extends State<EarningsReportPage> {
 
     return Card(
       elevation: 0,
-      color: Colors.white.withOpacity(0.05),
+      color: Colors.white.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.white.withOpacity(0.05)),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -211,13 +226,19 @@ class _EarningsReportPageState extends State<EarningsReportPage> {
     );
   }
 
-  Widget _buildBarChartCard(ThemeData theme, bool isTablet) {
+  Widget _buildBarChartCard(ThemeData theme, bool isTablet, OperatorEarningsReport report) {
+    // Determine max Y for scaling
+    double maxAmount = 100.0;
+    for (var p in report.weeklyGrowth) {
+      if (p.amount > maxAmount) maxAmount = p.amount;
+    }
+
     return Card(
       elevation: 0,
-      color: Colors.white.withOpacity(0.05),
+      color: Colors.white.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.white.withOpacity(0.05)),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -231,16 +252,32 @@ class _EarningsReportPageState extends State<EarningsReportPage> {
               child: BarChart(
                 BarChartData(
                   alignment: BarChartAlignment.spaceAround,
-                  maxY: 100,
-                  barTouchData: BarTouchData(enabled: true),
+                  maxY: maxAmount * 1.2, // Padding at top
+                  barTouchData: BarTouchData(
+                    enabled: true,
+                    touchTooltipData: BarTouchTooltipData(
+                      getTooltipColor: (_) => Colors.black87,
+                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                        return BarTooltipItem(
+                          'AED ${rod.toY.toStringAsFixed(0)}',
+                          const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold),
+                        );
+                      },
+                    ),
+                  ),
                   titlesData: FlTitlesData(
                     show: true,
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
                         getTitlesWidget: (val, meta) {
-                          const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-                          return Text(days[val.toInt() % 7], style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white70));
+                          if (val.toInt() < 0 || val.toInt() >= report.weeklyGrowth.length) return const SizedBox.shrink();
+                          final date = report.weeklyGrowth[val.toInt()].date;
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(DateFormat('E').format(date).substring(0, 1), 
+                              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white70)),
+                          );
                         },
                       ),
                     ),
@@ -250,15 +287,9 @@ class _EarningsReportPageState extends State<EarningsReportPage> {
                   ),
                   gridData: const FlGridData(show: false),
                   borderData: FlBorderData(show: false),
-                  barGroups: [
-                    _buildBarGroup(0, 45, theme.colorScheme.primary),
-                    _buildBarGroup(1, 75, theme.colorScheme.primary),
-                    _buildBarGroup(2, 60, theme.colorScheme.primary),
-                    _buildBarGroup(3, 90, theme.colorScheme.primary),
-                    _buildBarGroup(4, 50, theme.colorScheme.primary),
-                    _buildBarGroup(5, 40, theme.colorScheme.primary),
-                    _buildBarGroup(6, 30, theme.colorScheme.primary),
-                  ],
+                  barGroups: report.weeklyGrowth.asMap().entries.map((entry) {
+                    return _buildBarGroup(entry.key, entry.value.amount, theme.colorScheme.primary);
+                  }).toList(),
                 ),
               ),
             ),
@@ -282,16 +313,16 @@ class _EarningsReportPageState extends State<EarningsReportPage> {
     );
   }
 
-  Widget _buildSummaryGrid(ThemeData theme, double width) {
+  Widget _buildSummaryGrid(ThemeData theme, double width, OperatorEarningsReport report) {
     final tiles = [
-      _buildSummaryTile('Quotation Income', 'AED 35,000', Colors.white, theme),
-      _buildSummaryTile('Direct Work Income', 'AED 10,000', Colors.white, theme),
+      _buildSummaryTile('Quotation Income', 'AED ${report.quotationIncome.toStringAsFixed(0)}', Colors.white, theme),
+      _buildSummaryTile('Direct Work Income', 'AED ${report.directWorkIncome.toStringAsFixed(0)}', Colors.white, theme),
       const Divider(color: Colors.white10),
-      _buildSummaryTile('Partner Commission', '(-) AED 8,500', Colors.redAccent, theme),
-      _buildSummaryTile('Fuel Expenses', '(-) AED 3,200', Colors.orangeAccent, theme),
-      _buildSummaryTile('Maintenance Costs', '(-) AED 1,000', Colors.orangeAccent, theme),
+      _buildSummaryTile('Partner Commission', '(-) AED ${report.partnerCommission.toStringAsFixed(0)}', Colors.redAccent, theme),
+      _buildSummaryTile('Fuel Expenses', '(-) AED ${report.fuelExpenses.toStringAsFixed(0)}', Colors.orangeAccent, theme),
+      _buildSummaryTile('Maintenance Costs', '(-) AED ${report.maintenanceExpenses.toStringAsFixed(0)}', Colors.orangeAccent, theme),
       const Divider(color: Colors.white24, thickness: 1.5, height: 32),
-      _buildSummaryTile('ESTIMATED NET PROFIT', 'AED 32,300', Colors.green, theme, isBold: true, fontSize: 22),
+      _buildSummaryTile('ESTIMATED NET PROFIT', 'AED ${report.netProfit.toStringAsFixed(0)}', Colors.green, theme, isBold: true, fontSize: 22),
     ];
 
     if (width > 600) {
@@ -313,9 +344,9 @@ class _EarningsReportPageState extends State<EarningsReportPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -339,3 +370,4 @@ class _EarningsReportPageState extends State<EarningsReportPage> {
     );
   }
 }
+

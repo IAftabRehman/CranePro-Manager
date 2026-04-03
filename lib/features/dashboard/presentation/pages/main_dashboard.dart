@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'pending_tasks_page.dart';
 import 'package:extend_crane_services/features/operations/presentation/widgets/direct_work_modal.dart';
 import '../../../../core/themes/app_theme.dart';
 import '../../../quotation/data/models/quotation_model.dart';
@@ -9,13 +10,15 @@ import 'package:extend_crane_services/features/notifications/presentation/pages/
 import 'package:extend_crane_services/features/settings/presentation/pages/settings_page.dart';
 import 'package:extend_crane_services/core/presentation/widgets/custom_drawer.dart';
 import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
-import '../widgets/midnight_status_modal.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../features/finance/data/repositories/finance_repository.dart';
+import '../../../../features/quotation/data/repositories/quotation_repository.dart';
 import '../../../auth/presentation/controllers/login_notifier.dart';
+import '../../../notifications/presentation/providers/notification_providers.dart' as np;
+import '../../../notifications/data/models/pending_item.dart';
+import '../../../../core/services/local_notification_service.dart';
 
 class MainDashboard extends ConsumerStatefulWidget {
   final bool isViewer;
@@ -26,9 +29,10 @@ class MainDashboard extends ConsumerStatefulWidget {
 }
 
 class _MainDashboardState extends ConsumerState<MainDashboard>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late AnimationController _pulseController;
-  final int _pendingCount = 2; // Mocking 2 pending reports for demonstration
+  List<PendingItem> _currentPendingItems = [];
+  bool _hasShownPendingAlert = false;
 
   @override
   void initState() {
@@ -39,123 +43,233 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
       duration: const Duration(milliseconds: 1000),
     )..repeat(reverse: true);
 
-    // TASK 1: Mock 12:00 AM Notification Trigger (Only for non-viewers)
-    if (!widget.isViewer) {
-      _checkAndShowMidnightPopup();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkAndShowPendingPopup();
     }
   }
 
-  void _checkAndShowMidnightPopup() {
-    // In a real app, this would check the current time and shared preferences
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+  void _checkAndShowPendingPopup() {
+    if (_currentPendingItems.isNotEmpty) {
+      final item = _currentPendingItems.first;
       showDialog(
         context: context,
-        barrierDismissible: false,
+        barrierDismissible: true,
         builder: (context) => AlertDialog(
+          backgroundColor: const Color(0xFF1A1A2E),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Colors.amberAccent, width: 2),
+          ),
+          title: const Text('Pending Task Resume', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Client: ${item.clientName}', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+              Text('Location: ${item.location}', style: const TextStyle(color: Colors.white70)),
+              const SizedBox(height: 8),
+              Text('Amount: AED ${item.totalPrice.toStringAsFixed(2)}', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.w900)),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('LATER', style: TextStyle(color: Colors.white30)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.amber),
+              onPressed: () {
+                Navigator.pop(context);
+                // Navigate to processing page or open modal
+              },
+              child: const Text('ACCEPT / PROCESS', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  void _showForcedResolutionDialog(QuotationModel quotation) {
+    debugPrint('DEBUG: Calling _showForcedResolutionDialog for quote ID: ${quotation.id}');
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Force User Action
+      builder: (context) => WillPopScope(
+        onWillPop: () async => false, // Disable back button
+        child: AlertDialog(
           backgroundColor: const Color(0xFF1A1A2E),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
             side: const BorderSide(color: Colors.redAccent, width: 2),
           ),
-          title: const Row(
-            children: [
-              Icon(
-                Icons.notification_important_rounded,
-                color: Colors.redAccent,
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'MIDNIGHT UPDATE',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
+          title: const Text(
+            'ACTION REQUIRED',
+            style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Work Update Required for:',
-                style: TextStyle(color: Colors.white70, fontSize: 12),
-              ),
-              const Text(
-                'Street Client',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 18,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Location: Musaffah M-27',
-                style: TextStyle(
-                  color: Colors.blueAccent,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
+                'You must resolve your oldest pending quotation before proceeding:',
+                style: TextStyle(color: Colors.white70, fontSize: 13),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Please update the status to clear this from your dashboard.',
-                style: TextStyle(color: Colors.white60, fontSize: 12),
-              ),
+              Text('Client: ${quotation.clientName}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              Text('Location: ${quotation.siteLocation}', style: const TextStyle(color: Colors.blueAccent)),
+              Text('Amount: AED ${quotation.totalAmount}', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text(
-              'Cancel',
-              style: TextStyle(
-                color: Colors.redAccent,
-                fontWeight: FontWeight.bold,
-              ),
-            ),),
-            const Spacer(),
             TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (_) => MidnightStatusModal(
-                    date: DateTime.now().subtract(const Duration(days: 1)),
-                    quotation: QuotationModel(
-                      id: 'mock_1',
-                      operatorId: 'mock_op',
-                      clientName: 'Street Client',
-                      siteLocation: 'Musaffah M-27',
-                      serviceType: '50 Ton Crane',
-                      totalAmount: 1000,
-                      balanceAmount: 1000,
-                      createdAt: DateTime.now(),
-                      updatedAt: DateTime.now(),
-                      workDate: DateTime.now(),
-                    ),
-                  ),
-                );
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Still Pending', style: TextStyle(color: Colors.white38)),
+            ),
+            TextButton(
+              onPressed: () async {
+                await ref.read(quotationRepositoryProvider).updateQuotationStatus(quotation.id, 'cancelled');
+                if (context.mounted) Navigator.pop(context);
               },
-              child: const Text(
-                'UPDATE NOW',
-                style: TextStyle(
-                  color: Colors.redAccent,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child: const Text('Cancel Job', style: TextStyle(color: Colors.orangeAccent)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.greenAccent),
+              onPressed: () async {
+                await ref.read(quotationRepositoryProvider).updateQuotationStatus(quotation.id, 'completed');
+                if (context.mounted) Navigator.pop(context);
+              },
+
+              child: const Text('Complete Job', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+            ),
+            TextButton(
+              onPressed: ()  {
+                Navigator.pop(context);
+              },
+              child: const Text('Back to Screen', style: TextStyle(color: Colors.orangeAccent)),
             ),
           ],
         ),
-      );
-    });
+      ),
+    );
   }
+
+  // void _checkAndShowMidnightPopup() {
+  //   WidgetsBinding.instance.addPostFrameCallback((_) {
+  //     showDialog(
+  //       context: context,
+  //       barrierDismissible: false,
+  //       builder: (context) => AlertDialog(
+  //         backgroundColor: const Color(0xFF1A1A2E),
+  //         shape: RoundedRectangleBorder(
+  //           borderRadius: BorderRadius.circular(16),
+  //           side: const BorderSide(color: Colors.redAccent, width: 2),
+  //         ),
+  //         title: const Row(
+  //           children: [
+  //             Icon(
+  //               Icons.notification_important_rounded,
+  //               color: Colors.redAccent,
+  //             ),
+  //             SizedBox(width: 12),
+  //             Expanded(
+  //               child: Text(
+  //                 'MIDNIGHT UPDATE',
+  //                 style: TextStyle(
+  //                   color: Colors.white,
+  //                   fontWeight: FontWeight.bold,
+  //                 ),
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //         content: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           crossAxisAlignment: CrossAxisAlignment.start,
+  //           children: [
+  //             const Text(
+  //               'Work Update Required for:',
+  //               style: TextStyle(color: Colors.white70, fontSize: 12),
+  //             ),
+  //             const Text(
+  //               'Street Client',
+  //               style: TextStyle(
+  //                 color: Colors.white,
+  //                 fontWeight: FontWeight.w900,
+  //                 fontSize: 18,
+  //               ),
+  //             ),
+  //             const SizedBox(height: 8),
+  //             const Text(
+  //               'Location: Musaffah M-27',
+  //               style: TextStyle(
+  //                 color: Colors.blueAccent,
+  //                 fontWeight: FontWeight.bold,
+  //                 fontSize: 14,
+  //               ),
+  //             ),
+  //             const SizedBox(height: 16),
+  //             const Text(
+  //               'Please update the status to clear this from your dashboard.',
+  //               style: TextStyle(color: Colors.white60, fontSize: 12),
+  //             ),
+  //           ],
+  //         ),
+  //         actions: [
+  //           TextButton(onPressed: () => Navigator.pop(context), child: const Text(
+  //             'Cancel',
+  //             style: TextStyle(
+  //               color: Colors.redAccent,
+  //               fontWeight: FontWeight.bold,
+  //             ),
+  //           ),),
+  //           const Spacer(),
+  //           TextButton(
+  //             onPressed: () {
+  //               Navigator.pop(context);
+  //               showModalBottomSheet(
+  //                 context: context,
+  //                 isScrollControlled: true,
+  //                 backgroundColor: Colors.transparent,
+  //                 builder: (_) => MidnightStatusModal(
+  //                   date: DateTime.now().subtract(const Duration(days: 1)),
+  //                   quotation: QuotationModel(
+  //                     id: 'mock_1',
+  //                     operatorId: 'mock_op',
+  //                     clientName: 'Street Client',
+  //                     siteLocation: 'Musaffah M-27',
+  //                     serviceType: '50 Ton Crane',
+  //                     totalAmount: 1000,
+  //                     balanceAmount: 1000,
+  //                     createdAt: DateTime.now(),
+  //                     updatedAt: DateTime.now(),
+  //                     workDate: DateTime.now(),
+  //                   ),
+  //                 ),
+  //               );
+  //             },
+  //             child: const Text(
+  //               'UPDATE NOW',
+  //               style: TextStyle(
+  //                 color: Colors.redAccent,
+  //                 fontWeight: FontWeight.bold,
+  //               ),
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     );
+  //   });
+  // }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _pulseController.dispose();
     super.dispose();
   }
@@ -235,70 +349,70 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
     );
   }
 
-  Widget _buildRecentQuoteTile(
-    BuildContext context,
-    String client,
-    String site,
-    String amount,
-    String date,
-  ) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 6,
-      color: Colors.black38,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.5)),
-      ),
-      child: ListTile(
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: Responsive.scale(context, 16).clamp(16.0, 24.0),
-          vertical: 8,
-        ),
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(Icons.precision_manufacturing, color: Color(0xFFFFB300)),
-        ),
-        title: Text(
-          client,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        subtitle: Text(
-          site,
-          style: Theme.of(
-            context,
-          ).textTheme.labelSmall?.copyWith(color: Colors.white70),
-        ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              amount,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.secondary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              date,
-              style: Theme.of(
-                context,
-              ).textTheme.labelSmall?.copyWith(color: Colors.white60),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // Widget _buildRecentQuoteTile(
+  //   BuildContext context,
+  //   String client,
+  //   String site,
+  //   String amount,
+  //   String date,
+  // ) {
+  //   return Card(
+  //     margin: const EdgeInsets.only(bottom: 12),
+  //     elevation: 6,
+  //     color: Colors.black38,
+  //     shape: RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.circular(12),
+  //       side: BorderSide(color: Colors.white.withValues(alpha: 0.5)),
+  //     ),
+  //     child: ListTile(
+  //       contentPadding: EdgeInsets.symmetric(
+  //         horizontal: Responsive.scale(context, 16).clamp(16.0, 24.0),
+  //         vertical: 8,
+  //       ),
+  //       leading: Container(
+  //         padding: const EdgeInsets.all(10),
+  //         decoration: BoxDecoration(
+  //           color: Colors.white.withValues(alpha: 0.1),
+  //           shape: BoxShape.circle,
+  //         ),
+  //         child: const Icon(Icons.precision_manufacturing, color: Color(0xFFFFB300)),
+  //       ),
+  //       title: Text(
+  //         client,
+  //         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+  //           fontWeight: FontWeight.bold,
+  //           color: Colors.white,
+  //         ),
+  //       ),
+  //       subtitle: Text(
+  //         site,
+  //         style: Theme.of(
+  //           context,
+  //         ).textTheme.labelSmall?.copyWith(color: Colors.white70),
+  //       ),
+  //       trailing: Column(
+  //         mainAxisAlignment: MainAxisAlignment.center,
+  //         crossAxisAlignment: CrossAxisAlignment.end,
+  //         children: [
+  //           Text(
+  //             amount,
+  //             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+  //               color: Theme.of(context).colorScheme.secondary,
+  //               fontWeight: FontWeight.bold,
+  //             ),
+  //           ),
+  //           const SizedBox(height: 4),
+  //           Text(
+  //             date,
+  //             style: Theme.of(
+  //               context,
+  //             ).textTheme.labelSmall?.copyWith(color: Colors.white60),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -307,277 +421,312 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
     final screenWidth = MediaQuery.of(context).size.width;
     final useSidebar = screenWidth > 900;
 
+    // TASK 2: High-reliability listener at top level of build
+    final userId = userAsync.asData?.value?.id;
+    if (userId != null && !widget.isViewer) {
+      ref.listen<AsyncValue<QuotationModel?>>(firstPendingQuotationProvider(userId), (previous, next) {
+        if (!_hasShownPendingAlert) {
+          next.when(
+            data: (quotation) {
+              if (quotation != null) {
+                _hasShownPendingAlert = true; 
+                debugPrint('DEBUG: Pending quotation found for forced modal (listen): ${quotation.clientName}');
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _showForcedResolutionDialog(quotation);
+                });
+              }
+            },
+            loading: () => debugPrint('DEBUG: Pending quotation stream loading for UID: $userId'),
+            error: (err, stack) => debugPrint('DEBUG: Pending quotation stream error: $err'),
+          );
+        }
+      });
+    }
+
     return PremiumScaffold(
       drawer: useSidebar ? null : CustomDrawer(activeRoute: 'Dashboard', isViewer: widget.isViewer),
-      floatingActionButton: widget.isViewer ? null : Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          FloatingActionButton.extended(
-            heroTag: 'direct_work',
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (_) => const DirectWorkModal(),
-              );
-            },
-            icon: const Icon(Icons.flash_on_rounded, size: 20),
-            label: const Text(
-              'Direct Work',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+      floatingActionButton: userAsync.when(
+        data: (user) {
+          if (user == null || widget.isViewer) return null;
+          final pendingQuoteAsync = ref.watch(firstPendingQuotationProvider(user.id));
+          final isBlocked = pendingQuoteAsync.asData?.value != null;
+
+          return IgnorePointer(
+            ignoring: isBlocked,
+            child: Opacity(
+              opacity: isBlocked ? 0.5 : 1.0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  FloatingActionButton.extended(
+                    heroTag: 'direct_work',
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (_) => const DirectWorkModal(),
+                      );
+                    },
+                    icon: const Icon(Icons.flash_on_rounded, size: 20, color: Colors.black),
+                    label: const Text(
+                      'Direct Work',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                    backgroundColor: isBlocked ? Colors.grey : Colors.amber,
+                    foregroundColor: Colors.black,
+                  ),
+                  const SizedBox(width: 12),
+                  FloatingActionButton.extended(
+                    heroTag: 'quotation',
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const AddQuotationPage()),
+                      );
+                    },
+                    icon: const Icon(Icons.add_box, size: 20, color: Colors.black),
+                    label: const Text(
+                      'Generate Quotation',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                    backgroundColor: isBlocked ? Colors.grey : Colors.amber,
+                    foregroundColor: Colors.black,
+                  ),
+                ],
+              ),
             ),
-            backgroundColor: Colors.amber,
-            foregroundColor: Colors.black,
-          ),
-          const SizedBox(width: 12),
-          FloatingActionButton.extended(
-            heroTag: 'quotation',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const AddQuotationPage()),
-              );
-            },
-            icon: const Icon(Icons.add_box, size: 20),
-            label: const Text(
-              'Generate Quotation',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-            ),
-            backgroundColor: Colors.amber,
-            foregroundColor: Colors.black,
-          ),
-        ],
+          );
+        },
+        loading: () => null,
+        error: (_, __) => null,
       ),
       body: userAsync.when(
         data: (user) {
           if (user == null) return const Center(child: Text('User session ended.'));
+          
           final statsAsync = ref.watch(operatorStatsProvider(user.id));
           final activityAsync = ref.watch(operatorRecentActivityProvider(user.id));
+          final pendingAsync = ref.watch(np.pendingWorkProvider(user.id));
 
-          return SafeArea(
-            child: Stack(
-              children: [
-                Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  decoration: const BoxDecoration(
-                    gradient: AppTheme.lavenderBlueGradient,
-                  ),
-                ),
-                // Persistence Header Logic for Pending Tasks
-                if (!widget.isViewer && _pendingCount > 0)
-                  _buildPendingBanner(context),
+          return pendingAsync.when(
+            data: (pendingItems) {
+              _currentPendingItems = pendingItems;
+              final hasPending = !widget.isViewer && pendingItems.isNotEmpty;
 
-                Padding(
-                  padding: EdgeInsets.only(top: _pendingCount > 0 ? 60 : 0),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isTablet = constraints.maxWidth > 600;
-                      return Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 1200),
-                          child: CustomScrollView(
-                            physics: const BouncingScrollPhysics(),
-                            slivers: [
-                              _buildDashboardAppBar(theme, user.fullName),
-                              
-                              // 4 Summary Cards Grid
-                              statsAsync.when(
-                                data: (stats) => _buildStatsGrid(context, stats, isTablet),
-                                loading: () => const SliverToBoxAdapter(
-                                  child: Center(child: CircularProgressIndicator(color: Colors.amber)),
-                                ),
-                                error: (err, _) => SliverToBoxAdapter(
-                                  child: Center(child: Text('Error loading stats: $err', style: const TextStyle(color: Colors.redAccent))),
-                                ),
-                              ),
+              if (hasPending) {
+                LocalNotificationService.scheduleMidnightCheck(pendingItems.first.clientName);
+                if (DateTime.now().hour >= 0 && DateTime.now().hour < 6) {
+                   LocalNotificationService.showHighPriorityAlert(pendingItems.first.clientName);
+                }
+              }
 
-                              if (!widget.isViewer && _pendingCount > 0)
-                                SliverToBoxAdapter(
-                                  child: Padding(
-                                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                                    child: FadeTransition(
-                                      opacity: Tween<double>(
-                                        begin: 0.4,
-                                        end: 1.0,
-                                      ).animate(_pulseController),
-                                      child: InkWell(
-                                        onTap: () {
-                                          showModalBottomSheet(
-                                            context: context,
-                                            isScrollControlled: true,
-                                            backgroundColor: Colors.transparent,
-                                            builder: (_) => MidnightStatusModal(
-                                              date: DateTime.now().subtract(
-                                                const Duration(days: 1),
-                                              ),
-                                              quotation: QuotationModel(
-                                                id: 'mock_1',
-                                                operatorId: 'mock_op',
-                                                clientName: 'Street Client',
-                                                siteLocation: 'Musaffah M-27',
-                                                serviceType: '50 Ton Crane',
-                                                totalAmount: 1000,
-                                                balanceAmount: 1000,
-                                                createdAt: DateTime.now(),
-                                                updatedAt: DateTime.now(),
-                                                workDate: DateTime.now(),
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                        child: Container(
-                                          padding: const EdgeInsets.all(16),
-                                          decoration: BoxDecoration(
-                                            color: Colors.redAccent.withValues(
-                                              alpha: 0.8,
-                                            ),
-                                            borderRadius: BorderRadius.circular(12),
-                                            border: Border.all(
-                                              color: Colors.blue,
-                                              width: 2,
-                                            ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.redAccent.withValues(
-                                                  alpha: 0.5,
-                                                ),
-                                                blurRadius: 10,
-                                                spreadRadius: 2,
-                                              ),
-                                            ],
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              const Icon(
-                                                Icons.warning_amber_rounded,
-                                                color: Colors.white,
-                                                size: 28,
-                                              ),
-                                              const SizedBox(width: 16),
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                                  children: [
-                                                    const Text(
-                                                      'Action Required',
-                                                      style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 15,
-                                                        letterSpacing: 1.1,
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      'Work Update Required for: Street Client',
-                                                      style: const TextStyle(
-                                                        color: Colors.white70,
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 13,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              const Icon(
-                                                Icons.arrow_forward_ios,
-                                                color: Colors.white,
-                                                size: 18,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
+              return SafeArea(
+                child: Stack(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      height: double.infinity,
+                      decoration: const BoxDecoration(
+                        gradient: AppTheme.lavenderBlueGradient,
+                      ),
+                    ),
+                    
+                    if (hasPending)
+                      Positioned(
+                        top: 0, left: 0, right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withValues(alpha: 0.9),
+                            boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 10)],
+                          ),
+                          child: SafeArea(
+                            bottom: false,
+                            child: Row(
+                              children: [
+                                const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 22),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '⚠️ PENDING: ${pendingItems.first.clientName} @ ${pendingItems.first.location} (${pendingItems.first.type.toUpperCase()})',
+                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 11),
                                       ),
-                                    ),
+                                      Text(
+                                        'Amount: AED ${pendingItems.first.totalPrice.toStringAsFixed(2)}',
+                                        style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold),
+                                      ),
+                                    ],
                                   ),
                                 ),
-
-                              // Recent Activity Section
-                              SliverPadding(
-                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                                sliver: SliverList(
-                                  delegate: SliverChildListDelegate([
-                                    Text(
-                                      'Recent Activity',
-                                      style: theme.textTheme.displayLarge?.copyWith(
-                                        fontSize: 20,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    activityAsync.when(
-                                      data: (activities) {
-                                        if (activities.isEmpty) {
-                                          return const Center(child: Text('No recent jobs found.', style: TextStyle(color: Colors.white38)));
-                                        }
-                                        return Column(
-                                          children: activities.map((act) => _buildLiveActivityTile(context, act)).toList(),
-                                        );
-                                      },
-                                      loading: () => const Center(child: CircularProgressIndicator(color: Colors.amber)),
-                                      error: (err, _) => Center(child: Text('Error loading activities', style: const TextStyle(color: Colors.redAccent))),
-                                    ),
-                                  ]),
+                                const SizedBox(width: 8),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (_) => const PendingTasksPage()),
+                                    );
+                                  },
+                                  style: TextButton.styleFrom(
+                                    backgroundColor: Colors.black26,
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  ),
+                                  child: const Text(
+                                    'MANAGE',
+                                    style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                  ),
                                 ),
-                              ),
-                              const SliverToBoxAdapter(child: SizedBox(height: 100)),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
-                      );
-                    },
+                      ),
+
+                    Padding(
+                      padding: EdgeInsets.only(top: hasPending ? 50 : 0),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final isTablet = constraints.maxWidth > 600;
+                          return Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 1200),
+                              child: CustomScrollView(
+                                physics: const BouncingScrollPhysics(),
+                                slivers: [
+                                  _buildDashboardAppBar(theme, user.fullName),
+                                  
+                                  statsAsync.when(
+                                    data: (stats) => _buildStatsGrid(context, stats, isTablet),
+                                    loading: () => const SliverToBoxAdapter(
+                                      child: Center(child: CircularProgressIndicator(color: Colors.amber)),
+                                    ),
+                                    error: (err, _) => SliverToBoxAdapter(
+                                      child: Center(child: Text('Error loading stats: $err', style: const TextStyle(color: Colors.redAccent))),
+                                    ),
+                                  ),
+
+                                  SliverPadding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                    sliver: SliverList(
+                                      delegate: SliverChildListDelegate([
+                                        Text(
+                                          'Recent Activity',
+                                          style: theme.textTheme.displayLarge?.copyWith(fontSize: 20, color: Colors.white),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        activityAsync.when(
+                                          data: (activities) {
+                                            if (activities.isEmpty) {
+                                              return const Center(child: Text('No recent jobs found.', style: TextStyle(color: Colors.white38)));
+                                            }
+                                            return Column(
+                                              children: activities.map((act) => _buildLiveActivityTile(context, act)).toList(),
+                                            );
+                                          },
+                                          loading: () => const Center(child: CircularProgressIndicator(color: Colors.amber)),
+                                          error: (err, _) => Center(child: Text('Error loading activities', style: const TextStyle(color: Colors.redAccent))),
+                                        ),
+                                      ]),
+                                    ),
+                                  ),
+                                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+
+                    if (hasPending)
+                      Positioned(
+                        bottom: 100,
+                        right: 20,
+                        child: FadeTransition(
+                          opacity: Tween<double>(begin: 0.6, end: 1.0).animate(_pulseController),
+                          child: FloatingActionButton.extended(
+                            onPressed: () => _checkAndShowPendingPopup(),
+                            backgroundColor: Colors.redAccent,
+                            icon: const Icon(Icons.assignment_late, color: Colors.white),
+                            label: Text(
+                              '${pendingItems.length} PENDING',
+                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator(color: Colors.white)),
+            error: (err, stack) {
+              // TASK 3: Print firestore error to identify missing indices
+              debugPrint('Firestore Pending Stream Error: $err');
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    'Error loading pending work: $err', 
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    textAlign: TextAlign.center,
                   ),
                 ),
-              ],
-            ),
+              );
+            },
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('Auth error: $err')),
+        error: (err, stack) {
+          debugPrint('Auth Stream Error: $err');
+          return Center(child: Text('Auth error: $err', style: const TextStyle(color: Colors.white)));
+        },
       ),
     );
   }
 
-  Widget _buildPendingBanner(BuildContext context) {
-    return Positioned(
-      top: 0,
-      left: 0,
-      right: 0,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.red.withValues(alpha: 0.8),
-          boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 10, offset: Offset(0, 2))],
-        ),
-        child: SafeArea(
-          bottom: false,
-          child: Row(
-            children: [
-              const Icon(Icons.warning_rounded, color: Colors.white, size: 25),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Text(
-                  'Pending Mid-Night Updates. Please update status now!',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {}, // Trigger modal
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black.withValues(alpha: 0.2),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  elevation: 0,
-                ),
-                child: const Text('Update Now', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  // Widget _buildPendingBanner(BuildContext context) {
+  //   return Positioned(
+  //     top: 0,
+  //     left: 0,
+  //     right: 0,
+  //     child: Container(
+  //       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+  //       decoration: BoxDecoration(
+  //         color: Colors.red.withValues(alpha: 0.8),
+  //         boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 10, offset: Offset(0, 2))],
+  //       ),
+  //       child: SafeArea(
+  //         bottom: false,
+  //         child: Row(
+  //           children: [
+  //             const Icon(Icons.warning_rounded, color: Colors.white, size: 25),
+  //             const SizedBox(width: 12),
+  //             const Expanded(
+  //               child: Text(
+  //                 'Pending Mid-Night Updates. Please update status now!',
+  //                 style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+  //               ),
+  //             ),
+  //             ElevatedButton(
+  //               onPressed: () {}, // Trigger modal
+  //               style: ElevatedButton.styleFrom(
+  //                 backgroundColor: Colors.black.withValues(alpha: 0.2),
+  //                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+  //                 elevation: 0,
+  //               ),
+  //               child: const Text('Update Now', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildDashboardAppBar(ThemeData theme, String? name) {
     return SliverAppBar(
@@ -618,7 +767,7 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
         ),
         delegate: SliverChildListDelegate([
           _buildSummaryCard(context, 'Total Quotes', '${stats.totalQuotes}', Icons.request_quote, Colors.blue),
-          _buildSummaryCard(context, 'Active Jobs', '${stats.activeJobs}', Icons.engineering, Colors.orange),
+          _buildSummaryCard(context, 'Pending Jobs', '${stats.pendingJob}', Icons.engineering, Colors.orange, const PendingTasksPage()),
           _buildSummaryCard(context, 'Maintenance', '${stats.maintenanceCount}', Icons.build, Colors.redAccent, const MaintenanceHistoryPage()),
           _buildSummaryCard(context, 'Earnings', 'AED ${stats.totalEarnings.toStringAsFixed(0)}', Icons.monetization_on, Colors.green, const EarningsReportPage()),
         ]),

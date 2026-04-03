@@ -99,7 +99,7 @@ class _ExpenseAnalysisPageState extends State<ExpenseAnalysisPage> {
             if (selected) setState(() => _selectedFilter = filter);
           },
           selectedColor: theme.colorScheme.secondary,
-          backgroundColor: Colors.white.withOpacity(0.05),
+          backgroundColor: Colors.white.withValues(alpha: 0.05),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
             side: BorderSide(
@@ -153,10 +153,10 @@ class _ExpenseAnalysisPageState extends State<ExpenseAnalysisPage> {
 
     return Card(
       elevation: 0,
-      color: Colors.white.withOpacity(0.05),
+      color: Colors.white.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.white.withOpacity(0.05)),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -189,10 +189,10 @@ class _ExpenseAnalysisPageState extends State<ExpenseAnalysisPage> {
   Widget _buildTrendLineCard(ThemeData theme, bool isTablet, double screenHeight) {
     return Card(
       elevation: 0,
-      color: Colors.white.withOpacity(0.05),
+      color: Colors.white.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.white.withOpacity(0.05)),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -244,8 +244,8 @@ class _ExpenseAnalysisPageState extends State<ExpenseAnalysisPage> {
                         show: true,
                         gradient: LinearGradient(
                           colors: [
-                            theme.colorScheme.primary.withOpacity(0.3),
-                            theme.colorScheme.primary.withOpacity(0.0),
+                            theme.colorScheme.primary.withValues(alpha: 0.3),
+                            theme.colorScheme.primary.withValues(alpha: 0.0),
                           ],
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
@@ -290,7 +290,7 @@ class _ExpenseAnalysisPageState extends State<ExpenseAnalysisPage> {
               child: LinearProgressIndicator(
                 value: percentage,
                 minHeight: 8,
-                backgroundColor: Colors.white.withOpacity(0.1),
+                backgroundColor: Colors.white.withValues(alpha: 0.1),
                 color: _categoryColors[cat],
               ),
             ),
@@ -323,3 +323,4 @@ class _ExpenseAnalysisPageState extends State<ExpenseAnalysisPage> {
     );
   }
 }
+

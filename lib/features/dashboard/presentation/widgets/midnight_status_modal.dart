@@ -52,7 +52,7 @@ class _MidnightStatusModalState extends State<MidnightStatusModal> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -154,7 +154,7 @@ class _MidnightStatusModalState extends State<MidnightStatusModal> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: isActive ? Colors.amber.withOpacity(0.2) : Colors.white.withOpacity(0.05),
+          color: isActive ? Colors.amber.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: isActive ? Colors.amber : Colors.white12),
         ),
@@ -191,3 +191,4 @@ class _MidnightStatusModalState extends State<MidnightStatusModal> {
     );
   }
 }
+

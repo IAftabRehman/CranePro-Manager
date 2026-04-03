@@ -45,6 +45,19 @@ class WorkRepository {
               .toList();
         });
   }
+
+  /// NEW: Update the status of a specific work order document.
+  Future<void> updateWorkOrderStatus(String docId, String status) async {
+    try {
+      await _firestore.collection('work_orders').doc(docId).update({
+        'status': status,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e, stack) {
+      FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Failed to update work order status');
+      rethrow;
+    }
+  }
 }
 
 final workRepositoryProvider = Provider((ref) => WorkRepository());

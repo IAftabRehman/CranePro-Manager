@@ -77,7 +77,7 @@ class _AdminBackupPageState extends State<AdminBackupPage> {
       builder: (context) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: AlertDialog(
-          backgroundColor: Colors.white.withOpacity(0.9),
+          backgroundColor: Colors.white.withValues(alpha: 0.9),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: const Row(
             children: [
@@ -109,7 +109,7 @@ class _AdminBackupPageState extends State<AdminBackupPage> {
                   context: context,
                   barrierDismissible: false,
                   builder: (context) => AlertDialog(
-                    backgroundColor: Colors.white.withOpacity(0.9),
+                    backgroundColor: Colors.white.withValues(alpha: 0.9),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                     content: const Column(
                       mainAxisSize: MainAxisSize.min,
@@ -183,13 +183,13 @@ class _AdminBackupPageState extends State<AdminBackupPage> {
                     padding: const EdgeInsets.all(20.0),
                     child: Text(
                       'No backup history found.',
-                      style: TextStyle(color: AppTheme.deepNavyBlue.withOpacity(0.5)),
+                      style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.5)),
                     ),
                   ),
                 ),
               const SizedBox(height: 20),
               if (_isBackingUp) ...[
-                Text('GENERATING SNAPSHOT...', style: TextStyle(color: AppTheme.deepNavyBlue.withOpacity(0.6), fontWeight: FontWeight.w900, fontSize: 13)),
+                Text('GENERATING SNAPSHOT...', style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.6), fontWeight: FontWeight.w900, fontSize: 13)),
                 const SizedBox(height: 16),
                 _buildProgressBar(),
               ] else ...[
@@ -203,7 +203,7 @@ class _AdminBackupPageState extends State<AdminBackupPage> {
                   ElevatedButton(
                     onPressed: () => _showRestoreWarning(currentStatus),
                     style: OutlinedButton.styleFrom(
-                      backgroundColor: Colors.black.withOpacity(0.5),
+                      backgroundColor: Colors.black.withValues(alpha: 0.5),
                       side: const BorderSide(color: Colors.red, width: 2),
                       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -232,12 +232,12 @@ class _AdminBackupPageState extends State<AdminBackupPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.25),
+        color: Colors.white.withValues(alpha: 0.25),
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: Colors.white.withOpacity(0.4)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 20,
             offset: const Offset(5, 20),
           ),
@@ -273,7 +273,7 @@ class _AdminBackupPageState extends State<AdminBackupPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: AppTheme.deepNavyBlue.withOpacity(0.8), fontSize: 13, fontWeight: FontWeight.w900)),
+          Text(label, style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.8), fontSize: 13, fontWeight: FontWeight.w900)),
           Text(value, style: const TextStyle(color: AppTheme.deepNavyBlue, fontSize: 16, fontWeight: FontWeight.w900)),
         ],
       ),
@@ -286,9 +286,10 @@ class _AdminBackupPageState extends State<AdminBackupPage> {
       child: LinearProgressIndicator(
         value: _progress,
         minHeight: 12,
-        backgroundColor: Colors.white.withOpacity(0.2),
+        backgroundColor: Colors.white.withValues(alpha: 0.2),
         valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.deepNavyBlue),
       ),
     );
   }
 }
+

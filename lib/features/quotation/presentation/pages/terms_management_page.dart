@@ -61,7 +61,7 @@ class _TermsManagementPageState extends State<TermsManagementPage> {
             width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.08),
+              color: Colors.white.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(10)
             ),
             child: Column(
@@ -96,7 +96,7 @@ class _TermsManagementPageState extends State<TermsManagementPage> {
                   children: [
                     CircleAvatar(
                       radius: 15,
-                      backgroundColor: Colors.white.withOpacity(0.1),
+                      backgroundColor: Colors.white.withValues(alpha: 0.1),
                       child: Text(
                         '${index + 1}',
                         style: const TextStyle(
@@ -175,3 +175,4 @@ class _TermsManagementPageState extends State<TermsManagementPage> {
     );
   }
 }
+

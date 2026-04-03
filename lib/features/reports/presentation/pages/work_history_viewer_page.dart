@@ -236,7 +236,7 @@ class _WorkHistoryViewerPageState extends State<WorkHistoryViewerPage> {
                               Text(
                                 location,
                                 style: TextStyle(
-                                  color: AppTheme.deepNavyBlue.withOpacity(0.7),
+                                  color: AppTheme.deepNavyBlue.withValues(alpha: 0.7),
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -301,3 +301,4 @@ class _WorkHistoryViewerPageState extends State<WorkHistoryViewerPage> {
     );
   }
 }
+

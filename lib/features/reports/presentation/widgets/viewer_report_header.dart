@@ -30,9 +30,9 @@ class ViewerReportHeader extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white.withOpacity(0.2)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -67,9 +67,9 @@ class ViewerReportHeader extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.deepNavyBlue.withOpacity(0.2)),
+              border: Border.all(color: AppTheme.deepNavyBlue.withValues(alpha: 0.2)),
             ),
             child: Row(
               children: [
@@ -102,3 +102,4 @@ class ViewerReportHeader extends StatelessWidget {
     );
   }
 }
+

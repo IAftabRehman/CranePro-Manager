@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:intl/intl.dart';
 import '../models/expense_model.dart';
 import 'dart:developer';
 
@@ -25,7 +26,7 @@ class OperatorStats {
   final double totalExpenses;
   final double netBalance;
   final int totalQuotes;
-  final int activeJobs;
+  final int pendingJob;
   final int maintenanceCount;
 
   OperatorStats({
@@ -33,9 +34,37 @@ class OperatorStats {
     required this.totalExpenses,
     required this.netBalance,
     this.totalQuotes = 0,
-    this.activeJobs = 0,
+    this.pendingJob = 0,
     this.maintenanceCount = 0,
   });
+}
+
+class OperatorEarningsReport {
+  final double quotationIncome;
+  final double directWorkIncome;
+  final double maintenanceExpenses;
+  final double fuelExpenses;
+  final double totalExpenses;
+  final double partnerCommission;
+  final double netProfit;
+  final List<ChartDataPoint> weeklyGrowth;
+
+  OperatorEarningsReport({
+    required this.quotationIncome,
+    required this.directWorkIncome,
+    required this.maintenanceExpenses,
+    required this.fuelExpenses,
+    required this.totalExpenses,
+    required this.partnerCommission,
+    required this.netProfit,
+    required this.weeklyGrowth,
+  });
+}
+
+class ChartDataPoint {
+  final DateTime date;
+  final double amount;
+  ChartDataPoint(this.date, this.amount);
 }
 
 class FinanceRepository {
@@ -188,7 +217,7 @@ class FinanceRepository {
       (revenueSnap, expenseSnap) {
         double revenue = 0.0;
         double expenses = 0.0;
-        int activeJobs = 0;
+        int pendingJob = 0;
         int maintenanceCount = 0;
 
         for (var doc in revenueSnap.docs) {
@@ -197,7 +226,7 @@ class FinanceRepository {
           
           final status = (data['status'] ?? 'pending').toString().toLowerCase();
           if (status == 'pending' || status == 'in progress') {
-            activeJobs++;
+            pendingJob++;
           }
         }
 
@@ -216,7 +245,7 @@ class FinanceRepository {
           totalExpenses: expenses,
           netBalance: revenue - expenses,
           totalQuotes: revenueSnap.docs.length,
-          activeJobs: activeJobs,
+          pendingJob: pendingJob,
           maintenanceCount: maintenanceCount,
         );
       },
@@ -305,6 +334,110 @@ class FinanceRepository {
             .map((doc) => ExpenseModel.fromMap(doc.data(), docId: doc.id))
             .toList());
   }
+
+  /// NEW: Stream specifically for the Earnings & Analytics Page.
+  /// Combines all financial factors filtered by operator and date range.
+  Stream<OperatorEarningsReport> getOperatorDetailedReport(String uid, DateTime start, DateTime end) {
+    final quoteStream = _firestore
+        .collection('quotations')
+        .where('operatorId', isEqualTo: uid)
+        .where('status', isEqualTo: 'completed')
+        .snapshots();
+
+    final workStream = _firestore
+        .collection('work_orders')
+        .where('operatorId', isEqualTo: uid)
+        .where('status', isEqualTo: 'completed')
+        .snapshots();
+
+    final expenseStream = _firestore
+        .collection('expenses')
+        .where('operatorId', isEqualTo: uid)
+        .snapshots();
+
+    return Rx.combineLatest3<QuerySnapshot, QuerySnapshot, QuerySnapshot, OperatorEarningsReport>(
+      quoteStream,
+      workStream,
+      expenseStream,
+      (quoteSnap, workSnap, expenseSnap) {
+        double quoteIncome = 0.0;
+        double workIncome = 0.0;
+        double maintenance = 0.0;
+        double fuel = 0.0;
+        double otherExpenses = 0.0;
+        
+        // Grouping for weekly chart (last 7 days of growth)
+        final Map<String, double> dayTotals = {};
+
+        // 1. Process Quotations
+        for (var doc in quoteSnap.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+          final amount = (data['totalAmount'] as num?)?.toDouble() ?? 0.0;
+          final date = (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now();
+          
+          if (date.isAfter(start) && date.isBefore(end)) {
+            quoteIncome += amount;
+            final key = DateFormat('yyyy-MM-dd').format(date);
+            dayTotals[key] = (dayTotals[key] ?? 0.0) + amount;
+          }
+        }
+
+        // 2. Process Work Orders
+        for (var doc in workSnap.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+          final amount = (data['totalPrice'] as num?)?.toDouble() ?? 0.0;
+          final date = (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now();
+          
+          if (date.isAfter(start) && date.isBefore(end)) {
+            workIncome += amount;
+            final key = DateFormat('yyyy-MM-dd').format(date);
+            dayTotals[key] = (dayTotals[key] ?? 0.0) + amount;
+          }
+        }
+
+        // 3. Process Expenses
+        for (var doc in expenseSnap.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+          final amount = (data['amount'] as num?)?.toDouble() ?? 0.0;
+          final date = (data['date'] as Timestamp?)?.toDate() ?? DateTime.now();
+          final category = (data['category'] ?? '').toString();
+
+          if (date.isAfter(start) && date.isBefore(end)) {
+            if (category == 'Maintenance') {
+              maintenance += amount;
+            } else if (category == 'Fuel') {
+              fuel += amount;
+            } else {
+              otherExpenses += amount;
+            }
+          }
+        }
+
+        final totalIncome = quoteIncome + workIncome;
+        final commission = totalIncome * 0.15; // 15% Partner Commission by default
+        final totalExp = maintenance + fuel + otherExpenses + commission;
+
+        // Build 7-day chart data
+        final List<ChartDataPoint> growthPoints = [];
+        for (int i = 6; i >= 0; i--) {
+          final d = DateTime.now().subtract(Duration(days: i));
+          final key = DateFormat('yyyy-MM-dd').format(d);
+          growthPoints.add(ChartDataPoint(d, dayTotals[key] ?? 0.0));
+        }
+
+        return OperatorEarningsReport(
+          quotationIncome: quoteIncome,
+          directWorkIncome: workIncome,
+          maintenanceExpenses: maintenance,
+          fuelExpenses: fuel,
+          totalExpenses: totalExp,
+          partnerCommission: commission,
+          netProfit: totalIncome - totalExp,
+          weeklyGrowth: growthPoints,
+        );
+      },
+    );
+  }
 }
 
 final financeRepositoryProvider = Provider((ref) => FinanceRepository());
@@ -323,4 +456,8 @@ final operatorStatsProvider = StreamProvider.family<OperatorStats, String>((ref,
 
 final operatorRecentActivityProvider = StreamProvider.family<List<dynamic>, String>((ref, uid) {
   return ref.watch(financeRepositoryProvider).getOperatorRecentActivity(uid);
+});
+
+final operatorDetailedReportProvider = StreamProvider.family<OperatorEarningsReport, ({String uid, DateTime start, DateTime end})>((ref, arg) {
+  return ref.watch(financeRepositoryProvider).getOperatorDetailedReport(arg.uid, arg.start, arg.end);
 });

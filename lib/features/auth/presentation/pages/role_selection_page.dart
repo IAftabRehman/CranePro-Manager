@@ -208,7 +208,7 @@ class _RoleCard3DState extends State<RoleCard3D> {
             boxShadow: _isPressed 
               ? [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
+                    color: Colors.black.withValues(alpha: 0.2),
                     offset: const Offset(0, 4),
                     blurRadius: 10,
                   ),
@@ -216,20 +216,20 @@ class _RoleCard3DState extends State<RoleCard3D> {
               : [
                   // Bottom Shadow (Deep)
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
+                    color: Colors.black.withValues(alpha: 0.3),
                     offset: const Offset(0, 15),
                     blurRadius: 20,
                     spreadRadius: 2,
                   ),
                   // Side Shadow (Soft)
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     offset: const Offset(10, 5),
                     blurRadius: 15,
                   ),
                   // Highlighting Effect (Inner white glow simulation)
                   BoxShadow(
-                    color: Colors.white.withOpacity(0.4),
+                    color: Colors.white.withValues(alpha: 0.4),
                     offset: const Offset(-2, -2),
                     blurRadius: 5,
                   ),
@@ -242,10 +242,10 @@ class _RoleCard3DState extends State<RoleCard3D> {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withValues(alpha: 0.3),
                     width: 1.5,
                   ),
                 ),
@@ -256,11 +256,11 @@ class _RoleCard3DState extends State<RoleCard3D> {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha: 0.1),
                             offset: const Offset(0, 4),
                             blurRadius: 8,
                           ),
@@ -287,7 +287,7 @@ class _RoleCard3DState extends State<RoleCard3D> {
                     Text(
                       widget.subtitle,
                       style: TextStyle(
-                        color: AppTheme.deepNavyBlue.withOpacity(0.7),
+                        color: AppTheme.deepNavyBlue.withValues(alpha: 0.7),
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -303,3 +303,4 @@ class _RoleCard3DState extends State<RoleCard3D> {
     );
   }
 }
+

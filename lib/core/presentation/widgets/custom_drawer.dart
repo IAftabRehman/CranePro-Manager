@@ -10,9 +10,7 @@ import 'package:extend_crane_services/core/themes/app_theme.dart';
 import 'package:extend_crane_services/features/dashboard/presentation/pages/main_dashboard.dart';
 import 'package:extend_crane_services/features/maintenance/presentation/pages/maintenance_history_page.dart';
 import 'package:extend_crane_services/features/reports/presentation/pages/earnings_report_page.dart';
-
 import '../../../features/dashboard/presentation/pages/viewer_dashboard.dart';
-import '../../../features/operations/presentation/widgets/direct_work_modal.dart';
 
 class CustomDrawer extends StatelessWidget {
   final String activeRoute;

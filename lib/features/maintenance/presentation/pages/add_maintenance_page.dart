@@ -114,7 +114,6 @@ class _AddMaintenancePageState extends ConsumerState<AddMaintenancePage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final userAsync = ref.watch(currentUserProvider);
 
     return PremiumScaffold(
@@ -146,9 +145,9 @@ class _AddMaintenancePageState extends ConsumerState<AddMaintenancePage> {
                   child: Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.amber.withOpacity(0.1),
+                      color: Colors.amber.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.amber.withOpacity(0.1)),
+                      border: Border.all(color: Colors.amber.withValues(alpha: 0.1)),
                     ),
                     child: const Icon(Icons.build_circle_rounded, color: Colors.amber, size: 50),
                   ),
@@ -166,7 +165,7 @@ class _AddMaintenancePageState extends ConsumerState<AddMaintenancePage> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withValues(alpha: 0.1),
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(12),
                           bottomLeft: Radius.circular(12),
@@ -249,3 +248,4 @@ class _AddMaintenancePageState extends ConsumerState<AddMaintenancePage> {
     );
   }
 }
+
