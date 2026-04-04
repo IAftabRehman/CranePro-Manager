@@ -349,70 +349,6 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
     );
   }
 
-  // Widget _buildRecentQuoteTile(
-  //   BuildContext context,
-  //   String client,
-  //   String site,
-  //   String amount,
-  //   String date,
-  // ) {
-  //   return Card(
-  //     margin: const EdgeInsets.only(bottom: 12),
-  //     elevation: 6,
-  //     color: Colors.black38,
-  //     shape: RoundedRectangleBorder(
-  //       borderRadius: BorderRadius.circular(12),
-  //       side: BorderSide(color: Colors.white.withValues(alpha: 0.5)),
-  //     ),
-  //     child: ListTile(
-  //       contentPadding: EdgeInsets.symmetric(
-  //         horizontal: Responsive.scale(context, 16).clamp(16.0, 24.0),
-  //         vertical: 8,
-  //       ),
-  //       leading: Container(
-  //         padding: const EdgeInsets.all(10),
-  //         decoration: BoxDecoration(
-  //           color: Colors.white.withValues(alpha: 0.1),
-  //           shape: BoxShape.circle,
-  //         ),
-  //         child: const Icon(Icons.precision_manufacturing, color: Color(0xFFFFB300)),
-  //       ),
-  //       title: Text(
-  //         client,
-  //         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-  //           fontWeight: FontWeight.bold,
-  //           color: Colors.white,
-  //         ),
-  //       ),
-  //       subtitle: Text(
-  //         site,
-  //         style: Theme.of(
-  //           context,
-  //         ).textTheme.labelSmall?.copyWith(color: Colors.white70),
-  //       ),
-  //       trailing: Column(
-  //         mainAxisAlignment: MainAxisAlignment.center,
-  //         crossAxisAlignment: CrossAxisAlignment.end,
-  //         children: [
-  //           Text(
-  //             amount,
-  //             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-  //               color: Theme.of(context).colorScheme.secondary,
-  //               fontWeight: FontWeight.bold,
-  //             ),
-  //           ),
-  //           const SizedBox(height: 4),
-  //           Text(
-  //             date,
-  //             style: Theme.of(
-  //               context,
-  //             ).textTheme.labelSmall?.copyWith(color: Colors.white60),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -429,7 +365,7 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
           next.when(
             data: (quotation) {
               if (quotation != null) {
-                _hasShownPendingAlert = true; 
+                _hasShownPendingAlert = true;
                 debugPrint('DEBUG: Pending quotation found for forced modal (listen): ${quotation.clientName}');
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   _showForcedResolutionDialog(quotation);
@@ -448,63 +384,54 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
       floatingActionButton: userAsync.when(
         data: (user) {
           if (user == null || widget.isViewer) return null;
-          final pendingQuoteAsync = ref.watch(firstPendingQuotationProvider(user.id));
-          final isBlocked = pendingQuoteAsync.asData?.value != null;
-
           return IgnorePointer(
-            ignoring: isBlocked,
-            child: Opacity(
-              opacity: isBlocked ? 0.5 : 1.0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  FloatingActionButton.extended(
-                    heroTag: 'direct_work',
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (_) => const DirectWorkModal(),
-                      );
-                    },
-                    icon: const Icon(Icons.flash_on_rounded, size: 20, color: Colors.black),
-                    label: const Text(
-                      'Direct Work',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
-                    backgroundColor: isBlocked ? Colors.grey : Colors.amber,
-                    foregroundColor: Colors.black,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                FloatingActionButton.extended(
+                  heroTag: 'direct_work',
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (_) => const DirectWorkModal(),
+                    );
+                  },
+                  icon: const Icon(Icons.flash_on_rounded, size: 20, color: Colors.black),
+                  label: const Text(
+                    'Direct Work',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(width: 12),
-                  FloatingActionButton.extended(
-                    heroTag: 'quotation',
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const AddQuotationPage()),
-                      );
-                    },
-                    icon: const Icon(Icons.add_box, size: 20, color: Colors.black),
-                    label: const Text(
-                      'Generate Quotation',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
-                    backgroundColor: isBlocked ? Colors.grey : Colors.amber,
-                    foregroundColor: Colors.black,
+                  backgroundColor: Colors.amber,
+                  foregroundColor: Colors.black,
+                ),
+                FloatingActionButton.extended(
+                  heroTag: 'quotation',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const AddQuotationPage()),
+                    );
+                  },
+                  icon: const Icon(Icons.add_box, size: 20, color: Colors.black),
+                  label: const Text(
+                    'Generate Quotation',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                   ),
-                ],
-              ),
+                  backgroundColor: Colors.amber,
+                  foregroundColor: Colors.black,
+                ),
+              ],
             ),
           );
         },
         loading: () => null,
-        error: (_, __) => null,
+        error: (_, _) => null,
       ),
       body: userAsync.when(
         data: (user) {
           if (user == null) return const Center(child: Text('User session ended.'));
-          
           final statsAsync = ref.watch(operatorStatsProvider(user.id));
           final activityAsync = ref.watch(operatorRecentActivityProvider(user.id));
           final pendingAsync = ref.watch(np.pendingWorkProvider(user.id));
@@ -531,7 +458,7 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
                         gradient: AppTheme.lavenderBlueGradient,
                       ),
                     ),
-                    
+
                     if (hasPending)
                       Positioned(
                         top: 0, left: 0, right: 0,
@@ -598,7 +525,7 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
                                 physics: const BouncingScrollPhysics(),
                                 slivers: [
                                   _buildDashboardAppBar(theme, user.fullName),
-                                  
+
                                   statsAsync.when(
                                     data: (stats) => _buildStatsGrid(context, stats, isTablet),
                                     loading: () => const SliverToBoxAdapter(
@@ -608,11 +535,27 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
                                       child: Center(child: Text('Error loading stats: $err', style: const TextStyle(color: Colors.redAccent))),
                                     ),
                                   ),
-
                                   SliverPadding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
                                     sliver: SliverList(
                                       delegate: SliverChildListDelegate([
+                                        if (hasPending)
+                                          FadeTransition(
+                                            opacity: Tween<double>(begin: 0.6, end: 1.0).animate(_pulseController),
+                                            child: FloatingActionButton.extended(
+                                              onPressed: () {
+                                                Navigator.push(context, MaterialPageRoute(builder: (context) => PendingTasksPage()));
+                                              },
+                                              backgroundColor: Colors.redAccent,
+                                              icon: const Icon(Icons.assignment_late, color: Colors.white),
+                                              label: Text(
+                                                '${pendingItems.length} PENDING',
+                                                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                                              ),
+                                            ),
+                                          ),
+
+                                        const SizedBox(height: 10),
                                         Text(
                                           'Recent Activity',
                                           style: theme.textTheme.displayLarge?.copyWith(fontSize: 20, color: Colors.white),
@@ -643,19 +586,17 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
                     ),
 
                     if (hasPending)
-                      Positioned(
-                        bottom: 100,
-                        right: 20,
-                        child: FadeTransition(
-                          opacity: Tween<double>(begin: 0.6, end: 1.0).animate(_pulseController),
-                          child: FloatingActionButton.extended(
-                            onPressed: () => _checkAndShowPendingPopup(),
-                            backgroundColor: Colors.redAccent,
-                            icon: const Icon(Icons.assignment_late, color: Colors.white),
-                            label: Text(
-                              '${pendingItems.length} PENDING',
-                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-                            ),
+                      FadeTransition(
+                        opacity: Tween<double>(begin: 0.6, end: 1.0).animate(_pulseController),
+                        child: FloatingActionButton.extended(
+                          onPressed: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => PendingTasksPage()));
+                          },
+                          backgroundColor: Colors.redAccent,
+                          icon: const Icon(Icons.assignment_late, color: Colors.white),
+                          label: Text(
+                            '${pendingItems.length} PENDING',
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                         ),
                       ),
@@ -671,7 +612,7 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
                 child: Padding(
                   padding: const EdgeInsets.all(24),
                   child: Text(
-                    'Error loading pending work: $err', 
+                    'Error loading pending work: $err',
                     style: const TextStyle(color: Colors.white, fontSize: 12),
                     textAlign: TextAlign.center,
                   ),
@@ -713,7 +654,7 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
   //               ),
   //             ),
   //             ElevatedButton(
-  //               onPressed: () {}, // Trigger modal
+  //               onPressed: () {},
   //               style: ElevatedButton.styleFrom(
   //                 backgroundColor: Colors.black.withValues(alpha: 0.2),
   //                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -808,7 +749,7 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
           style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14),
         ),
         subtitle: Text(
-          dateStr,
+          dateStr.toString(),
           style: const TextStyle(color: Colors.white70, fontSize: 11),
         ),
         trailing: Text(

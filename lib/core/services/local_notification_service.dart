@@ -1,7 +1,9 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
+import 'dart:developer' as dev;
 
 class LocalNotificationService {
   static final FlutterLocalNotificationsPlugin _notificationsPlugin =
@@ -72,23 +74,38 @@ class LocalNotificationService {
     // Schedule for 0:01 AM
     final scheduledTime = DateTime(now.year, now.month, now.day + 1, 0, 1);
 
-    await _notificationsPlugin.zonedSchedule(
-      100, // Fixed ID for daily reminder
-      'Midnight Work Check',
-      'Late Night Alert: You still have pending work for $clientName!',
-      tz.TZDateTime.from(scheduledTime, tz.local),
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'midnight_channel',
-          'Midnight Reminders',
-          importance: Importance.max,
-          priority: Priority.high,
+    try {
+      // Android 12+ Safety Check for Exact Alarms
+      AndroidScheduleMode scheduleMode = AndroidScheduleMode.exactAllowWhileIdle;
+      
+      if (Platform.isAndroid) {
+        final status = await Permission.scheduleExactAlarm.status;
+        if (!status.isGranted) {
+          dev.log('Exact Alarm permission not granted. Falling back to inexact scheduling.', name: 'NotificationService');
+          scheduleMode = AndroidScheduleMode.inexactAllowWhileIdle;
+        }
+      }
+
+      await _notificationsPlugin.zonedSchedule(
+        100, // Fixed ID for daily reminder
+        'Midnight Work Check',
+        'Late Night Alert: You still have pending work for $clientName!',
+        tz.TZDateTime.from(scheduledTime, tz.local),
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'midnight_channel',
+            'Midnight Reminders',
+            importance: Importance.max,
+            priority: Priority.high,
+          ),
         ),
-      ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
-    );
+        androidScheduleMode: scheduleMode,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: DateTimeComponents.time,
+      );
+    } catch (e, stack) {
+      dev.log('Error scheduling midnight check: $e', name: 'NotificationService', error: e, stackTrace: stack);
+    }
   }
 }
