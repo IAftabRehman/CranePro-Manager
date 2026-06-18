@@ -13,13 +13,15 @@ class ViewerDashboard extends StatefulWidget {
   State<ViewerDashboard> createState() => _ViewerDashboardState();
 }
 
-class _ViewerDashboardState extends State<ViewerDashboard> with TickerProviderStateMixin {
+class _ViewerDashboardState extends State<ViewerDashboard>
+    with TickerProviderStateMixin {
   late AnimationController _alertController;
   late ScrollController _scrollController;
   double _parallaxOffset = 0.0;
 
   // Stream simulation for "Live Status" updates
-  final StreamController<String> _statusStreamController = StreamController<String>.broadcast();
+  final StreamController<String> _statusStreamController =
+      StreamController<String>.broadcast();
 
   @override
   void initState() {
@@ -29,16 +31,19 @@ class _ViewerDashboardState extends State<ViewerDashboard> with TickerProviderSt
       duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
 
-    _scrollController = ScrollController()..addListener(() {
-      setState(() {
-        _parallaxOffset = _scrollController.offset * 0.3;
+    _scrollController = ScrollController()
+      ..addListener(() {
+        setState(() {
+          _parallaxOffset = _scrollController.offset * 0.3;
+        });
       });
-    });
 
     // Simulate real-time updates from Dubai
     Timer.periodic(const Duration(seconds: 10), (timer) {
       if (mounted) {
-        _statusStreamController.add('New Site Activity: Own 25T Crane @ Dubai Marina');
+        _statusStreamController.add(
+          'New Site Activity: Own 25T Crane @ Dubai Marina',
+        );
       }
     });
   }
@@ -55,9 +60,18 @@ class _ViewerDashboardState extends State<ViewerDashboard> with TickerProviderSt
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: const CustomDrawer(activeRoute: 'Dashboard', isViewer: true),
+      appBar: AppBar(
+        centerTitle: true,
+        backgroundColor: Colors.lightBlueAccent.shade200,
+        elevation: 5,
+        shadowColor: Colors.blue,
+        title: Text(
+          "Family Monitor",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+      ),
       body: Stack(
         children: [
-          // Parallax Background
           Positioned(
             top: -_parallaxOffset,
             left: 0,
@@ -69,30 +83,27 @@ class _ViewerDashboardState extends State<ViewerDashboard> with TickerProviderSt
               ),
             ),
           ),
-          
+
           SafeArea(
             child: Column(
               children: [
-                _buildAppBar(context),
                 _buildLiveStatusHeader(),
-
                 Expanded(
                   child: SingleChildScrollView(
                     controller: _scrollController,
                     physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 20,
+                    ),
                     child: Column(
                       children: [
-                        // TASK 2: 4 Command Center Cards
                         _buildCommandCenterGrid(context),
-                        
-                        const SizedBox(height: 48),
-
-                        // TASK 4: Execution Modes
+                        const SizedBox(height: 10),
                         _buildExecutionTabs(context),
-                        
-                        const SizedBox(height: 48),
-                        
+
+                        const SizedBox(height: 20),
+
                         // TASK 3: Status-Based Activity Feed
                         _buildLiveActivityStream(context),
                       ],
@@ -101,40 +112,6 @@ class _ViewerDashboardState extends State<ViewerDashboard> with TickerProviderSt
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAppBar(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Builder(
-              builder: (context) => IconButton(
-                icon: const Icon(Icons.menu_rounded, color: AppTheme.deepNavyBlue, size: 32),
-                onPressed: () => Scaffold.of(context).openDrawer(),
-              ),
-            ),
-          ),
-          Column(
-            children: [
-              Hero(tag: 'logo', child: Image.asset('assets/images/logo.png', height: 60)),
-              const Text(
-                'FAMILY MONITOR - LIVE STATION',
-                style: TextStyle(
-                  color: AppTheme.deepNavyBlue,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 2.0,
-                ),
-              ),
-            ],
           ),
         ],
       ),
@@ -155,14 +132,20 @@ class _ViewerDashboardState extends State<ViewerDashboard> with TickerProviderSt
               margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
               decoration: BoxDecoration(
-                color: Color.lerp(Colors.red.shade900, Colors.amber.shade900, _alertController.value)!.withValues(alpha: 0.9),
+                color: Color.lerp(
+                  Colors.red.shade900,
+                  Colors.amber.shade900,
+                  _alertController.value,
+                )!.withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.red.withValues(alpha: 0.3 * _alertController.value),
+                    color: Colors.red.withValues(
+                      alpha: 0.3 * _alertController.value,
+                    ),
                     blurRadius: 15 * _alertController.value,
                     spreadRadius: 2,
-                  )
+                  ),
                 ],
               ),
               child: Row(
@@ -196,7 +179,7 @@ class _ViewerDashboardState extends State<ViewerDashboard> with TickerProviderSt
           children: [
             Expanded(
               child: _CommandCard(
-                label: 'LIVE PROFIT',
+                label: 'Live Profit',
                 value: 'AED 8,420',
                 icon: Icons.auto_graph_rounded,
                 isPrimary: true,
@@ -205,7 +188,7 @@ class _ViewerDashboardState extends State<ViewerDashboard> with TickerProviderSt
             const SizedBox(width: 16),
             Expanded(
               child: _CommandCard(
-                label: 'ACTIVE WORK',
+                label: 'Active Work',
                 value: '4 JOBS',
                 icon: Icons.timer_rounded,
               ),
@@ -217,7 +200,7 @@ class _ViewerDashboardState extends State<ViewerDashboard> with TickerProviderSt
           children: [
             Expanded(
               child: _CommandCard(
-                label: 'MAINTENANCE',
+                label: 'Maintenance',
                 value: 'AED 3,200',
                 icon: Icons.build_circle_rounded,
               ),
@@ -225,7 +208,7 @@ class _ViewerDashboardState extends State<ViewerDashboard> with TickerProviderSt
             const SizedBox(width: 16),
             Expanded(
               child: _CommandCard(
-                label: 'CANCELLED',
+                label: 'Cancelled',
                 value: '2 TASKS',
                 icon: Icons.cancel_presentation_rounded,
                 isDanger: true,
@@ -244,7 +227,7 @@ class _ViewerDashboardState extends State<ViewerDashboard> with TickerProviderSt
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'EXECUTION REPORTS',
+              'Reports',
               style: TextStyle(
                 color: AppTheme.deepNavyBlue,
                 fontSize: 16,
@@ -253,24 +236,42 @@ class _ViewerDashboardState extends State<ViewerDashboard> with TickerProviderSt
             ),
             TextButton(
               onPressed: () {},
-              child: const Text('VIEW ALL', style: TextStyle(color: AppTheme.deepNavyBlue, fontWeight: FontWeight.w900, fontSize: 12)),
-            )
+              child: const Text(
+                'View All',
+                style: TextStyle(
+                  color: Colors.green,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 13,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
           ],
         ),
-        const SizedBox(height: 16),
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             Expanded(
               child: _ReportExecutionModeButton(
-                label: 'OWN CRANE (25T)',
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WorkHistoryViewerPage())),
+                label: 'Own Crane',
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const WorkHistoryViewerPage(),
+                  ),
+                ),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 5),
             Expanded(
               child: _ReportExecutionModeButton(
-                label: 'COMMISSION',
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WorkHistoryViewerPage())),
+                label: 'Commission',
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const WorkHistoryViewerPage(),
+                  ),
+                ),
               ),
             ),
           ],
@@ -286,10 +287,10 @@ class _ViewerDashboardState extends State<ViewerDashboard> with TickerProviderSt
         const Padding(
           padding: EdgeInsets.only(left: 4, bottom: 20),
           child: Text(
-            'LIVE ACTIVITY STREAM',
+            'Live Activity Stream',
             style: TextStyle(
               color: AppTheme.deepNavyBlue,
-              fontSize: 17,
+              fontSize: 15,
               fontWeight: FontWeight.w900,
               letterSpacing: 1.0,
             ),
@@ -339,7 +340,8 @@ class _CommandCard extends StatefulWidget {
   State<_CommandCard> createState() => _CommandCardState();
 }
 
-class _CommandCardState extends State<_CommandCard> with SingleTickerProviderStateMixin {
+class _CommandCardState extends State<_CommandCard>
+    with SingleTickerProviderStateMixin {
   late AnimationController _pressController;
   late Animation<double> _scaleAnimation;
 
@@ -350,9 +352,10 @@ class _CommandCardState extends State<_CommandCard> with SingleTickerProviderSta
       vsync: this,
       duration: const Duration(milliseconds: 150),
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
-      CurvedAnimation(parent: _pressController, curve: Curves.easeOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.05,
+    ).animate(CurvedAnimation(parent: _pressController, curve: Curves.easeOut));
   }
 
   @override
@@ -377,14 +380,19 @@ class _CommandCardState extends State<_CommandCard> with SingleTickerProviderSta
           return Transform.scale(
             scale: _scaleAnimation.value,
             child: Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.35),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: accentColor.withValues(alpha: 0.2), width: 1.5),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(
+                  color: accentColor.withValues(alpha: 0.2),
+                  width: 1.5,
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05 + (_scaleAnimation.value - 1.0)),
+                    color: Colors.black.withValues(
+                      alpha: 0.05 + (_scaleAnimation.value - 1.0),
+                    ),
                     offset: const Offset(0, 10),
                     blurRadius: 20 * _scaleAnimation.value,
                   ),
@@ -393,31 +401,23 @@ class _CommandCardState extends State<_CommandCard> with SingleTickerProviderSta
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Icon(widget.icon, color: accentColor, size: 24),
-                      if (widget.isPrimary)
-                        const Icon(Icons.flash_on_rounded, color: Colors.amber, size: 16),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
+                  Icon(widget.icon, color: accentColor, size: 24),
+                  const SizedBox(height: 10),
                   Text(
                     widget.label.toUpperCase(),
                     style: TextStyle(
                       color: AppTheme.deepNavyBlue.withValues(alpha: 0.6),
-                      fontSize: 10,
+                      fontSize: 11,
                       fontWeight: FontWeight.w900,
-                      letterSpacing: 0.5,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Text(
                     widget.value,
                     style: TextStyle(
                       color: accentColor,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ],
@@ -434,26 +434,29 @@ class _ReportExecutionModeButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
 
-  const _ReportExecutionModeButton({required this.label, required this.onPressed});
+  const _ReportExecutionModeButton({
+    required this.label,
+    required this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppTheme.deepNavyBlue,
+        backgroundColor: Colors.white54,
         foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         elevation: 10,
         shadowColor: AppTheme.deepNavyBlue.withValues(alpha: 0.4),
       ),
       child: Text(
         label,
         style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 1.0,
+          fontSize: 14,
+          color: Colors.black,
+          fontWeight: FontWeight.w700,
         ),
         textAlign: TextAlign.center,
       ),

@@ -24,6 +24,17 @@ class WorkEntryDetailsPage extends StatelessWidget {
     final net = total - deduction;
 
     return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: true,
+        centerTitle: true,
+        backgroundColor: Colors.lightBlueAccent.shade200,
+        elevation: 5,
+        shadowColor: Colors.blue,
+        title: Text(
+          "Entry Details",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+      ),
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -33,7 +44,6 @@ class WorkEntryDetailsPage extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              _buildAppBar(context),
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
@@ -72,7 +82,7 @@ class WorkEntryDetailsPage extends StatelessWidget {
                             padding: EdgeInsets.symmetric(vertical: 8),
                             child: Divider(color: Colors.white38, thickness: 1),
                           ),
-                          _buildFinancialRow('Profit / Net Commission', net, Colors.green.shade900, isNet: true),
+                          _buildFinancialRow('Profit Commission', net, Colors.green.shade900, isNet: true),
                         ],
                       ),
 
@@ -97,50 +107,23 @@ class WorkEntryDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildAppBar(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppTheme.deepNavyBlue),
-            onPressed: () => Navigator.pop(context),
-          ),
-          const Expanded(
-            child: Text(
-              'ENTRY DETAILS',
-              style: TextStyle(
-                color: AppTheme.deepNavyBlue,
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.0,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(width: 48),
-        ],
-      ),
-    );
-  }
-
   Widget _buildHeaderCard() {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(vertical: 10,horizontal: 20),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
       ),
       child: Column(
         children: [
-          Image.asset('assets/images/logo.png', height: 80),
-          const SizedBox(height: 20),
+          Image.asset('assets/images/logo.png', height: 50),
+          const SizedBox(height: 10),
           Text(
             client.toUpperCase(),
             style: const TextStyle(
               color: AppTheme.deepNavyBlue,
-              fontSize: 24,
+              fontSize: 22,
               fontWeight: FontWeight.w900,
             ),
             textAlign: TextAlign.center,
@@ -153,7 +136,7 @@ class WorkEntryDetailsPage extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              isOwnCrane ? 'OWN ASSET EXECUTION' : 'COMMISSION WORK DETAILS',
+              isOwnCrane ? 'Own Crane Details' : 'Commission Details',
               style: const TextStyle(
                 color: AppTheme.deepNavyBlue,
                 fontWeight: FontWeight.w900,
@@ -169,27 +152,27 @@ class WorkEntryDetailsPage extends StatelessWidget {
 
   Widget _buildDetailSection(String title, List<Widget> children) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 24),
+      margin: const EdgeInsets.only(bottom: 10),
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            title.toUpperCase(),
+            title,
             style: const TextStyle(
               color: AppTheme.deepNavyBlue,
-              fontSize: 14,
+              fontSize: 12,
               fontWeight: FontWeight.w900,
               letterSpacing: 1.2,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
           ...children,
         ],
       ),
@@ -202,7 +185,7 @@ class WorkEntryDetailsPage extends StatelessWidget {
       child: Row(
         children: [
           Icon(icon, color: AppTheme.deepNavyBlue.withValues(alpha: 0.6), size: 22),
-          const SizedBox(width: 16),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -219,7 +202,7 @@ class WorkEntryDetailsPage extends StatelessWidget {
                   value,
                   style: const TextStyle(
                     color: AppTheme.deepNavyBlue,
-                    fontSize: 20, // AS REQUESTED: Big (20)
+                    fontSize: 16,
                     fontWeight: FontWeight.w900, // AS REQUESTED: Bold (w900)
                   ),
                 ),
@@ -241,15 +224,15 @@ class WorkEntryDetailsPage extends StatelessWidget {
             label,
             style: TextStyle(
               color: AppTheme.deepNavyBlue.withValues(alpha: 0.7),
-              fontSize: 14,
+              fontSize: 12,
               fontWeight: FontWeight.w800,
             ),
           ),
           Text(
-            '${isDeduction ? "(-)" : ""} AED ${amount.toStringAsFixed(0)}',
+            '${isDeduction ? "-" : ""} AED ${amount.toStringAsFixed(0)}',
             style: TextStyle(
               color: color,
-              fontSize: isNet ? 24 : 20, // Enhanced for math clarity
+              fontSize: isNet ? 20 : 16,
               fontWeight: FontWeight.w900,
             ),
           ),
@@ -292,7 +275,7 @@ class WorkEntryDetailsPage extends StatelessWidget {
                     status,
                     style: const TextStyle(
                       color: AppTheme.deepNavyBlue,
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

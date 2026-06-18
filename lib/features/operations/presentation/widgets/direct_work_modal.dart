@@ -116,8 +116,8 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
         top: 24,
       ),
       decoration: const BoxDecoration(
-        gradient: AppTheme.premiumGradient, // TASK 3: Premium Branding
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        gradient: AppTheme.premiumGradient,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: SingleChildScrollView(
         child: Column(
@@ -126,13 +126,11 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
           children: [
             Center(
               child: Container(
-                width: 40, height: 4,
+                width: 50, height: 4,
                 decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
               ),
             ),
-            const SizedBox(height: 24),
-            
-            // TASK 1: Selection Mode
+            const SizedBox(height: 20),
             Row(
               children: [
                 Expanded(
@@ -157,7 +155,7 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
                 ),
               ],
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 20),
             
             _buildLabel('Client Name (Optional)'),
             CraneInput(
@@ -166,7 +164,7 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
               prefixIcon: const Icon(Icons.person_outline_rounded, size: 20, color: Colors.white70),
             ),
             
-            const SizedBox(height: 20),
+            const SizedBox(height: 15),
             _buildLabel('Service Type'),
             CraneInput(
               controller: _serviceController,
@@ -174,7 +172,7 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
               prefixIcon: const Icon(Icons.build_outlined, size: 20, color: Colors.white70),
             ),
             
-            const SizedBox(height: 20),
+            const SizedBox(height: 15),
             _buildLabel('Location'),
             CraneInput(
               controller: _locationController,
@@ -182,7 +180,7 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
               prefixIcon: const Icon(Icons.location_on_outlined, size: 20, color: Colors.white70),
             ),
             
-            const SizedBox(height: 20),
+            const SizedBox(height: 15),
             Row(
               children: [
                 Expanded(
@@ -223,27 +221,26 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
               ],
             ),
 
-            // TASK 2: My Commission (Read-only for Outsource mode)
             if (!_isOwnCrane) ...[
               const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: Colors.green.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: Colors.green.withValues(alpha: 0.1)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text('My Commission:', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 12)),
-                    Text('AED ${_commission.toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18)),
+                    Text('AED ${_commission.toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 15)),
                   ],
                 ),
               ),
             ],
             
-            const SizedBox(height: 40),
+            const SizedBox(height: 20),
             
             // TASK 3: Save Button
             ElevatedButton(
@@ -252,15 +249,15 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
                 backgroundColor: Colors.amber,
                 foregroundColor: Colors.black,
                 minimumSize: const Size(double.infinity, 60),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 elevation: 8,
               ),
               child: userAsync.when(
                   data: (profile) => _isSaving 
                       ? const CircularProgressIndicator(color: Colors.black)
-                      : const Text('SAVE ENTRY', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.5, fontSize: 16)),
-                  loading: () => const Text('LOADING PROFILE...', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                  error: (err, _) => const Text('RELOAD PROFILE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.red)),
+                      : const Text('Save Entry', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.5, fontSize: 14)),
+                  loading: () => const Text('Loading Profile...', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  error: (err, _) => const Text('Relode Profile', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.red)),
               ),
             ),
           ],
@@ -299,10 +296,10 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
 
   Widget _buildLabel(String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8, left: 4),
+      padding: const EdgeInsets.only(bottom: 5, left: 4),
       child: Text(
         text,
-        style: const TextStyle(color: Colors.white38, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+        style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0),
       ),
     );
   }

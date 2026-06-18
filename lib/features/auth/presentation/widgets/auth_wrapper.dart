@@ -58,10 +58,9 @@ class AuthWrapper extends StatelessWidget {
 
             if (role == 'admin') {
               return const AdminControlPage();
+            } else if (role == 'viewer') {
+              return const ViewerDashboard();
             } else if (isAdminApproved == true) {
-              if (role == 'viewer') {
-                return const ViewerDashboard();
-              }
               return const MainDashboard();
             } else {
               return const WaitingRoomPage();

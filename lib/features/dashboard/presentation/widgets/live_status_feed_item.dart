@@ -43,11 +43,11 @@ class LiveStatusFeedItem extends StatelessWidget {
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: statusColor.withValues(alpha: 0.2), width: 1.5),
       ),
       child: Column(
@@ -55,7 +55,7 @@ class LiveStatusFeedItem extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(statusIcon, color: statusColor, size: 24),
+              Icon(statusIcon, color: statusColor, size: 20),
               const SizedBox(width: 12),
               Text(
                 statusLabel,
@@ -71,15 +71,15 @@ class LiveStatusFeedItem extends StatelessWidget {
                 amount,
                 style: const TextStyle(
                   color: AppTheme.deepNavyBlue,
-                  fontSize: 18,
+                  fontSize: 14,
                   fontWeight: FontWeight.w900,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           Text(
-            title.toUpperCase(),
+            title,
             style: const TextStyle(
               color: AppTheme.deepNavyBlue,
               fontSize: 15,
@@ -105,11 +105,11 @@ class LiveStatusFeedItem extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                'REASON: $reason',
+                'Reason: $reason',
                 style: TextStyle(
                   color: Colors.red.shade900,
                   fontSize: 11,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),

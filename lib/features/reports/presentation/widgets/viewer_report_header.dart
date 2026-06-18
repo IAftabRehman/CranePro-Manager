@@ -28,14 +28,14 @@ class ViewerReportHeader extends StatelessWidget {
       children: [
         // Title & Summary Row
         Container(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(15),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(10),
             border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
                 summaryLabel.toUpperCase(),
@@ -46,12 +46,12 @@ class ViewerReportHeader extends StatelessWidget {
                   letterSpacing: 1.2,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 5),
               Text(
                 summaryValue,
                 style: const TextStyle(
-                  color: AppTheme.deepNavyBlue,
-                  fontSize: 32,
+                  color: Colors.pink,
+                  fontSize: 25,
                   fontWeight: FontWeight.w900,
                 ),
               ),
@@ -59,7 +59,7 @@ class ViewerReportHeader extends StatelessWidget {
           ),
         ),
         
-        const SizedBox(height: 16),
+        const SizedBox(height: 10),
         
         // Date Selector Row
         GestureDetector(

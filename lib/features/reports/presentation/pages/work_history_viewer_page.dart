@@ -46,6 +46,17 @@ class _WorkHistoryViewerPageState extends State<WorkHistoryViewerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: true,
+        centerTitle: true,
+        backgroundColor: Colors.lightBlueAccent.shade200,
+        elevation: 5,
+        shadowColor: Colors.blue,
+        title: Text(
+          "Work Report",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+      ),
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -55,7 +66,6 @@ class _WorkHistoryViewerPageState extends State<WorkHistoryViewerPage> {
         child: SafeArea(
           child: Column(
             children: [
-              _buildAppBar(context),
               Expanded(
                 child: ListView(
                   physics: const BouncingScrollPhysics(),
@@ -63,15 +73,15 @@ class _WorkHistoryViewerPageState extends State<WorkHistoryViewerPage> {
                   children: [
                     ViewerReportHeader(
                       title: 'Work History',
-                      summaryLabel: 'Total Profit for period',
+                      summaryLabel: 'Total Profit for',
                       summaryValue: 'AED 38,420',
                       fromDate: _fromDate,
                       toDate: _toDate,
                       onSelectDateRange: _selectDateRange,
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 20),
                     const Text(
-                      'DETAILED TRANSACTIONS',
+                      'Detailed Transactions',
                       style: TextStyle(
                         color: AppTheme.deepNavyBlue,
                         fontSize: 14,
@@ -134,33 +144,6 @@ class _WorkHistoryViewerPageState extends State<WorkHistoryViewerPage> {
     );
   }
 
-  Widget _buildAppBar(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppTheme.deepNavyBlue),
-            onPressed: () => Navigator.pop(context),
-          ),
-          const Expanded(
-            child: Text(
-              'WORK REPORTS',
-              style: TextStyle(
-                color: AppTheme.deepNavyBlue,
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.0,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(width: 48),
-        ],
-      ),
-    );
-  }
-
   Widget _buildHistoryCard(
     BuildContext context, {
     required bool isOwnCrane,
@@ -176,13 +159,13 @@ class _WorkHistoryViewerPageState extends State<WorkHistoryViewerPage> {
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(10),
           onTap: () {
             Navigator.push(
               context,
@@ -198,72 +181,78 @@ class _WorkHistoryViewerPageState extends State<WorkHistoryViewerPage> {
               ),
             );
           },
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              children: [
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: AppTheme.deepNavyBlue.withValues(alpha: 0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            isOwnCrane ? Icons.architecture_rounded : Icons.handshake_rounded,
-                            color: AppTheme.deepNavyBlue,
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                client.toUpperCase(),
-                                style: const TextStyle(
-                                  color: AppTheme.deepNavyBlue,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                              Text(
-                                location,
-                                style: TextStyle(
-                                  color: AppTheme.deepNavyBlue.withValues(alpha: 0.7),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Icon(Icons.chevron_right_rounded, color: AppTheme.deepNavyBlue),
-                      ],
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppTheme.deepNavyBlue.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isOwnCrane ? Icons.person : Icons.handshake,
+                        color: AppTheme.deepNavyBlue,
+                        size: 20,
+                      ),
                     ),
-                    
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      child: Divider(color: Colors.white, thickness: 1),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            client.toUpperCase(),
+                            style: const TextStyle(
+                              color: AppTheme.deepNavyBlue,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          Text(
+                            location,
+                            style: TextStyle(
+                              color: AppTheme.deepNavyBlue.withValues(alpha: 0.7),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    
+                    const Icon(Icons.chevron_right_rounded, color: AppTheme.deepNavyBlue),
+                  ],
+                ),
+
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Divider(color: Colors.white, thickness: 1),
+                ),
+
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         _buildCalculationCol(isOwnCrane ? 'Gross Total' : 'Total Quotation', 'AED ${total.toStringAsFixed(0)}'),
                         _buildCalculationCol(deductionLabel, '(-) AED ${deduction.toStringAsFixed(0)}', isDeduction: true),
-                        _buildCalculationCol(isOwnCrane ? 'NET PROFIT' : 'NET COMMISSION', 'AED ${net.toStringAsFixed(0)}', isNet: true),
                       ],
                     ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 5),
+                      child: Divider(color: Colors.yellow, thickness: 0.5),
+                    ),
+
+                    _buildCalculationCol(isOwnCrane ? 'Total PROFIT' : 'Total COMMISSION', 'AED ${net.toStringAsFixed(0)}', isNet: true),
                   ],
-                ),
-              ),
+                )
+
+              ],
             ),
           ),
         ),
@@ -288,7 +277,7 @@ class _WorkHistoryViewerPageState extends State<WorkHistoryViewerPage> {
             letterSpacing: 0.5,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 2),
         Text(
           value,
           style: TextStyle(
