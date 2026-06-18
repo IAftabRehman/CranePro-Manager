@@ -112,6 +112,8 @@ class _TermsManagementPageState extends State<TermsManagementPage> {
                         hintText: 'e.g. Fuel provided by client',
                         initialValue: _terms[index],
                         onChanged: (val) => _terms[index] = val,
+                        minLines: 1,
+                        maxLines: 4,
                       ),
                     ),
                     IconButton(
@@ -127,29 +129,35 @@ class _TermsManagementPageState extends State<TermsManagementPage> {
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(18),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                buildElevatedButton(
-                  theme,
-                  _addTerm,
-                  Icons.add_box,
-                  "Add New Line",
-                ),
-                buildElevatedButton(
-                  theme,
-                  () {
-                    Navigator.pop(
-                      context,
-                      _terms.where((t) => t.trim().isNotEmpty).toList(),
-                    );
-                  },
-                  Icons.save_as,
-                  "Save",
-                ),
-              ],
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: buildElevatedButton(
+                      theme,
+                      _addTerm,
+                      Icons.add_box,
+                      "Add New Line",
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: buildElevatedButton(
+                      theme,
+                      () {
+                        Navigator.pop(
+                          context,
+                          _terms.where((t) => t.trim().isNotEmpty).toList(),
+                        );
+                      },
+                      Icons.save_as,
+                      "Save",
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -159,18 +167,20 @@ class _TermsManagementPageState extends State<TermsManagementPage> {
 
   ElevatedButton buildElevatedButton(
     ThemeData theme,
-    GestureDragCancelCallback onTap,
+    VoidCallback onTap,
     IconData icon,
     String name,
   ) {
     return ElevatedButton.icon(
       onPressed: onTap,
       icon: Icon(icon),
-      label: Text(name),
+      label: FittedBox(child: Text(name)),
       style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 16),
         backgroundColor: theme.colorScheme.secondary,
         foregroundColor: theme.colorScheme.primary,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        elevation: 2,
       ),
     );
   }

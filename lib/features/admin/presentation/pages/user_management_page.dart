@@ -41,8 +41,8 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) => Container(
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setModalState) => Container(
           padding: EdgeInsets.only(
             left: 24,
             right: 24,
@@ -72,7 +72,7 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
                     ),
                     IconButton(
                       icon: const Icon(Icons.close, color: Colors.white54),
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () => Navigator.pop(sheetContext),
                     ),
                   ],
                 ),
@@ -113,7 +113,7 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
                     ),
                     Switch(
                       value: isApproved,
-                      activeColor: Colors.green,
+                      activeThumbColor: Colors.green,
                       onChanged: (val) => setModalState(() => isApproved = val),
                     ),
                   ],
@@ -149,7 +149,7 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
                     ),
                     Switch(
                       value: isBlocked,
-                      activeColor: Colors.redAccent,
+                      activeThumbColor: Colors.redAccent,
                       onChanged: (val) => setModalState(() => isBlocked = val),
                     ),
                   ],
@@ -166,7 +166,7 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
                     ),
                     onPressed: _isSaving ? null : () async {
                       setState(() => _isSaving = true);
-                      Navigator.pop(context);
+                      Navigator.pop(sheetContext);
                       
                       try {
                         // 1. Update general status and role

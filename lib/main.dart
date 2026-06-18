@@ -5,6 +5,7 @@ import 'core/themes/app_theme.dart';
 import 'features/auth/presentation/widgets/auth_wrapper.dart';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'dart:ui';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -13,7 +14,15 @@ import 'core/services/local_notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase with persistence settings
   await Firebase.initializeApp();
+  
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: true,
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+  );
+
   await LocalNotificationService.initialize();
 
   // Pass all uncaught "fatal" errors from the framework to Crashlytics

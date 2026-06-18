@@ -18,12 +18,12 @@ class OperatorStatsPage extends ConsumerWidget {
     
     return PremiumScaffold(
       appBar: AppBar(
-        title: const Text('My Analytics', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('My Analytics', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 15,),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -58,19 +58,19 @@ class OperatorStatsPage extends ConsumerWidget {
                   'Recent Activity',
                   style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 activityAsync.when(
                   data: (activities) => _buildActivityList(activities),
                   loading: () => const Center(child: CircularProgressIndicator(color: Colors.amber)),
                   error: (err, _) => Text('Error loading activity: $err', style: const TextStyle(color: Colors.redAccent)),
                 ),
                 
-                const SizedBox(height: 40),
+                const SizedBox(height: 20),
                 
                 // 4. Download Report Button
                 _buildDownloadButton(context, ref, user),
                 
-                const SizedBox(height: 40),
+                const SizedBox(height: 10),
               ],
             ),
           );
@@ -120,25 +120,25 @@ class OperatorStatsPage extends ConsumerWidget {
 
   Widget _buildStatCard(String title, String value, IconData icon, LinearGradient gradient, {bool isSmall = false}) {
     return Container(
-      padding: EdgeInsets.all(isSmall ? 16 : 24),
+      padding: EdgeInsets.all(isSmall ? 12 : 20),
       decoration: BoxDecoration(
         gradient: gradient,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 10, offset: const Offset(0, 5)),
         ],
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
+          isSmall ? SizedBox() : Container(
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), shape: BoxShape.circle),
-            child: Icon(icon, color: Colors.white, size: isSmall ? 20 : 32),
+            child: Icon(icon, color: Colors.white, size: isSmall ? 15 : 25),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: isSmall ? 0 : 16),
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: isSmall ? CrossAxisAlignment.center : CrossAxisAlignment.start,
               children: [
                 Text(title, style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: isSmall ? 12 : 14)),
                 const SizedBox(height: 4),
@@ -146,7 +146,7 @@ class OperatorStatsPage extends ConsumerWidget {
                   value,
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: isSmall ? 18 : 24,
+                    fontSize: isSmall ? 15 : 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -159,11 +159,10 @@ class OperatorStatsPage extends ConsumerWidget {
   }
 
   Widget _buildPerformanceChart({required ThemeData theme}) {
-    // Current month target: 25 days job completion
     double progress = 0.68; // Mock value for visual
     
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(24),
@@ -175,6 +174,7 @@ class OperatorStatsPage extends ConsumerWidget {
             height: 100,
             width: 100,
             child: PieChart(
+              curve: Curves.easeOutCirc,
               PieChartData(
                 startDegreeOffset: 270,
                 sectionsSpace: 0,
@@ -288,16 +288,15 @@ class OperatorStatsPage extends ConsumerWidget {
 
   Widget _buildDownloadButton(BuildContext context, WidgetRef ref, dynamic user) {
     return Center(
-      child: ElevatedButton.icon(
+      child: ElevatedButton(
         onPressed: () => _generateReport(context, ref, user),
-        icon: const Icon(Icons.picture_as_pdf),
-        label: const Text('Download My Monthly Report'),
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.amber,
-          foregroundColor: Colors.black,
+          backgroundColor: Colors.lightGreen,
+          foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
         ),
+        child: const Text('Download Monthly Report', style: TextStyle(fontSize: 15, fontWeight: FontWeight.normal),),
       ),
     );
   }

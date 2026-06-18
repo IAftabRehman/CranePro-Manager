@@ -47,14 +47,9 @@ class AuthWrapper extends StatelessWidget {
 
             final userData = userSnapshot.data!.data() as Map<String, dynamic>;
             
-            // TASK 3: Debug Print
-            print("Checking Role: ${userData['role']}");
-
             final role = userData['role'];
             final isAdminApproved = userData['isAdminApproved'] ?? false;
             final isBlocked = userData['isBlocked'] ?? false;
-
-            debugPrint("AuthWrapper: User ${user.email} Role: $role, Approved: $isAdminApproved, Blocked: $isBlocked");
 
             // Security Layer: Block Guard
             if (isBlocked) {

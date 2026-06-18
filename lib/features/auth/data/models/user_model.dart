@@ -67,7 +67,7 @@ class UserModel {
       'fullName': fullName,
       'email': email,
       'role': role,
-      'isAdminApproved': false, // Mandatory approval required for all signups
+      'isAdminApproved': isAdminApproved,
       'isBlocked': isBlocked,
       'rejectionReason': rejectionReason,
       'fcmToken': fcmToken,

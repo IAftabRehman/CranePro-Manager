@@ -183,7 +183,6 @@ class RoleCard3D extends StatefulWidget {
 
 class _RoleCard3DState extends State<RoleCard3D> {
   bool _isPressed = false;
-  double? get boxWidth => null;
 
   @override
   Widget build(BuildContext context) {
@@ -199,9 +198,9 @@ class _RoleCard3DState extends State<RoleCard3D> {
         curve: Curves.easeOut,
         transform: Matrix4.translationValues(0, _isPressed ? 4.0 : 0.0, 0)
           ..setEntry(3, 2, 0.001) // Depth perception
-          ..scale(_isPressed ? 0.95 : 1.0), // Scale effect
+          ..multiply(Matrix4.diagonal3Values(_isPressed ? 0.95 : 1.0, _isPressed ? 0.95 : 1.0, 1.0)), // Scale effect
         child: Container(
-          width: boxWidth ?? 250,
+          width: widget.boxWidth ?? 250,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
             // TASK: Sinking effect shadows

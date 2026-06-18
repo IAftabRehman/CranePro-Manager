@@ -27,7 +27,7 @@ class RoleGuard extends ConsumerWidget {
         return fallback ?? _buildAccessDenied(context);
       },
       loading: () => const SizedBox.shrink(), // Silent loading for guards
-      error: (_, __) => fallback ?? _buildAccessDenied(context),
+      error: (_, _) => fallback ?? _buildAccessDenied(context),
     );
   }
 

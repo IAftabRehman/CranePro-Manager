@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:extend_crane_services/features/admin/data/models/backup_status.dart';
 import 'package:extend_crane_services/features/admin/data/repositories/admin_repository.dart';
@@ -12,17 +13,18 @@ class BackupService {
     required List<dynamic> quotations,
     required List<dynamic> auditTrail,
   }) async {
+    final now = DateTime.now();
     // 1. Aggregate Data
     final backupData = {
       'version': '1.0.0',
-      'timestamp': DateTime.now().toIso8601String(),
+      'timestamp': now.toIso8601String(),
       'users': users.map((e) => e.toMap()).toList(),
       'quotations': quotations,
       'auditTrail': auditTrail,
     };
 
     final jsonString = jsonEncode(backupData);
-    final snapshotId = "snapshot_${DateTime.now().millisecondsSinceEpoch}";
+    final snapshotId = "snapshot_${now.millisecondsSinceEpoch}";
     
     // 3. Cloud Snapshot Upload
     await _repository.uploadSnapshot(snapshotId, backupData);
@@ -32,10 +34,11 @@ class BackupService {
     final sizeInKB = (sizeInBytes / 1024).toStringAsFixed(2);
 
     final status = BackupStatus(
-      lastBackupDate: DateTime.now(),
+      lastBackupDate: now,
       fileSize: "$sizeInKB KB",
       isSuccess: true,
       backupType: 'Manual',
+      snapshotId: snapshotId,
     );
 
     // 5. Log Metadata to Firestore
@@ -46,7 +49,9 @@ class BackupService {
 
   Future<bool> restoreFromSnapshot(BackupStatus status) async {
     try {
-      final snapshotId = "snapshot_${status.lastBackupDate.millisecondsSinceEpoch}";
+      final snapshotId = status.snapshotId.isNotEmpty
+          ? status.snapshotId
+          : "snapshot_${status.lastBackupDate.millisecondsSinceEpoch}";
       final data = await _repository.fetchSnapshot(snapshotId);
       
       if (data == null) return false;
@@ -54,7 +59,7 @@ class BackupService {
       await _repository.performSystemRestore(data);
       return true;
     } catch (e) {
-      print('Cloud Restore Error: $e');
+      debugPrint('Cloud Restore Error: $e');
       return false;
     }
   }
@@ -72,18 +77,18 @@ class BackupService {
       final Map<String, dynamic> data = jsonDecode(jsonString);
 
       // Trigger state restoration here (e.g. notify listeners/repositories)
-      print('Restoring data from ${data['timestamp']}...');
+      debugPrint('Restoring data from ${data['timestamp']}...');
       
       return true;
     } catch (e) {
-      print('Restore Error: $e');
+      debugPrint('Restore Error: $e');
       return false;
     }
   }
 
   Future<void> performAutoBackupTask() async {
     // This is called by WorkManager weekly
-    print('Executing Automated Weekly Snapshot...');
+    debugPrint('Executing Automated Weekly Snapshot...');
     // Simulated backup logic here for background execution
   }
 }

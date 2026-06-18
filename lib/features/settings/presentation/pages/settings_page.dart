@@ -92,49 +92,21 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   physics: const BouncingScrollPhysics(),
                   padding: EdgeInsets.symmetric(
                     horizontal: Responsive.scale(context, 24).clamp(16.0, 32.0),
-                    vertical: 24,
+                    vertical: 10,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Business Card Header
                       _buildBusinessCard(theme, profile),
-                      const SizedBox(height: 32),
-
-                      // Editable Fields (Admin Only) or View Only (Viewer)
-                      const Text(
-                        'OFFICIAL IDENTITY',
-                        style: TextStyle(
-                          color: AppTheme.deepNavyBlue,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1.0,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      
+                      const SizedBox(height: 15),
                       _buildReadOnlyField('Business Name', _nameController, Icons.business_rounded),
                       _buildReadOnlyField('Email Address', _emailController, Icons.email_outlined),
                       _buildReadOnlyField('Official Website', _websiteController, Icons.language_rounded),
                       _buildReadOnlyField('Office Address', _addressController, Icons.location_on_outlined, maxLines: 2),
+                      const SizedBox(height: 15),
 
-                      const SizedBox(height: 24),
-                      
-                      // Branding Section
-                      const Text(
-                        'BRANDING ASSETS',
-                        style: TextStyle(
-                          color: AppTheme.deepNavyBlue,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1.0,
-                        ),
-                      ),
                       const SizedBox(height: 12),
-                      _buildLogoSection(theme),
 
-                      const SizedBox(height: 48),
-                      
                       if (!widget.isViewer)
                         ElevatedButton(
                           onPressed: _saveProfile,
@@ -143,13 +115,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 18),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             elevation: 8,
                           ),
                           child: const Text(
                             'Update Profile',
-                            style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.2),
+                            style: TextStyle(fontWeight: FontWeight.w900,),
                           ),
                         ),
                     ],
@@ -169,15 +141,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppTheme.deepNavyBlue),
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppTheme.deepNavyBlue, size: 15,),
             onPressed: () => Navigator.pop(context),
           ),
           const Expanded(
             child: Text(
-              'BUSINESS PROFILE',
+              'Business Profile',
               style: TextStyle(
                 color: AppTheme.deepNavyBlue,
-                fontSize: 20,
+                fontSize: 15,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 1.0,
               ),
@@ -192,10 +164,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   Widget _buildBusinessCard(ThemeData theme, BusinessProfile profile) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(15),
         border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
         boxShadow: [
           BoxShadow(
@@ -218,32 +190,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 15),
           Text(
             widget.isViewer ? 'Bahadar Transport & Crane Services' : profile.businessName,
             style: const TextStyle(
               color: AppTheme.deepNavyBlue,
-              fontSize: 22,
+              fontSize: 18,
               fontWeight: FontWeight.w900,
             ),
             textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppTheme.deepNavyBlue.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Text(
-              'OFFICIAL ENTERPRISE',
-              style: TextStyle(
-                color: AppTheme.deepNavyBlue,
-                fontWeight: FontWeight.w900,
-                fontSize: 11,
-                letterSpacing: 1.5,
-              ),
-            ),
           ),
         ],
       ),
@@ -252,16 +207,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   Widget _buildReadOnlyField(String label, TextEditingController controller, IconData icon, {int maxLines = 1}) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          Icon(icon, color: AppTheme.deepNavyBlue.withValues(alpha: 0.7), size: 22),
+          Icon(icon, color: AppTheme.primaryNavy.withValues(alpha: 0.7), size: 20),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -270,7 +225,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 Text(
                   label.toUpperCase(),
                   style: TextStyle(
-                    color: AppTheme.deepNavyBlue.withValues(alpha: 0.5),
+                    color: AppTheme.primaryNavy.withValues(alpha: 0.5),
                     fontSize: 10,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 0.5,
@@ -280,51 +235,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   controller.text,
                   style: const TextStyle(
                     color: AppTheme.deepNavyBlue,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
                   ),
                   maxLines: maxLines,
                   overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLogoSection(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.2), style: BorderStyle.solid),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: AppTheme.deepNavyBlue.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.verified_user_rounded, color: AppTheme.deepNavyBlue),
-          ),
-          const SizedBox(width: 20),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Verified Business Logo',
-                  style: TextStyle(color: AppTheme.deepNavyBlue, fontWeight: FontWeight.w900),
-                ),
-                Text(
-                  'This asset is used for official PDF reports',
-                  style: TextStyle(color: AppTheme.deepNavyBlue, fontSize: 11, fontWeight: FontWeight.w600),
                 ),
               ],
             ),

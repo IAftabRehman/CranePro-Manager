@@ -9,7 +9,8 @@ class CraneInput extends StatelessWidget {
   final bool obscureText;
   final TextInputType keyboardType;
   final String? Function(String?)? validator;
-  final int maxLines;
+  final int? maxLines;
+  final int? minLines;
   final Iterable<String>? autofillHints;
   final Widget? prefixIcon;
   final Widget? suffixIcon;
@@ -28,6 +29,7 @@ class CraneInput extends StatelessWidget {
     this.keyboardType = TextInputType.text,
     this.validator,
     this.maxLines = 1,
+    this.minLines,
     this.autofillHints,
     this.prefixIcon,
     this.suffixIcon,
@@ -50,6 +52,7 @@ class CraneInput extends StatelessWidget {
       keyboardType: keyboardType,
       validator: validator,
       maxLines: maxLines,
+      minLines: minLines,
       autofillHints: autofillHints,
       initialValue: initialValue,
       onChanged: onChanged,

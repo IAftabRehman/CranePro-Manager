@@ -54,7 +54,7 @@ class _EarningsReportPageState extends ConsumerState<EarningsReportPage> {
 
     return PremiumScaffold(
       appBar: AppBar(
-        title: const Text('Earnings & Analytics', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('Earnings & Analytics', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -71,7 +71,7 @@ class _EarningsReportPageState extends ConsumerState<EarningsReportPage> {
                 physics: const BouncingScrollPhysics(),
                 padding: EdgeInsets.symmetric(
                   horizontal: Responsive.scale(context, 16).clamp(16.0, 32.0),
-                  vertical: 24,
+                  vertical: 15,
                 ),
                 child: Center(
                   child: ConstrainedBox(
@@ -80,13 +80,13 @@ class _EarningsReportPageState extends ConsumerState<EarningsReportPage> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _buildDateRangeHeader(theme),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 15),
                         _buildPieChartCard(theme, isTablet, report),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 15),
                         _buildBarChartCard(theme, isTablet, report),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 15),
                         _buildSummaryGrid(theme, screenWidth, report),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 15),
                       ],
                     ),
                   ),
@@ -107,11 +107,11 @@ class _EarningsReportPageState extends ConsumerState<EarningsReportPage> {
     final dateStr = '${DateFormat('dd MMM').format(_fromDate)} - ${DateFormat('dd MMM').format(_toDate)}';
     
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -129,11 +129,10 @@ class _EarningsReportPageState extends ConsumerState<EarningsReportPage> {
               ),
             ],
           ),
-          TextButton.icon(
+          TextButton(
             onPressed: _selectDateRange,
-            icon: const Icon(Icons.edit, size: 18),
-            label: const Text('Change'),
             style: TextButton.styleFrom(foregroundColor: theme.colorScheme.secondary),
+            child: const Text('Change'),
           ),
         ],
       ),
@@ -150,7 +149,7 @@ class _EarningsReportPageState extends ConsumerState<EarningsReportPage> {
       child: PieChart(
         PieChartData(
           sectionsSpace: 4,
-          centerSpaceRadius: 40,
+          centerSpaceRadius: 50,
           sections: [
             PieChartSectionData(
               value: netPercent,
@@ -185,15 +184,15 @@ class _EarningsReportPageState extends ConsumerState<EarningsReportPage> {
       elevation: 0,
       color: Colors.white.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+        borderRadius: BorderRadius.circular(10),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.5)),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(15.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Earnings Distribution', style: theme.textTheme.displayLarge?.copyWith(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
+            Text('Earnings Distribution', style: theme.textTheme.displayLarge?.copyWith(fontSize: 15, color: Colors.white, fontWeight: FontWeight.bold)),
             const SizedBox(height: 24),
             isTablet
                 ? Row(
@@ -227,25 +226,23 @@ class _EarningsReportPageState extends ConsumerState<EarningsReportPage> {
   }
 
   Widget _buildBarChartCard(ThemeData theme, bool isTablet, OperatorEarningsReport report) {
-    // Determine max Y for scaling
     double maxAmount = 100.0;
     for (var p in report.weeklyGrowth) {
       if (p.amount > maxAmount) maxAmount = p.amount;
     }
 
     return Card(
-      elevation: 0,
       color: Colors.white.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+        borderRadius: BorderRadius.circular(10),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.5)),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(15.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Weekly Growth Analysis', style: theme.textTheme.displayLarge?.copyWith(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
+            Text('Weekly Growth Analysis', style: theme.textTheme.displayLarge?.copyWith(fontSize: 15, color: Colors.white, fontWeight: FontWeight.bold)),
             const SizedBox(height: 32),
             AspectRatio(
               aspectRatio: isTablet ? 2.5 : 1.7,
@@ -315,14 +312,24 @@ class _EarningsReportPageState extends ConsumerState<EarningsReportPage> {
 
   Widget _buildSummaryGrid(ThemeData theme, double width, OperatorEarningsReport report) {
     final tiles = [
-      _buildSummaryTile('Quotation Income', 'AED ${report.quotationIncome.toStringAsFixed(0)}', Colors.white, theme),
-      _buildSummaryTile('Direct Work Income', 'AED ${report.directWorkIncome.toStringAsFixed(0)}', Colors.white, theme),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildSummaryTile('Quotation Income', 'AED ${report.quotationIncome.toStringAsFixed(0)}', Colors.white, theme),
+          _buildSummaryTile('Direct Work Income', 'AED ${report.directWorkIncome.toStringAsFixed(0)}', Colors.white, theme),
+        ],
+      ),
       const Divider(color: Colors.white10),
-      _buildSummaryTile('Partner Commission', '(-) AED ${report.partnerCommission.toStringAsFixed(0)}', Colors.redAccent, theme),
-      _buildSummaryTile('Fuel Expenses', '(-) AED ${report.fuelExpenses.toStringAsFixed(0)}', Colors.orangeAccent, theme),
-      _buildSummaryTile('Maintenance Costs', '(-) AED ${report.maintenanceExpenses.toStringAsFixed(0)}', Colors.orangeAccent, theme),
-      const Divider(color: Colors.white24, thickness: 1.5, height: 32),
-      _buildSummaryTile('ESTIMATED NET PROFIT', 'AED ${report.netProfit.toStringAsFixed(0)}', Colors.green, theme, isBold: true, fontSize: 22),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildSummaryTile('Partner Commission', '(-) AED ${report.partnerCommission.toStringAsFixed(0)}', Colors.redAccent, theme),
+          _buildSummaryTile('Maintenance Costs', '(-) AED ${report.maintenanceExpenses.toStringAsFixed(0)}', Colors.orangeAccent, theme),
+        ],
+      ),
+
+      const Divider(color: Colors.white24, thickness: 1.5, height: 20),
+      _buildSummaryTile('Estimated Net Profit', 'AED ${report.netProfit.toStringAsFixed(0)}', Colors.green, theme, isBold: true, fontSize: 22),
     ];
 
     if (width > 600) {
@@ -340,12 +347,12 @@ class _EarningsReportPageState extends ConsumerState<EarningsReportPage> {
     return Column(children: tiles.map((t) => Padding(padding: const EdgeInsets.only(bottom: 12), child: t)).toList());
   }
 
-  Widget _buildSummaryTile(String label, String value, Color color, ThemeData theme, {bool isBold = false, double fontSize = 16}) {
+  Widget _buildSummaryTile(String label, String value, Color color, ThemeData theme, {bool isBold = false, double fontSize = 14}) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(

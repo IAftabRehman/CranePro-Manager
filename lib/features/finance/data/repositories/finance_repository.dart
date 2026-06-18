@@ -71,40 +71,77 @@ class FinanceRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   /// TASK 1 (Step 20-13): Aggregates real-time financial data for Admin Dashboard.
+  /// Optimized: Streams a single metadata document, falling back to aggregate initialization if not present.
   Stream<FinancialSummary> getFinancialSummaryStream() {
-    final revenueStream = _firestore.collection('quotations').snapshots();
-    final expenseStream = _firestore.collection('expenses').snapshots();
+    return _firestore
+        .collection('metadata')
+        .doc('financials')
+        .snapshots()
+        .asyncMap((doc) async {
+      if (!doc.exists ||
+          doc.data() == null ||
+          !doc.data()!.containsKey('totalRevenue') ||
+          !doc.data()!.containsKey('totalExpenses')) {
+        return await _initializeFinancialsMetadata();
+      }
 
-    return Rx.combineLatest2<QuerySnapshot, QuerySnapshot, FinancialSummary>(
-      revenueStream,
-      expenseStream,
-      (revenueSnap, expenseSnap) {
-        double revenue = 0.0;
-        double expenses = 0.0;
-        final Map<String, double> breakdown = {};
+      final data = doc.data()!;
+      final breakdownMap = (data['categoryBreakdown'] as Map<String, dynamic>?) ?? {};
+      final Map<String, double> breakdown = {};
+      breakdownMap.forEach((k, v) {
+        breakdown[k] = (v as num).toDouble();
+      });
 
-        for (var doc in revenueSnap.docs) {
-          final data = doc.data() as Map<String, dynamic>;
-          revenue += (data['totalAmount'] as num?)?.toDouble() ?? 0.0;
-        }
+      final revenue = (data['totalRevenue'] as num?)?.toDouble() ?? 0.0;
+      final expenses = (data['totalExpenses'] as num?)?.toDouble() ?? 0.0;
 
-        for (var doc in expenseSnap.docs) {
-          final data = doc.data() as Map<String, dynamic>;
-          final amount = (data['amount'] as num?)?.toDouble() ?? 0.0;
-          final category = data['category']?.toString() ?? 'Other';
-          
-          expenses += amount;
-          breakdown[category] = (breakdown[category] ?? 0.0) + amount;
-        }
+      return FinancialSummary(
+        totalRevenue: revenue,
+        totalExpenses: expenses,
+        netProfit: revenue - expenses,
+        categoryBreakdown: breakdown,
+      );
+    });
+  }
 
-        return FinancialSummary(
-          totalRevenue: revenue,
-          totalExpenses: expenses,
-          netProfit: revenue - expenses,
-          categoryBreakdown: breakdown,
-        );
-      },
+  /// Initial calculation and saving of financial metadata.
+  Future<FinancialSummary> _initializeFinancialsMetadata() async {
+    final quotations = await _firestore.collection('quotations').get();
+    final expenses = await _firestore.collection('expenses').get();
+
+    double totalRevenue = 0.0;
+    double totalExpenses = 0.0;
+    final Map<String, double> breakdown = {};
+
+    for (var doc in quotations.docs) {
+      final data = doc.data();
+      totalRevenue += (data['totalAmount'] as num?)?.toDouble() ?? 0.0;
+    }
+
+    for (var doc in expenses.docs) {
+      final data = doc.data();
+      final amount = (data['amount'] as num?)?.toDouble() ?? 0.0;
+      final category = data['category']?.toString() ?? 'Other';
+
+      totalExpenses += amount;
+      breakdown[category] = (breakdown[category] ?? 0.0) + amount;
+    }
+
+    final summary = FinancialSummary(
+      totalRevenue: totalRevenue,
+      totalExpenses: totalExpenses,
+      netProfit: totalRevenue - totalExpenses,
+      categoryBreakdown: breakdown,
     );
+
+    await _firestore.collection('metadata').doc('financials').set({
+      'totalRevenue': totalRevenue,
+      'totalExpenses': totalExpenses,
+      'categoryBreakdown': breakdown,
+      'initializedAt': FieldValue.serverTimestamp(),
+    });
+
+    return summary;
   }
 
   /// TASK 2: Saves an expense to Firestore 'expenses' collection.
@@ -112,6 +149,12 @@ class FinanceRepository {
     await FirebaseCrashlytics.instance.log("Action: addExpense - Category: ${expense.category}");
     try {
       await _firestore.collection('expenses').add(expense.toMap());
+
+      // Incremental update for financial summary metadata
+      await _firestore.collection('metadata').doc('financials').set({
+        'totalExpenses': FieldValue.increment(expense.amount),
+        'categoryBreakdown.${expense.category}': FieldValue.increment(expense.amount),
+      }, SetOptions(merge: true));
       
       await FirebaseAnalytics.instance.logEvent(
         name: 'expense_added',
@@ -137,6 +180,18 @@ class FinanceRepository {
     return _firestore
         .collection('expenses')
         .orderBy('date', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ExpenseModel.fromMap(doc.data(), docId: doc.id))
+            .toList());
+  }
+
+  /// Optimized: Real-time stream of recent expenses with limit for dashboard view.
+  Stream<List<ExpenseModel>> getRecentExpensesStream(int limit) {
+    return _firestore
+        .collection('expenses')
+        .orderBy('date', descending: true)
+        .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => ExpenseModel.fromMap(doc.data(), docId: doc.id))
@@ -257,11 +312,15 @@ class FinanceRepository {
     final quotationStream = _firestore
         .collection('quotations')
         .where('operatorId', isEqualTo: uid)
+        .orderBy('createdAt', descending: true)
+        .limit(5)
         .snapshots();
         
     final expenseStream = _firestore
         .collection('expenses')
         .where('operatorId', isEqualTo: uid)
+        .orderBy('date', descending: true)
+        .limit(5)
         .snapshots();
 
     return Rx.combineLatest2<QuerySnapshot, QuerySnapshot, List<dynamic>>(
@@ -342,17 +401,23 @@ class FinanceRepository {
         .collection('quotations')
         .where('operatorId', isEqualTo: uid)
         .where('status', isEqualTo: 'completed')
+        .where('updatedAt', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+        .where('updatedAt', isLessThanOrEqualTo: Timestamp.fromDate(end))
         .snapshots();
 
     final workStream = _firestore
         .collection('work_orders')
         .where('operatorId', isEqualTo: uid)
         .where('status', isEqualTo: 'completed')
+        .where('updatedAt', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+        .where('updatedAt', isLessThanOrEqualTo: Timestamp.fromDate(end))
         .snapshots();
 
     final expenseStream = _firestore
         .collection('expenses')
         .where('operatorId', isEqualTo: uid)
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+        .where('date', isLessThanOrEqualTo: Timestamp.fromDate(end))
         .snapshots();
 
     return Rx.combineLatest3<QuerySnapshot, QuerySnapshot, QuerySnapshot, OperatorEarningsReport>(
@@ -448,6 +513,10 @@ final financialSummaryProvider = StreamProvider<FinancialSummary>((ref) {
 
 final allExpensesProvider = StreamProvider<List<ExpenseModel>>((ref) {
   return ref.watch(financeRepositoryProvider).getAllExpensesStream();
+});
+
+final recentExpensesProvider = StreamProvider.family<List<ExpenseModel>, int>((ref, limit) {
+  return ref.watch(financeRepositoryProvider).getRecentExpensesStream(limit);
 });
 
 final operatorStatsProvider = StreamProvider.family<OperatorStats, String>((ref, uid) {

@@ -315,7 +315,7 @@ class AdminFinancialDashboard extends ConsumerWidget {
   }
 
   Widget _buildRecentTransactionsSection(WidgetRef ref) {
-    final expensesAsync = ref.watch(allExpensesProvider);
+    final expensesAsync = ref.watch(recentExpensesProvider(10));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

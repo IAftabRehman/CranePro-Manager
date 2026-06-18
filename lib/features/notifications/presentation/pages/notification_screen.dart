@@ -68,7 +68,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
     return PremiumScaffold(
       appBar: AppBar(
-        title: const Text('Work Update Center', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('Work Update Center', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -141,11 +141,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           color: Colors.amber.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.pending_actions_rounded, color: Colors.amber, size: 20),
+                        child: const Icon(Icons.pending_actions_rounded, color: Colors.amber, size: 15),
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'PENDING QUOTATION',
+                        'Pending Quotation',
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: Colors.amber,
                           fontWeight: FontWeight.w900,
@@ -156,35 +156,35 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   ),
                   Text(
                     item.timeAgo,
-                    style: theme.textTheme.labelSmall?.copyWith(color: Colors.white38),
+                    style: theme.textTheme.labelSmall?.copyWith(color: Colors.deepOrange),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 15),
               Text(
                 item.clientName,
-                style: theme.textTheme.displayLarge?.copyWith(
-                  fontSize: 18,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
               const SizedBox(height: 4),
               Row(
                 children: [
-                  const Icon(Icons.location_on_outlined, color: Colors.white38, size: 14),
+                  const Icon(Icons.location_on_outlined, color: Colors.white70, size: 13),
                   const SizedBox(width: 4),
                   Text(
                     item.location,
-                    style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white60),
+                    style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Logic to update status
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Update status for ${item.clientName}')),
                     );
@@ -192,10 +192,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.amber,
                     foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
-                  child: const Text('UPDATE STATUS', style: TextStyle(fontWeight: FontWeight.w900)),
+                  child: const Text('Update Status', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
                 ),
               ),
             ],

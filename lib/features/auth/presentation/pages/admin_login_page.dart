@@ -43,6 +43,8 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
               .doc(user.uid)
               .get();
 
+          if (!mounted) return;
+
           if (!userDoc.exists || userDoc.data()?['role'] != 'admin') {
             // Not an admin!
             await FirebaseAuth.instance.signOut();

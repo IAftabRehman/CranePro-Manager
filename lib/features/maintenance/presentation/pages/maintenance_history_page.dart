@@ -17,12 +17,12 @@ class MaintenanceHistoryPage extends ConsumerWidget {
     return PremiumScaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 15,),
           onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MainDashboard()))
         ),
         title: const Text(
           'Maintenance History',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -41,19 +41,18 @@ class MaintenanceHistoryPage extends ConsumerWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // Monthly Summary Card (Higher Priority for Viewer role)
             Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(15.0),
               child: Container(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [Colors.redAccent.withValues(alpha: 0.2), Colors.amber.withValues(alpha: 0.2)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white10),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.white38),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -63,14 +62,14 @@ class MaintenanceHistoryPage extends ConsumerWidget {
                       children: [
                         const Text(
                           'Total crane expenses',
-                          style: TextStyle(color: Colors.white70, fontSize: 13),
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'AED ${monthlyTotal.toStringAsFixed(2)}',
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 28,
+                            fontSize: 20,
                             fontWeight: FontWeight.w900,
                           ),
                         ),
@@ -86,7 +85,7 @@ class MaintenanceHistoryPage extends ConsumerWidget {
                         color: Colors.redAccent.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.analytics_outlined, color: Colors.white, size: 32),
+                      child: const Icon(Icons.analytics_outlined, color: Colors.white, size: 30),
                     ),
                   ],
                 ),
@@ -94,7 +93,7 @@ class MaintenanceHistoryPage extends ConsumerWidget {
             ),
             
             const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24.0),
+              padding: EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(
                 children: [
                   Icon(Icons.history, color: Colors.white70, size: 20),
@@ -117,7 +116,7 @@ class MaintenanceHistoryPage extends ConsumerWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.build_circle_outlined, color: Colors.white24, size: 64),
+                          Icon(Icons.build_circle_outlined, color: Colors.white24, size: 50),
                           SizedBox(height: 16),
                           Text('No maintenance entries found.', style: TextStyle(color: Colors.white38)),
                         ],
@@ -125,60 +124,57 @@ class MaintenanceHistoryPage extends ConsumerWidget {
                     );
                   }
                   return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
                     itemCount: entries.length,
                     itemBuilder: (context, index) {
                       final entry = entries[index];
                       return Container(
-                        margin: const EdgeInsets.only(bottom: 16),
+                        margin: const EdgeInsets.only(bottom: 10),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.05),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
                         ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.all(16),
-                          leading: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.05),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.build_circle_outlined, color: Colors.white),
-                          ),
-                          title: Text(
-                            entry.description,
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Column(
+                        child: Container(
+                          padding: const EdgeInsets.all(15),
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const SizedBox(height: 4),
                               Text(
-                                DateFormat('dd MMM yyyy').format(entry.date),
-                                style: const TextStyle(color: Colors.white54, fontSize: 12),
+                                entry.description,
+                                style: const TextStyle(color: Colors.white, fontSize: 15),
                               ),
-                              const SizedBox(height: 4),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: Colors.amber.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  entry.category,
-                                  style: const TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold),
-                                ),
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  Text(
+                                    DateFormat('dd MMM yyyy').format(entry.date),
+                                    style: const TextStyle(color: Colors.blue, fontSize: 12),
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    'AED ${entry.amount.toStringAsFixed(0)}',
+                                    style: const TextStyle(
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
                               ),
+                              // const SizedBox(height: 4),
+                              // Container(
+                              //   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              //   decoration: BoxDecoration(
+                              //     color: Colors.amber.withValues(alpha: 0.1),
+                              //     borderRadius: BorderRadius.circular(4),
+                              //   ),
+                              //   child: Text(
+                              //     entry.category,
+                              //     style: const TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold),
+                              //   ),
+                              // ),
                             ],
-                          ),
-                          trailing: Text(
-                            'AED ${entry.amount.toStringAsFixed(0)}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 16,
-                            ),
                           ),
                         ),
                       );

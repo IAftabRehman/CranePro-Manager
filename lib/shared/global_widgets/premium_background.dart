@@ -31,6 +31,7 @@ class PremiumScaffold extends StatelessWidget {
   final Widget? drawer;
   final Widget? bottomNavigationBar;
   final Widget? floatingActionButton;
+  final FloatingActionButtonLocation? floatingActionButtonLocation;
 
   const PremiumScaffold({
     super.key,
@@ -39,6 +40,7 @@ class PremiumScaffold extends StatelessWidget {
     this.drawer,
     this.bottomNavigationBar,
     this.floatingActionButton,
+    this.floatingActionButtonLocation,
   });
 
   @override
@@ -54,6 +56,7 @@ class PremiumScaffold extends StatelessWidget {
         body: body,
         bottomNavigationBar: bottomNavigationBar,
         floatingActionButton: floatingActionButton,
+        floatingActionButtonLocation: floatingActionButtonLocation,
       ),
     );
   }

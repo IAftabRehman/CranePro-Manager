@@ -137,10 +137,17 @@ class CustomDrawer extends StatelessWidget {
               return;
           }
 
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => destination),
-          );
+          if (title == 'Dashboard') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => destination),
+            );
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => destination),
+            );
+          }
         },
         leading: Icon(
           icon,
@@ -166,7 +173,11 @@ class CustomDrawer extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       child: ListTile(
         onTap: () {
-           Navigator.push(context, MaterialPageRoute(builder: (context) => RoleSelectionPage()));
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const RoleSelectionPage()),
+            (route) => false,
+          );
         },
         leading: const Icon(Icons.logout, color: Colors.redAccent),
         title: const Text(

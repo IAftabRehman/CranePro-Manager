@@ -184,5 +184,5 @@ class QuotationModel {
     );
   }
 
-  double get totalPrice => entries.fold(0.0, (sum, item) => sum + item.price);
+  double get totalPrice => entries.fold(0.0, (acc, item) => acc + item.price);
 }

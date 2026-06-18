@@ -114,7 +114,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                         Text(
                           'REGISTERING AS: ${widget.roleTitle.toUpperCase()}',
                           style: const TextStyle(
-                            color:  const Color(0xFFFFB300),
+                            color:  Color(0xFFFFB300),
                             fontWeight: FontWeight.w800,
                             letterSpacing: 0.5,
                             fontSize: 12,

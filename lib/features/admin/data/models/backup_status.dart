@@ -5,12 +5,14 @@ class BackupStatus {
   final String fileSize;
   final bool isSuccess;
   final String backupType; // 'Manual' or 'Auto'
+  final String snapshotId;
 
   const BackupStatus({
     required this.lastBackupDate,
     required this.fileSize,
     required this.isSuccess,
     required this.backupType,
+    required this.snapshotId,
   });
 
   Map<String, dynamic> toMap() {
@@ -19,6 +21,7 @@ class BackupStatus {
       'fileSize': fileSize,
       'isSuccess': isSuccess,
       'backupType': backupType,
+      'snapshotId': snapshotId,
     };
   }
 
@@ -28,6 +31,7 @@ class BackupStatus {
       fileSize: map['fileSize'] ?? '0 KB',
       isSuccess: map['isSuccess'] ?? false,
       backupType: map['backupType'] ?? 'Manual',
+      snapshotId: map['snapshotId'] ?? '',
     );
   }
 }

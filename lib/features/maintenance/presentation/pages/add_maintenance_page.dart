@@ -119,12 +119,12 @@ class _AddMaintenancePageState extends ConsumerState<AddMaintenancePage> {
     return PremiumScaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20,),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Add Maintenance',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -138,23 +138,6 @@ class _AddMaintenancePageState extends ConsumerState<AddMaintenancePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 10),
-                
-                // Header Icon
-                Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.amber.withValues(alpha: 0.1)),
-                    ),
-                    child: const Icon(Icons.build_circle_rounded, color: Colors.amber, size: 50),
-                  ),
-                ),
-                const SizedBox(height: 32),
-
-                // Amount Field
                 const Text(
                   'Amount in AED',
                   style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 14),
@@ -167,14 +150,14 @@ class _AddMaintenancePageState extends ConsumerState<AddMaintenancePage> {
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.1),
                         borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(12),
-                          bottomLeft: Radius.circular(12),
+                          topLeft: Radius.circular(8),
+                          bottomLeft: Radius.circular(8),
                         ),
                         border: Border.all(color: Colors.white12),
                       ),
                       child: const Text(
                         'AED',
-                        style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 16),
+                        style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 13),
                       ),
                     ),
                     Expanded(
@@ -194,7 +177,7 @@ class _AddMaintenancePageState extends ConsumerState<AddMaintenancePage> {
                   'Description / Reason',
                   style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 14),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 CraneInput(
                   controller: _reasonController,
                   hintText: 'e.g. Engine Oil Change, Tyre Repair',
@@ -208,7 +191,7 @@ class _AddMaintenancePageState extends ConsumerState<AddMaintenancePage> {
                   'Date (Auto-filled)',
                   style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 14),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 InkWell(
                   onTap: () => _selectDate(context),
                   child: IgnorePointer(
@@ -220,7 +203,7 @@ class _AddMaintenancePageState extends ConsumerState<AddMaintenancePage> {
                   ),
                 ),
                 
-                const SizedBox(height: 48),
+                const SizedBox(height: 28),
 
                 // Save Button
                 CraneButton(
@@ -230,7 +213,7 @@ class _AddMaintenancePageState extends ConsumerState<AddMaintenancePage> {
                   isLoading: _isSaving || !userAsync.hasValue,
                 ),
                 
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
                 Center(
                   child: TextButton(
                     onPressed: () => Navigator.pop(context),

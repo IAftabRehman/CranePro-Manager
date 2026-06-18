@@ -17,6 +17,11 @@ class QuotationRepository {
       quotationMap['updatedAt'] = FieldValue.serverTimestamp();
       
       await _firestore.collection('quotations').add(quotationMap);
+
+      // Incremental update for financial summary metadata
+      await _firestore.collection('metadata').doc('financials').set({
+        'totalRevenue': FieldValue.increment(quotation.totalAmount),
+      }, SetOptions(merge: true));
       
       await FirebaseAnalytics.instance.logEvent(
         name: 'quotation_created',

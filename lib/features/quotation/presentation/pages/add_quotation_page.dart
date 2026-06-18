@@ -179,7 +179,7 @@ class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
 
     return PremiumScaffold(
       appBar: AppBar(
-        title: const Text("Quotation Generator", style: TextStyle(fontWeight: FontWeight.bold),),
+        title: const Text("Quotation Generator", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),),
         centerTitle: true,
         backgroundColor: Colors.blue.withAlpha(41),
         elevation: 10,
@@ -192,7 +192,7 @@ class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                   child: Center(
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 800),
@@ -226,18 +226,18 @@ class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
                               );
                             },
                           ),
+
                           const SizedBox(height: 16),
                           TextButton.icon(
                             onPressed: _addEntry,
-                            icon: const Icon(Icons.add_circle, size: 24),
+                            icon: const Icon(Icons.add_circle, size: 20),
                             label: const Text('Add Another Services', style: TextStyle(fontWeight: FontWeight.bold)),
                             style: TextButton.styleFrom(
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15)
+                                borderRadius: BorderRadius.circular(8)
                               ),
                               backgroundColor: theme.colorScheme.secondary,
                               foregroundColor: theme.colorScheme.primary,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
                             ),
                           ),
 
@@ -248,13 +248,13 @@ class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
                             hintText: 'Advance Paid (AED)',
                             keyboardType: TextInputType.number,
                             prefixIcon: const Icon(Icons.payments_outlined, size: 20),
-                            onChanged: (val) => setState(() {}), // Trigger total update
+                            onChanged: (val) => setState(() {}),
                           ),
 
-                          const SizedBox(height: 50),
+                          const SizedBox(height: 40),
                           const _SectionLabel('Terms and Conditions'),
                           Container(
-                            padding: const EdgeInsets.all(20),
+                            padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.05),
                               borderRadius: BorderRadius.circular(16),
@@ -262,37 +262,28 @@ class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
                             ),
                             child: Column(
                               children: [
-                                Row(
-                                  children: [
-                                    const Icon(Icons.description_outlined, color: Colors.white70, size: 24),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text('${_terms.length} Terms Added', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
-                                          Text('Click below to edit or add more points.', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12)),
-                                        ],
-                                      ),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('${_terms.length} Terms Added', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
+                                        Text('Click below to edit or add more points.', style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 12)),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                                const Divider(height: 32, color: Colors.white10),
+                                const SizedBox(height: 10),
                                 ElevatedButton(
                                   onPressed: _navigateToTerms,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.white.withValues(alpha: 0.05),
+                                    backgroundColor: Colors.red.withValues(alpha: 0.5),
                                     foregroundColor: Colors.white,
-                                    elevation: 0,
-                                    minimumSize: const Size(double.infinity, 48),
+                                    minimumSize: const Size(double.infinity, 40),
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
                                   ),
-                                  child: const Text('Manage Terms and Conditions', style: TextStyle(fontWeight: FontWeight.w400, fontSize: 15, letterSpacing: 0.2, wordSpacing: 2)),
+                                  child: const Text('Manage Terms and Conditions', style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12, letterSpacing: 0.2, wordSpacing: 2), textAlign: TextAlign.center,),
                                 ),
                               ],
                             ),
                           ),
-
+                          const Divider(height: 32, color: Colors.white),
                           const SizedBox(height: 40),
                           Container(
                             padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 18),
@@ -379,11 +370,11 @@ class _ServiceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(top: 20),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
         boxShadow: [
           BoxShadow(color: Colors.blue.withValues(alpha: 0.07), blurRadius: 10, offset: const Offset(7, 7)),
@@ -396,11 +387,11 @@ class _ServiceCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Entry No. ${index + 1}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 1.0)),
-              IconButton(onPressed: onRemove, icon: const Icon(Icons.delete_forever_outlined, color: Colors.redAccent, size: 26)),
+              IconButton(onPressed: onRemove, icon: const Icon(Icons.delete_forever_outlined, color: Colors.redAccent, size: 20)),
             ],
           ),
-          const Divider(color: Colors.white10),
-          const SizedBox(height: 12),
+          const Divider(color: Colors.white38),
+          const SizedBox(height: 10),
           
           const _FieldLabel('Service Type'),
           CraneInput(
@@ -418,7 +409,7 @@ class _ServiceCard extends StatelessWidget {
           const SizedBox(height: 20),
           const _FieldLabel('Price (AED)'),
           CraneInput(
-            hintText: '0.00',
+            hintText: 'AED 0.00',
             prefixText: 'AED ',
             keyboardType: TextInputType.number,
             onChanged: onPriceChanged,
@@ -432,7 +423,7 @@ class _ServiceCard extends StatelessWidget {
           ),
           
           const SizedBox(height: 20),
-          const _FieldLabel('Starting Date'),
+          const _FieldLabel('Working Date'),
           InkWell(
             onTap: onDateTap,
             child: Container(
