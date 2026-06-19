@@ -52,6 +52,7 @@ class QuotationModel {
   final double totalAmount;
   final double advancePaid;
   final double balanceAmount;
+  final double commission;
   final String status;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -74,6 +75,7 @@ class QuotationModel {
     required this.totalAmount,
     this.advancePaid = 0.0,
     required this.balanceAmount,
+    this.commission = 0.0,
     this.status = 'pending',
     required this.createdAt,
     required this.updatedAt,
@@ -96,6 +98,7 @@ class QuotationModel {
       'totalAmount': totalAmount,
       'advancePaid': advancePaid,
       'balanceAmount': totalAmount - advancePaid,
+      'commission': commission,
       'status': status,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
@@ -112,6 +115,7 @@ class QuotationModel {
   factory QuotationModel.fromMap(Map<String, dynamic> map, {String? docId}) {
     final double total = double.parse((map['totalAmount'] ?? 0.0).toString());
     final double advance = double.parse((map['advancePaid'] ?? 0.0).toString());
+    final double comm = double.parse((map['commission'] ?? 0.0).toString());
 
     return QuotationModel(
       id: docId ?? map['id'] ?? '',
@@ -122,6 +126,7 @@ class QuotationModel {
       totalAmount: total,
       advancePaid: advance,
       balanceAmount: total - advance,
+      commission: comm,
       status: map['status'] ?? 'pending',
       createdAt: map['createdAt'] is Timestamp 
           ? (map['createdAt'] as Timestamp).toDate() 
@@ -149,6 +154,7 @@ class QuotationModel {
     String? serviceType,
     double? totalAmount,
     double? advancePaid,
+    double? commission,
     String? status,
     DateTime? updatedAt,
     DateTime? workDate,
@@ -171,6 +177,7 @@ class QuotationModel {
       totalAmount: newTotal,
       advancePaid: newAdvance,
       balanceAmount: newTotal - newAdvance,
+      commission: commission ?? this.commission,
       status: status ?? this.status,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -185,4 +192,35 @@ class QuotationModel {
   }
 
   double get totalPrice => entries.fold(0.0, (acc, item) => acc + item.price);
+
+  bool get shouldShowAlert {
+    int durationDays = 1;
+    if (entries.isNotEmpty) {
+      final durStr = entries.first.duration.toLowerCase();
+      if (durStr.contains('3 day')) {
+        durationDays = 3;
+      } else if (durStr.contains('2 day')) {
+        durationDays = 2;
+      } else if (durStr.contains('1 day')) {
+        durationDays = 1;
+      } else {
+        final match = RegExp(r'(\d+)\s*day').firstMatch(durStr);
+        if (match != null) {
+          durationDays = int.tryParse(match.group(1) ?? '') ?? 1;
+        }
+      }
+    }
+
+    int thresholdHours = 10;
+    if (durationDays == 3) {
+      thresholdHours = 40;
+    } else if (durationDays == 2) {
+      thresholdHours = 20;
+    } else {
+      thresholdHours = 10;
+    }
+
+    final elapsedHours = DateTime.now().difference(workDate).inHours;
+    return elapsedHours >= thresholdHours;
+  }
 }

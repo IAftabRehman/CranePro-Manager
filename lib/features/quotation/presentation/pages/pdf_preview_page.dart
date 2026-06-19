@@ -9,6 +9,10 @@ import 'package:extend_crane_services/core/utils/responsive.dart';
 import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
 import 'package:extend_crane_services/features/quotation/data/models/quotation_model.dart';
 import 'package:extend_crane_services/features/settings/presentation/providers/business_profile_provider.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:path_provider/path_provider.dart';
+import 'dart:io' show File;
+import 'package:extend_crane_services/core/utils/file_saver.dart' as fs;
 
 class PdfPreviewPage extends ConsumerStatefulWidget {
   final QuotationModel data;
@@ -20,8 +24,6 @@ class PdfPreviewPage extends ConsumerStatefulWidget {
 }
 
 class _PdfPreviewPageState extends ConsumerState<PdfPreviewPage> {
-  bool _includeSignature = false;
-
   Future<Uint8List> _generatePdf(PdfPageFormat format) async {
     final pdf = pw.Document();
     final profile = ref.read(businessProfileProvider);
@@ -298,58 +300,6 @@ class _PdfPreviewPageState extends ConsumerState<PdfPreviewPage> {
     return pdf.save();
   }
 
-  void _showShareSheet() {
-    final theme = Theme.of(context);
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) {
-        return Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Share Quotation via',
-                style: theme.textTheme.displayLarge?.copyWith(fontSize: 18),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildShareIcon(Icons.message, 'WhatsApp', Colors.green),
-                  _buildShareIcon(Icons.email, 'Email', Colors.blue),
-                  _buildShareIcon(Icons.link, 'Copy Link', Colors.grey[700]!),
-                ],
-              ),
-              const SizedBox(height: 24),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildShareIcon(IconData icon, String label, Color color) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        CircleAvatar(
-          radius: 28,
-          backgroundColor: color.withValues(alpha: 0.1),
-          child: Icon(icon, color: color, size: 28),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -367,40 +317,6 @@ class _PdfPreviewPageState extends ConsumerState<PdfPreviewPage> {
       ),
       body: Column(
         children: [
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: Responsive.scale(context, 16).clamp(16.0, 32.0),
-              vertical: 8,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
-              border: Border(
-                bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Include Digital Signature',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                Switch(
-                  value: _includeSignature,
-                  activeTrackColor: theme.colorScheme.secondary,
-                  onChanged: (val) {
-                    setState(() {
-                      _includeSignature = val;
-                    });
-                  },
-                ),
-              ],
-            ),
-          ),
-
           Expanded(
             child: Container(
               color: Colors.transparent,
@@ -434,15 +350,100 @@ class _PdfPreviewPageState extends ConsumerState<PdfPreviewPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildActionButton(Icons.download, 'Save', theme),
+              _buildActionButton(
+                Icons.download,
+                'Save',
+                theme,
+                onTap: () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  try {
+                    final pdfBytes = await _generatePdf(PdfPageFormat.a4);
+                    final filename = 'Quotation_${widget.data.clientName.replaceAll(" ", "_")}.pdf';
+                    if (kIsWeb) {
+                      await fs.saveFileWeb(pdfBytes, filename);
+                      if (mounted) {
+                        messenger.showSnackBar(
+                          const SnackBar(
+                            content: Text('Download started successfully!'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    } else {
+                      final directory = await getApplicationDocumentsDirectory();
+                      final file = File('${directory.path}/$filename');
+                      await file.writeAsBytes(pdfBytes);
+                      if (mounted) {
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text('Saved to Documents: ${file.path}'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      messenger.showSnackBar(
+                        SnackBar(
+                          content: Text('Error saving PDF: $e'),
+                          backgroundColor: Colors.redAccent,
+                        ),
+                      );
+                    }
+                  }
+                },
+              ),
               _buildActionButton(
                 Icons.share,
                 'Share',
                 theme,
                 isPrimary: true,
-                onTap: _showShareSheet,
+                onTap: () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  try {
+                    final pdfBytes = await _generatePdf(PdfPageFormat.a4);
+                    final filename = 'Quotation_${widget.data.clientName.replaceAll(" ", "_")}.pdf';
+                    await Printing.sharePdf(
+                      bytes: pdfBytes,
+                      filename: filename,
+                    );
+                  } catch (e) {
+                    if (mounted) {
+                      messenger.showSnackBar(
+                        SnackBar(
+                          content: Text('Error sharing PDF: $e'),
+                          backgroundColor: Colors.redAccent,
+                        ),
+                      );
+                    }
+                  }
+                },
               ),
-              _buildActionButton(Icons.print, 'Print', theme),
+              _buildActionButton(
+                Icons.print,
+                'Print',
+                theme,
+                onTap: () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  try {
+                    final pdfBytes = await _generatePdf(PdfPageFormat.a4);
+                    await Printing.layoutPdf(
+                      onLayout: (PdfPageFormat format) async => pdfBytes,
+                      name: 'Quotation_${widget.data.clientName.replaceAll(" ", "_")}',
+                    );
+                  } catch (e) {
+                    if (mounted) {
+                      messenger.showSnackBar(
+                        SnackBar(
+                          content: Text('Error printing PDF: $e'),
+                          backgroundColor: Colors.redAccent,
+                        ),
+                      );
+                    }
+                  }
+                },
+              ),
             ],
           ),
         ),

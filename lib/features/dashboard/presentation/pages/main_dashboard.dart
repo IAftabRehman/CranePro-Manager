@@ -4,6 +4,7 @@ import 'package:extend_crane_services/features/operations/presentation/widgets/d
 import '../../../../core/themes/app_theme.dart';
 import '../../../quotation/data/models/quotation_model.dart';
 import 'package:extend_crane_services/features/quotation/presentation/pages/add_quotation_page.dart';
+import 'package:extend_crane_services/features/quotation/presentation/pages/quotation_history_page.dart';
 import 'package:extend_crane_services/features/maintenance/presentation/pages/maintenance_history_page.dart';
 import 'package:extend_crane_services/features/reports/presentation/pages/earnings_report_page.dart';
 import 'package:extend_crane_services/features/notifications/presentation/pages/notification_screen.dart';
@@ -177,65 +178,86 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
             ],
           ),
           actions: [
-            Column(
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              childAspectRatio: 2.2, // Perfect rectangle ratio text visibility ke liye
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
               children: [
-                Row(
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text(
-                        'Still Pending',
-                        style: TextStyle(color: Colors.white38),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () async {
-                        await ref
-                            .read(quotationRepositoryProvider)
-                            .updateQuotationStatus(quotation.id, 'cancelled');
-                        if (context.mounted) Navigator.pop(context);
-                      },
-                      child: const Text(
-                        'Cancel Job',
-                        style: TextStyle(color: Colors.orangeAccent),
-                      ),
-                    ),
-                  ],
+                // Button 1: Pending
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange.shade700,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    padding: const EdgeInsets.symmetric(horizontal: 4), // Text ko side margins se bachaega
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    'Pending',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: 0.5),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-                Row(
-                  children: [
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.greenAccent,
-                      ),
-                      onPressed: () async {
-                        await ref
-                            .read(quotationRepositoryProvider)
-                            .updateQuotationStatus(quotation.id, 'completed');
-                        if (context.mounted) Navigator.pop(context);
-                      },
 
-                      child: const Text(
-                        'Complete Job',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Text(
-                        'Back to Screen',
-                        style: TextStyle(color: Colors.orangeAccent),
-                      ),
-                    ),
-                  ],
+                // Button 2: Cancel
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.shade700,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                  ),
+                  onPressed: () async {
+                    await ref.read(quotationRepositoryProvider).updateQuotationStatus(quotation.id, 'cancelled');
+                    if (context.mounted) Navigator.pop(context);
+                  },
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: 0.5),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+
+                // Button 3: Completed
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green.shade700,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                  ),
+                  onPressed: () async {
+                    await ref.read(quotationRepositoryProvider).updateQuotationStatus(quotation.id, 'completed');
+                    if (context.mounted) Navigator.pop(context);
+                  },
+                  child: const Text(
+                    'Completed',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: 0.5),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+
+                // Button 4: Back to Screen
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueGrey.shade600,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    'Back to Screen',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: 0.2), // Chota size taake word break na ho
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ],
-            ),
+            )
+
           ],
         ),
       ),
@@ -917,6 +939,7 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
             '${stats.totalQuotes}',
             Icons.request_quote,
             Colors.blue,
+            const QuotationHistoryPage(),
           ),
           _buildSummaryCard(
             context,

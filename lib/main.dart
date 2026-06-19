@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/themes/app_theme.dart';
-import 'features/auth/presentation/widgets/auth_wrapper.dart';
+import 'package:extend_crane_services/features/auth/presentation/pages/splash_screen_page.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -67,7 +67,7 @@ class CraneProManagerApp extends StatelessWidget {
       title: 'CranePro Manager',
       themeMode: ThemeMode.light,
       theme: AppTheme.lightTheme,
-      home: const AuthWrapper(),
+      home: const SplashScreenPage(),
       debugShowCheckedModeBanner: false,
     );
   }

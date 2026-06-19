@@ -1,107 +1,164 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
+import 'package:timeago/timeago.dart' as timeago;
+import '../../../auth/presentation/controllers/login_notifier.dart';
+import '../providers/notification_providers.dart';
+import '../../data/models/notification_model.dart';
 
-class NotificationItem {
-  final String id;
-  final String clientName;
-  final String location;
-  final String timeAgo;
-  final bool isPendingQuotation;
-  bool isRead;
-
-  NotificationItem({
-    required this.id,
-    required this.clientName,
-    required this.location,
-    required this.timeAgo,
-    this.isPendingQuotation = true,
-    this.isRead = false,
-  });
-}
-
-class NotificationScreen extends StatefulWidget {
+class NotificationScreen extends ConsumerStatefulWidget {
   const NotificationScreen({super.key});
 
   @override
-  State<NotificationScreen> createState() => _NotificationScreenState();
+  ConsumerState<NotificationScreen> createState() => _NotificationScreenState();
 }
 
-class _NotificationScreenState extends State<NotificationScreen> {
-  final List<NotificationItem> _notifications = [
-    NotificationItem(
-      id: '1',
-      clientName: 'Emaar Constructions',
-      location: 'Downtown Dubai',
-      timeAgo: '2m ago',
-    ),
-    NotificationItem(
-      id: '2',
-      clientName: 'Al-Nakheel Group',
-      location: 'Palm Jumeirah',
-      timeAgo: '1h ago',
-    ),
-    NotificationItem(
-      id: '3',
-      clientName: 'Binladin Contracting',
-      location: 'Jeddah Tower',
-      timeAgo: '5h ago',
-    ),
-  ];
-
-  void _markAllAsRead() {
-    setState(() {
-      for (var n in _notifications) {
-        n.isRead = true;
-      }
-    });
-  }
-
-  void _removeNotification(String id) {
-    setState(() {
-      _notifications.removeWhere((n) => n.id == id);
-    });
-  }
-
+class _NotificationScreenState extends ConsumerState<NotificationScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final userAsync = ref.watch(currentUserProvider);
 
     return PremiumScaffold(
       appBar: AppBar(
-        title: const Text('Work Update Center', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+        title: const Text(
+          'Work Update Center',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 15,
+          ),
+        ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        actions: [
-          if (_notifications.isNotEmpty)
-            IconButton(
-              onPressed: _markAllAsRead,
-              icon: const Icon(Icons.done_all, color: Colors.amber),
-              tooltip: 'Mark as read',
-            ),
-        ],
       ),
-      body: _notifications.isEmpty
-          ? _buildEmptyState(theme)
-          : Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 700),
-                child: ListView.separated(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-                  itemCount: _notifications.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 16),
-                  itemBuilder: (context, index) {
-                    final item = _notifications[index];
-                    return _buildNotificationTile(context, item, theme);
-                  },
-                ),
+      body: userAsync.when(
+        data: (user) {
+          if (user == null) {
+            return const Center(child: Text('User session ended.'));
+          }
+
+          final notificationsAsync = ref.watch(
+            notificationsStreamProvider((user.id, user.role)),
+          );
+
+          return notificationsAsync.when(
+            data: (notifications) {
+              final unreadNotifications = notifications.where(
+                (n) => !n.readBy.contains(user.id),
+              ).toList();
+
+              return Scaffold(
+                backgroundColor: Colors.transparent,
+                appBar: unreadNotifications.isNotEmpty
+                    ? AppBar(
+                        automaticallyImplyLeading: false,
+                        backgroundColor: Colors.transparent,
+                        elevation: 0,
+                        toolbarHeight: 40,
+                        actions: [
+                          TextButton.icon(
+                            onPressed: () {
+                              final unreadIds = unreadNotifications
+                                  .map((n) => n.id)
+                                  .toList();
+                              ref
+                                  .read(notificationRepositoryProvider)
+                                  .markAllAsRead(unreadIds, user.id);
+                            },
+                            icon: const Icon(
+                              Icons.done_all,
+                              color: Colors.amber,
+                              size: 18,
+                            ),
+                            label: const Text(
+                              'Mark all as read',
+                              style: TextStyle(
+                                color: Colors.amber,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                        ],
+                      )
+                    : null,
+                body: notifications.isEmpty
+                    ? _buildEmptyState(theme)
+                    : Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 700),
+                          child: ListView.separated(
+                            physics: const BouncingScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16,
+                              horizontal: 16,
+                            ),
+                            itemCount: notifications.length,
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(height: 16),
+                            itemBuilder: (context, index) {
+                              final item = notifications[index];
+                              return _buildNotificationTile(
+                                context,
+                                item,
+                                user.id,
+                                theme,
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+              );
+            },
+            loading: () => const Center(
+              child: CircularProgressIndicator(color: Colors.amber),
+            ),
+            error: (err, _) => Center(
+              child: Text(
+                'Error: $err',
+                style: const TextStyle(color: Colors.redAccent),
               ),
             ),
+          );
+        },
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: Colors.amber),
+        ),
+        error: (err, _) => Center(
+          child: Text(
+            'Error: $err',
+            style: const TextStyle(color: Colors.redAccent),
+          ),
+        ),
+      ),
     );
   }
 
-  Widget _buildNotificationTile(BuildContext context, NotificationItem item, ThemeData theme) {
+  Widget _buildNotificationTile(
+    BuildContext context,
+    NotificationModel item,
+    String currentUserId,
+    ThemeData theme,
+  ) {
+    final isRead = item.readBy.contains(currentUserId);
+    final titleLower = item.title.toLowerCase();
+
+    IconData iconData = Icons.notifications_active_outlined;
+    Color iconColor = Colors.blueAccent;
+
+    if (titleLower.contains('complete') || titleLower.contains('approved')) {
+      iconData = Icons.check_circle_outline_rounded;
+      iconColor = Colors.green;
+    } else if (titleLower.contains('cancel') || titleLower.contains('block') || titleLower.contains('reject')) {
+      iconData = Icons.cancel_outlined;
+      iconColor = Colors.redAccent;
+    } else if (titleLower.contains('pending') || titleLower.contains('new')) {
+      iconData = Icons.pending_actions_rounded;
+      iconColor = Colors.amber;
+    }
+
     return Dismissible(
       key: Key(item.id),
       direction: DismissDirection.endToStart,
@@ -112,93 +169,98 @@ class _NotificationScreenState extends State<NotificationScreen> {
         ),
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: const Icon(Icons.delete_sweep_outlined, color: Colors.redAccent, size: 28),
+        child: const Icon(
+          Icons.delete_sweep_outlined,
+          color: Colors.redAccent,
+          size: 28,
+        ),
       ),
-      onDismissed: (_) => _removeNotification(item.id),
+      onDismissed: (_) {
+        ref
+            .read(notificationRepositoryProvider)
+            .dismissNotification(item.id, currentUserId);
+      },
       child: Card(
         elevation: 0,
         color: Colors.white.withValues(alpha: 0.05),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(
-            color: item.isRead ? Colors.white10 : Colors.amber.withValues(alpha: 0.3),
+            color: isRead
+                ? Colors.white10
+                : Colors.amber.withValues(alpha: 0.3),
             width: 1.5,
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.withValues(alpha: 0.1),
-                          shape: BoxShape.circle,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            if (!isRead) {
+              ref
+                  .read(notificationRepositoryProvider)
+                  .markAsRead(item.id, currentUserId);
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: iconColor.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(iconData, color: iconColor, size: 15),
                         ),
-                        child: const Icon(Icons.pending_actions_rounded, color: Colors.amber, size: 15),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Pending Quotation',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: Colors.amber,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1.2,
+                        const SizedBox(width: 12),
+                        Text(
+                          item.title.toUpperCase(),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: iconColor,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.2,
+                          ),
                         ),
+                      ],
+                    ),
+                    Text(
+                      timeago.format(item.createdAt),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: Colors.deepOrange,
                       ),
-                    ],
-                  ),
-                  Text(
-                    item.timeAgo,
-                    style: theme.textTheme.labelSmall?.copyWith(color: Colors.deepOrange),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 15),
-              Text(
-                item.clientName,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  const Icon(Icons.location_on_outlined, color: Colors.white70, size: 13),
-                  const SizedBox(width: 4),
-                  Text(
-                    item.location,
-                    style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70),
+                const SizedBox(height: 15),
+                Text(
+                  item.body,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.white,
+                    height: 1.4,
                   ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Update status for ${item.clientName}')),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amber,
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                  ),
-                  child: const Text('Update Status', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
                 ),
-              ),
-            ],
+                const SizedBox(height: 10),
+                if (!isRead)
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      'Tap to mark as read',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: Colors.white38,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -225,11 +287,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
           const SizedBox(height: 24),
           Text(
             'All clear!',
-            style: theme.textTheme.displayLarge?.copyWith(fontSize: 22, color: Colors.white),
+            style: theme.textTheme.displayLarge?.copyWith(
+              fontSize: 22,
+              color: Colors.white,
+            ),
           ),
           const SizedBox(height: 8),
           const Text(
-            'No pending work updates at the moment.',
+            'No notifications at the moment.',
             style: TextStyle(color: Colors.white38),
           ),
         ],
@@ -237,4 +302,3 @@ class _NotificationScreenState extends State<NotificationScreen> {
     );
   }
 }
-

@@ -33,6 +33,17 @@ class AdminRepository {
       'isAdminApproved': true,
       'rejectionReason': FieldValue.delete(),
     });
+
+    try {
+      await _firestore.collection('notifications').add({
+        'title': 'Account Approved',
+        'body': 'Your account has been approved by the admin. Welcome aboard!',
+        'createdAt': FieldValue.serverTimestamp(),
+        'targetUserId': userId,
+        'readBy': [],
+        'dismissedBy': [],
+      });
+    } catch (_) {}
   }
 
   /// Rejects a user with a specific reason.
@@ -41,6 +52,17 @@ class AdminRepository {
       'isAdminApproved': false,
       'rejectionReason': reason,
     });
+
+    try {
+      await _firestore.collection('notifications').add({
+        'title': 'Account Request Rejected',
+        'body': 'Your account request was rejected by the admin. Reason: $reason',
+        'createdAt': FieldValue.serverTimestamp(),
+        'targetUserId': userId,
+        'readBy': [],
+        'dismissedBy': [],
+      });
+    } catch (_) {}
   }
 
   /// Toggles the block status of a user.
@@ -48,6 +70,19 @@ class AdminRepository {
     await _firestore.collection('users').doc(uid).update({
       'isBlocked': blockStatus,
     });
+
+    try {
+      await _firestore.collection('notifications').add({
+        'title': blockStatus ? 'Account Blocked' : 'Account Unblocked',
+        'body': blockStatus
+            ? 'Your account has been blocked by the admin.'
+            : 'Your account has been unblocked by the admin.',
+        'createdAt': FieldValue.serverTimestamp(),
+        'targetUserId': uid,
+        'readBy': [],
+        'dismissedBy': [],
+      });
+    } catch (_) {}
   }
 
   /// Updates user status, approval, and role in a single operation.
@@ -71,6 +106,19 @@ class AdminRepository {
         parameters: {'user_id': uid, 'assigned_role': role},
       );
     }
+
+    try {
+      await _firestore.collection('notifications').add({
+        'title': isApproved ? 'Profile Approved' : 'Profile Updated',
+        'body': isApproved
+            ? 'Your profile has been approved. You are now assigned the $role role.'
+            : 'Your profile has been updated and is currently pending admin approval.',
+        'createdAt': FieldValue.serverTimestamp(),
+        'targetUserId': uid,
+        'readBy': [],
+        'dismissedBy': [],
+      });
+    } catch (_) {}
   }
 
   /// Returns a real-time stream of all activity logs.

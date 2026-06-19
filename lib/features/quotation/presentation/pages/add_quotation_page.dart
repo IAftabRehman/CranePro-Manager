@@ -19,6 +19,7 @@ class AddQuotationPage extends ConsumerStatefulWidget {
 class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
   final _clientController = TextEditingController();
   final _advancePaidController = TextEditingController();
+  final _commissionController = TextEditingController();
   final List<String> _terms = ['Diesel will be provided by client', '10-12 Hours shift duty'];
   final List<QuotationServiceEntry> _entries = [
     QuotationServiceEntry(
@@ -35,6 +36,7 @@ class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
   void dispose() {
     _clientController.dispose();
     _advancePaidController.dispose();
+    _commissionController.dispose();
     super.dispose();
   }
 
@@ -126,6 +128,7 @@ class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
         totalAmount: total,
         advancePaid: advance,
         balanceAmount: total - advance,
+        commission: double.tryParse(_commissionController.text) ?? 0.0,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
         workDate: _entries.isNotEmpty ? _entries.first.startDate : DateTime.now(),
@@ -246,6 +249,14 @@ class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
                           CraneInput(
                             controller: _advancePaidController,
                             hintText: 'Advance Paid (AED)',
+                            keyboardType: TextInputType.number,
+                            prefixIcon: const Icon(Icons.payments_outlined, size: 20),
+                            onChanged: (val) => setState(() {}),
+                          ),
+                          const SizedBox(height: 20),
+                          CraneInput(
+                            controller: _commissionController,
+                            hintText: 'Commission (AED)',
                             keyboardType: TextInputType.number,
                             prefixIcon: const Icon(Icons.payments_outlined, size: 20),
                             onChanged: (val) => setState(() {}),

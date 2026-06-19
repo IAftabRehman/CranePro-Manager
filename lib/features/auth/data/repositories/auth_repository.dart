@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import '../models/user_model.dart';
 import 'user_repository.dart';
 import 'dart:developer';
@@ -21,11 +22,20 @@ class AuthRepository {
       );
 
       if (credential.user != null) {
+        // Collect FCM token during signup
+        String? fcmToken;
+        try {
+          fcmToken = await FirebaseMessaging.instance.getToken();
+        } catch (e) {
+          log("Error collecting FCM token during signUp: $e");
+        }
+
         // 2. Use the returned User.uid to set 'user.id'
         final finalUser = user.copyWith(
           id: credential.user!.uid,
           isAdminApproved: false,
           createdAt: DateTime.now(),
+          fcmToken: fcmToken,
         );
 
         // 3. Call FirebaseFirestore.instance.collection('users').doc(user.id).set(user.toMap())

@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../data/models/user_model.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/user_repository.dart';
@@ -39,6 +41,19 @@ class LoginNotifier extends StateNotifier<AsyncValue<void>> {
       if (user.isBlocked) {
         await _authRepository.signOut();
         throw Exception("Your account is blocked. Contact Admin.");
+      }
+
+      // Try to update FCM token during login
+      try {
+        final token = await FirebaseMessaging.instance.getToken();
+        if (token != null) {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.id)
+              .update({'fcmToken': token});
+        }
+      } catch (e) {
+        log("Error updating FCM token during login: $e");
       }
 
       state = const AsyncValue.data(null);

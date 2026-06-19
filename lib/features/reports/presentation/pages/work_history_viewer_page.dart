@@ -81,11 +81,15 @@ class _WorkHistoryViewerPageState extends ConsumerState<WorkHistoryViewerPage> {
               // Calculate total profit dynamically
               double totalProfit = 0.0;
               for (final q in completedQuotations) {
-                final isOwnCrane = !q.serviceType.toLowerCase().contains('commission') &&
-                    !q.serviceType.toLowerCase().contains('outsourced') &&
-                    !q.serviceType.toLowerCase().contains('partner');
-                final deduction = isOwnCrane ? q.totalAmount * 0.10 : q.totalAmount * 0.85;
-                totalProfit += (q.totalAmount - deduction);
+                if (q.commission > 0.0) {
+                  totalProfit += q.commission;
+                } else {
+                  final isOwnCrane = !q.serviceType.toLowerCase().contains('commission') &&
+                      !q.serviceType.toLowerCase().contains('outsourced') &&
+                      !q.serviceType.toLowerCase().contains('partner');
+                  final deduction = isOwnCrane ? q.totalAmount * 0.10 : q.totalAmount * 0.85;
+                  totalProfit += (q.totalAmount - deduction);
+                }
               }
 
               final currencyFormatter = NumberFormat.currency(symbol: 'AED ', decimalDigits: 0);
@@ -132,7 +136,9 @@ class _WorkHistoryViewerPageState extends ConsumerState<WorkHistoryViewerPage> {
                             final isOwnCrane = !q.serviceType.toLowerCase().contains('commission') &&
                                 !q.serviceType.toLowerCase().contains('outsourced') &&
                                 !q.serviceType.toLowerCase().contains('partner');
-                            final deduction = isOwnCrane ? q.totalAmount * 0.10 : q.totalAmount * 0.85;
+                            final deduction = q.commission > 0.0
+                                ? (q.totalAmount - q.commission)
+                                : (isOwnCrane ? q.totalAmount * 0.10 : q.totalAmount * 0.85);
                             final deductionLabel = isOwnCrane ? 'Fuel Cost' : 'Outsourced Cost';
 
                             return _buildHistoryCard(

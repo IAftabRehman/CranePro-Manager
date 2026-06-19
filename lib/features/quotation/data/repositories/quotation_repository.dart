@@ -18,10 +18,12 @@ class QuotationRepository {
       
       await _firestore.collection('quotations').add(quotationMap);
 
-      // Incremental update for financial summary metadata
-      await _firestore.collection('metadata').doc('financials').set({
-        'totalRevenue': FieldValue.increment(quotation.totalAmount),
-      }, SetOptions(merge: true));
+      // Incremental update for financial summary metadata (only if completed)
+      if (quotation.status.toLowerCase() == 'completed') {
+        await _firestore.collection('metadata').doc('financials').set({
+          'totalRevenue': FieldValue.increment(quotation.commission),
+        }, SetOptions(merge: true));
+      }
       
       await FirebaseAnalytics.instance.logEvent(
         name: 'quotation_created',
@@ -30,6 +32,39 @@ class QuotationRepository {
           'total_amount': quotation.totalAmount,
         },
       );
+
+      // Write notification triggers for admin and viewer roles
+      try {
+        String operatorName = "Operator";
+        final opDoc = await _firestore.collection('users').doc(quotation.operatorId).get();
+        if (opDoc.exists) {
+          operatorName = opDoc.data()?['fullName'] ?? "Operator";
+        }
+
+        final title = "New Quotation Generated";
+        final body = "$operatorName generated a new pending quotation of AED ${quotation.totalAmount} for ${quotation.clientName} at ${quotation.siteLocation}.";
+        final now = DateTime.now();
+
+        await _firestore.collection('notifications').add({
+          'title': title,
+          'body': body,
+          'createdAt': Timestamp.fromDate(now),
+          'targetRole': 'admin',
+          'readBy': [],
+          'dismissedBy': [],
+        });
+
+        await _firestore.collection('notifications').add({
+          'title': title,
+          'body': body,
+          'createdAt': Timestamp.fromDate(now),
+          'targetRole': 'viewer',
+          'readBy': [],
+          'dismissedBy': [],
+        });
+      } catch (notifErr) {
+        FirebaseCrashlytics.instance.log("Failed to write creation notification: $notifErr");
+      }
     } catch (e, stack) {
       FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Failed to create quotation');
       rethrow;
@@ -101,25 +136,81 @@ class QuotationRepository {
         .collection('quotations')
         .where('operatorId', isEqualTo: uid)
         .where('status', isEqualTo: 'pending')
-        .orderBy('createdAt', descending: false)
-        .limit(1)
         .snapshots()
         .map((snapshot) {
-      if (snapshot.docs.isEmpty) return null;
-      return QuotationModel.fromMap(
-        snapshot.docs.first.data(),
-        docId: snapshot.docs.first.id,
-      );
+      final quotations = snapshot.docs.map((doc) => QuotationModel.fromMap(doc.data(), docId: doc.id)).toList();
+      quotations.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      for (final q in quotations) {
+        if (q.shouldShowAlert) {
+          return q;
+        }
+      }
+      return null;
     });
   }
 
   /// NEW: Update the status of a specific quotation document.
   Future<void> updateQuotationStatus(String docId, String status) async {
     try {
+      final doc = await _firestore.collection('quotations').doc(docId).get();
+      if (!doc.exists) return;
+      final data = doc.data()!;
+      final oldStatus = (data['status'] ?? 'pending').toString().toLowerCase();
+      final commission = (data['commission'] as num?)?.toDouble() ?? (data['totalAmount'] as num?)?.toDouble() ?? 0.0;
+      final operatorId = data['operatorId'] ?? '';
+
       await _firestore.collection('quotations').doc(docId).update({
         'status': status,
         'updatedAt': FieldValue.serverTimestamp(),
       });
+
+      final newStatus = status.toLowerCase();
+      if (oldStatus != 'completed' && newStatus == 'completed') {
+        await _firestore.collection('metadata').doc('financials').set({
+          'totalRevenue': FieldValue.increment(commission),
+        }, SetOptions(merge: true));
+      } else if (oldStatus == 'completed' && newStatus != 'completed') {
+        await _firestore.collection('metadata').doc('financials').set({
+          'totalRevenue': FieldValue.increment(-commission),
+        }, SetOptions(merge: true));
+      }
+
+      // Trigger status update notifications
+      if (oldStatus != newStatus) {
+        try {
+          String operatorName = "Operator";
+          final opDoc = await _firestore.collection('users').doc(operatorId).get();
+          if (opDoc.exists) {
+            operatorName = opDoc.data()?['fullName'] ?? "Operator";
+          }
+
+          final clientName = data['clientName'] ?? 'N/A';
+          final siteLocation = data['siteLocation'] ?? 'N/A';
+          final title = newStatus == 'completed' ? 'Project Completed' : 'Project Status Update';
+          final body = "$operatorName marked the quotation for $clientName at $siteLocation as $newStatus.";
+          final now = DateTime.now();
+
+          await _firestore.collection('notifications').add({
+            'title': title,
+            'body': body,
+            'createdAt': Timestamp.fromDate(now),
+            'targetRole': 'admin',
+            'readBy': [],
+            'dismissedBy': [],
+          });
+
+          await _firestore.collection('notifications').add({
+            'title': title,
+            'body': body,
+            'createdAt': Timestamp.fromDate(now),
+            'targetRole': 'viewer',
+            'readBy': [],
+            'dismissedBy': [],
+          });
+        } catch (notifErr) {
+          FirebaseCrashlytics.instance.log("Failed to write status notification: $notifErr");
+        }
+      }
     } catch (e, stack) {
       FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Failed to update quotation status');
       rethrow;

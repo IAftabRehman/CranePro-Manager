@@ -115,7 +115,10 @@ class FinanceRepository {
 
     for (var doc in quotations.docs) {
       final data = doc.data();
-      totalRevenue += (data['totalAmount'] as num?)?.toDouble() ?? 0.0;
+      final status = (data['status'] ?? 'pending').toString().toLowerCase();
+      if (status == 'completed') {
+        totalRevenue += (data['commission'] as num?)?.toDouble() ?? (data['totalAmount'] as num?)?.toDouble() ?? 0.0;
+      }
     }
 
     for (var doc in expenses.docs) {
@@ -204,8 +207,11 @@ class FinanceRepository {
       final snapshot = await _firestore.collection('quotations').get();
       double total = 0;
       for (var doc in snapshot.docs) {
-        // Ensuring type safety with cast to Double
-        total += (doc.data()['totalAmount'] as num?)?.toDouble() ?? 0.0;
+        final data = doc.data();
+        final status = (data['status'] ?? 'pending').toString().toLowerCase();
+        if (status == 'completed') {
+          total += (data['commission'] as num?)?.toDouble() ?? (data['totalAmount'] as num?)?.toDouble() ?? 0.0;
+        }
       }
       return total;
     } on FirebaseException catch (e) {
@@ -281,7 +287,7 @@ class FinanceRepository {
           
           // Earnings are counted only when the job is completed
           if (status == 'completed') {
-            revenue += (data['totalAmount'] as num?)?.toDouble() ?? 0.0;
+            revenue += (data['commission'] as num?)?.toDouble() ?? (data['totalAmount'] as num?)?.toDouble() ?? 0.0;
           }
           
           if (status == 'pending' || status == 'in progress') {
@@ -344,7 +350,7 @@ class FinanceRepository {
            list.add({
              'type': 'job',
              'description': data['clientName'] ?? 'Crane Job',
-             'amount': (data['totalAmount'] as num?)?.toDouble() ?? 0.0,
+             'amount': (data['commission'] as num?)?.toDouble() ?? (data['totalAmount'] as num?)?.toDouble() ?? 0.0,
              'date': createdAt is Timestamp ? createdAt.toDate() : DateTime.now(),
            });
         }
@@ -445,7 +451,7 @@ class FinanceRepository {
         // 1. Process Quotations
         for (var doc in quoteSnap.docs) {
           final data = doc.data() as Map<String, dynamic>;
-          final amount = (data['totalAmount'] as num?)?.toDouble() ?? 0.0;
+          final amount = (data['commission'] as num?)?.toDouble() ?? (data['totalAmount'] as num?)?.toDouble() ?? 0.0;
           final date = (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now();
           
           if (date.isAfter(start) && date.isBefore(end)) {
@@ -487,8 +493,8 @@ class FinanceRepository {
         }
 
         final totalIncome = quoteIncome + workIncome;
-        final commission = totalIncome * 0.15; // 15% Partner Commission by default
-        final totalExp = maintenance + fuel + otherExpenses + commission;
+        final partnerComm = workIncome * 0.15; // 15% Partner Commission only on Direct Work Income
+        final totalExp = maintenance + fuel + otherExpenses + partnerComm;
 
         // Build 7-day chart data
         final List<ChartDataPoint> growthPoints = [];
@@ -504,7 +510,7 @@ class FinanceRepository {
           maintenanceExpenses: maintenance,
           fuelExpenses: fuel,
           totalExpenses: totalExp,
-          partnerCommission: commission,
+          partnerCommission: partnerComm,
           netProfit: totalIncome - totalExp,
           weeklyGrowth: growthPoints,
         );
