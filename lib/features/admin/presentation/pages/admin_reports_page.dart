@@ -44,110 +44,202 @@ class AdminReportsPage extends ConsumerWidget {
     final dateRange = ref.watch(reportDateRangeProvider);
     final statusFilter = ref.watch(reportStatusFilterProvider);
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
-        border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  onChanged: (val) => ref.read(reportSearchQueryProvider.notifier).state = val,
-                  decoration: InputDecoration(
-                    hintText: 'Search client, crane, or category...',
-                    prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                    filled: true,
-                    fillColor: Colors.white.withValues(alpha: 0.1),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 900;
+        if (isWide) {
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1200),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.05),
+                  border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+                ),
+                child: Row(
+                  children: [
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 400),
+                      child: TextField(
+                        onChanged: (val) => ref.read(reportSearchQueryProvider.notifier).state = val,
+                        decoration: InputDecoration(
+                          hintText: 'Search client, crane, or category...',
+                          prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                          filled: true,
+                          fillColor: Colors.white.withValues(alpha: 0.1),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                        ),
+                        style: const TextStyle(color: Colors.white),
+                      ),
                     ),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                  ),
-                  style: const TextStyle(color: Colors.white),
+                    const SizedBox(width: 24),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          onPressed: () => _pickDateRange(context, ref, dateRange),
+                          icon: Icon(
+                            Icons.calendar_month,
+                            color: dateRange != null ? AppTheme.lavenderPrimary : Colors.white,
+                          ),
+                          tooltip: 'Select Date Range',
+                        ),
+                        if (dateRange != null) ...[
+                          const SizedBox(width: 4),
+                          Chip(
+                            label: Text(
+                              '${DateFormat('MMM d').format(dateRange.start)} - ${DateFormat('MMM d').format(dateRange.end)}',
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            onDeleted: () => ref.read(reportDateRangeProvider.notifier).state = null,
+                            backgroundColor: AppTheme.lavenderPrimary.withValues(alpha: 0.2),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const Spacer(),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: ['All', 'Pending', 'Completed', 'Cancelled'].map((status) {
+                        final isSelected = statusFilter == status;
+                        return Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: ChoiceChip(
+                            label: Text(status),
+                            selected: isSelected,
+                            onSelected: (val) {
+                              if (val) ref.read(reportStatusFilterProvider.notifier).state = status;
+                            },
+                            selectedColor: AppTheme.bluePrimary,
+                            backgroundColor: Colors.white.withValues(alpha: 0.1),
+                            labelStyle: TextStyle(
+                              color: isSelected ? Colors.white : Colors.white70,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 8),
-              IconButton(
-                onPressed: () async {
-                  final picked = await showDateRangePicker(
-                    context: context,
-                    initialDateRange: dateRange,
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime.now().add(const Duration(days: 365)),
-                    builder: (context, child) {
-                      return Theme(
-                        data: Theme.of(context).copyWith(
-                          colorScheme: const ColorScheme.dark(
-                            primary: AppTheme.lavenderPrimary,
-                            onPrimary: Colors.white,
-                            surface: Color(0xFF1A1A2E),
-                            onSurface: Colors.white,
-                          ),
+            ),
+          );
+        }
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.05),
+            border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      onChanged: (val) => ref.read(reportSearchQueryProvider.notifier).state = val,
+                      decoration: InputDecoration(
+                        hintText: 'Search client, crane, or category...',
+                        prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                        filled: true,
+                        fillColor: Colors.white.withValues(alpha: 0.1),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
                         ),
-                        child: child!,
-                      );
-                    },
-                  );
-                  if (picked != null) {
-                    ref.read(reportDateRangeProvider.notifier).state = picked;
-                  }
-                },
-                icon: Icon(
-                  Icons.calendar_month,
-                  color: dateRange != null ? AppTheme.lavenderPrimary : Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                      ),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: () => _pickDateRange(context, ref, dateRange),
+                    icon: Icon(
+                      Icons.calendar_month,
+                      color: dateRange != null ? AppTheme.lavenderPrimary : Colors.white,
+                    ),
+                    tooltip: 'Select Date Range',
+                  ),
+                ],
+              ),
+              if (dateRange != null) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Chip(
+                      label: Text(
+                        '${DateFormat('MMM d').format(dateRange.start)} - ${DateFormat('MMM d').format(dateRange.end)}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      onDeleted: () => ref.read(reportDateRangeProvider.notifier).state = null,
+                      backgroundColor: AppTheme.lavenderPrimary.withValues(alpha: 0.2),
+                    ),
+                  ],
                 ),
-                tooltip: 'Select Date Range',
+              ],
+              const SizedBox(height: 12),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: ['All', 'Pending', 'Completed', 'Cancelled'].map((status) {
+                    final isSelected = statusFilter == status;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ChoiceChip(
+                        label: Text(status),
+                        selected: isSelected,
+                        onSelected: (val) {
+                          if (val) ref.read(reportStatusFilterProvider.notifier).state = status;
+                        },
+                        selectedColor: AppTheme.bluePrimary,
+                        backgroundColor: Colors.white.withValues(alpha: 0.1),
+                        labelStyle: TextStyle(
+                          color: isSelected ? Colors.white : Colors.white70,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
               ),
             ],
           ),
-          if (dateRange != null) ...[
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Chip(
-                  label: Text(
-                    '${DateFormat('MMM d').format(dateRange.start)} - ${DateFormat('MMM d').format(dateRange.end)}',
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                  onDeleted: () => ref.read(reportDateRangeProvider.notifier).state = null,
-                  backgroundColor: AppTheme.lavenderPrimary.withValues(alpha: 0.2),
-                ),
-              ],
-            ),
-          ],
-          const SizedBox(height: 12),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: ['All', 'Pending', 'Completed', 'Cancelled'].map((status) {
-                final isSelected = statusFilter == status;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(status),
-                    selected: isSelected,
-                    onSelected: (val) {
-                      if (val) ref.read(reportStatusFilterProvider.notifier).state = status;
-                    },
-                    selectedColor: AppTheme.bluePrimary,
-                    backgroundColor: Colors.white.withValues(alpha: 0.1),
-                    labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : Colors.white70,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    ),
-                  ),
-                );
-              }).toList(),
+        );
+      }
+    );
+  }
+
+  Future<void> _pickDateRange(BuildContext context, WidgetRef ref, DateTimeRange? dateRange) async {
+    final picked = await showDateRangePicker(
+      context: context,
+      initialDateRange: dateRange,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: AppTheme.lavenderPrimary,
+              onPrimary: Colors.white,
+              surface: Color(0xFF1A1A2E),
+              onSurface: Colors.white,
             ),
           ),
-        ],
-      ),
+          child: child!,
+        );
+      },
     );
+    if (picked != null) {
+      ref.read(reportDateRangeProvider.notifier).state = picked;
+    }
   }
 }
 
@@ -161,13 +253,40 @@ class _QuotationsReportList extends ConsumerWidget {
         if (list.isEmpty) {
           return const Center(child: Text('No matching quotations found.'));
         }
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: list.length,
-          itemBuilder: (context, index) {
-            final q = list[index];
-            return _QuotationReportCard(quotation: q);
-          },
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth >= 900;
+            if (isWide) {
+              return Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1200),
+                  child: GridView.builder(
+                    padding: const EdgeInsets.all(32),
+                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 350,
+                      mainAxisSpacing: 24,
+                      crossAxisSpacing: 24,
+                      childAspectRatio: 2.5,
+                    ),
+                    itemCount: list.length,
+                    itemBuilder: (context, index) {
+                      final q = list[index];
+                      return _QuotationReportCard(quotation: q);
+                    },
+                  ),
+                ),
+              );
+            } else {
+              return ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: list.length,
+                itemBuilder: (context, index) {
+                  final q = list[index];
+                  return _QuotationReportCard(quotation: q);
+                },
+              );
+            }
+          }
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -186,13 +305,40 @@ class _ExpensesReportList extends ConsumerWidget {
         if (list.isEmpty) {
           return const Center(child: Text('No matching expenses found.'));
         }
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: list.length,
-          itemBuilder: (context, index) {
-            final e = list[index];
-            return _ExpenseReportCard(expense: e);
-          },
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth >= 900;
+            if (isWide) {
+              return Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1200),
+                  child: GridView.builder(
+                    padding: const EdgeInsets.all(32),
+                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 350,
+                      mainAxisSpacing: 24,
+                      crossAxisSpacing: 24,
+                      childAspectRatio: 2.8,
+                    ),
+                    itemCount: list.length,
+                    itemBuilder: (context, index) {
+                      final e = list[index];
+                      return _ExpenseReportCard(expense: e);
+                    },
+                  ),
+                ),
+              );
+            } else {
+              return ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: list.length,
+                itemBuilder: (context, index) {
+                  final e = list[index];
+                  return _ExpenseReportCard(expense: e);
+                },
+              );
+            }
+          }
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),

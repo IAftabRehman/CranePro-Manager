@@ -4,12 +4,15 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
 import 'dart:developer' as dev;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class LocalNotificationService {
   static final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
   static Future<void> initialize() async {
+    if (kIsWeb) return; // Local notifications are not fully supported/needed on web here
+    
     tz.initializeTimeZones();
     
     const AndroidInitializationSettings initializationSettingsAndroid =
@@ -35,7 +38,7 @@ class LocalNotificationService {
     );
 
     // Create a high-priority channel for Android
-    if (Platform.isAndroid) {
+    if (!kIsWeb && Platform.isAndroid) {
       await _notificationsPlugin
           .resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>()
@@ -49,6 +52,8 @@ class LocalNotificationService {
   }
 
   static Future<void> showHighPriorityAlert(String clientName) async {
+    if (kIsWeb) return;
+
     const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       'pending_work_high_priority',
       'Urgent Pending Work',
@@ -70,6 +75,8 @@ class LocalNotificationService {
   }
 
   static Future<void> scheduleMidnightCheck(String clientName) async {
+    if (kIsWeb) return;
+
     final now = DateTime.now();
     // Schedule for 0:01 AM
     final scheduledTime = DateTime(now.year, now.month, now.day + 1, 0, 1);
@@ -78,7 +85,7 @@ class LocalNotificationService {
       // Android 12+ Safety Check for Exact Alarms
       AndroidScheduleMode scheduleMode = AndroidScheduleMode.exactAllowWhileIdle;
       
-      if (Platform.isAndroid) {
+      if (!kIsWeb && Platform.isAndroid) {
         final status = await Permission.scheduleExactAlarm.status;
         if (!status.isGranted) {
           dev.log('Exact Alarm permission not granted. Falling back to inexact scheduling.', name: 'NotificationService');

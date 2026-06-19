@@ -18,23 +18,42 @@ class AdminFinancialDashboard extends ConsumerWidget {
         onRefresh: () async => ref.refresh(financialSummaryProvider),
         color: AppTheme.accentGold,
         backgroundColor: AppTheme.primaryNavy,
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  _buildTopAnalyticsCards(summary, currencyFormatter),
-                  const SizedBox(height: 48),
-                  _buildExpenditureSection(context, summary),
-                  const SizedBox(height: 48),
-                  _buildRecentTransactionsSection(ref),
-                  const SizedBox(height: 48),
-                ]),
-              ),
-            ),
-          ],
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth >= 900;
+            return CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+              slivers: [
+                SliverPadding(
+                  padding: EdgeInsets.symmetric(horizontal: isWide ? 40 : 10, vertical: 20),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 1200),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildTopAnalyticsCards(summary, currencyFormatter, isWide),
+                              const SizedBox(height: 24),
+                              if (isWide)
+                                _buildWebDashboardBody(context, ref, summary)
+                              else ...[
+                                _buildExpenditureSection(context, summary),
+                                const SizedBox(height: 20),
+                                _buildRecentTransactionsSection(ref),
+                              ],
+                              const SizedBox(height: 20),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ]),
+                  ),
+                ),
+              ],
+            );
+          }
         ),
       ),
       loading: () => const Center(
@@ -49,7 +68,62 @@ class AdminFinancialDashboard extends ConsumerWidget {
     );
   }
 
-  Widget _buildTopAnalyticsCards(FinancialSummary summary, NumberFormat formatter) {
+  Widget _buildWebDashboardBody(BuildContext context, WidgetRef ref, FinancialSummary summary) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 5,
+          child: _buildExpenditureSection(context, summary),
+        ),
+        const SizedBox(width: 32),
+        Expanded(
+          flex: 5,
+          child: _buildRecentTransactionsSection(ref),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTopAnalyticsCards(FinancialSummary summary, NumberFormat formatter, bool isWide) {
+    if (isWide) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: _build3DFinancialCard(
+              'Total Revenue',
+              formatter.format(summary.totalRevenue).replaceFirst('AED ', ''),
+              Icons.account_balance_wallet_rounded,
+              null,
+              AppTheme.lavenderPrimary,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _build3DFinancialCard(
+              'Operational Cost',
+              formatter.format(summary.totalExpenses).replaceFirst('AED ', ''),
+              Icons.speed_rounded,
+              null,
+              const Color(0xFFFF5252), // Vibrant Red
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _build3DFinancialCard(
+              'NET BUSINESS PROFIT',
+              formatter.format(summary.netProfit).replaceFirst('AED ', ''),
+              Icons.trending_up_rounded,
+              null,
+              summary.netProfit >= 0 ? Colors.greenAccent : Colors.redAccent,
+              isMain: true,
+            ),
+          ),
+        ],
+      );
+    }
+
     return Column(
       children: [
         Row(
@@ -57,17 +131,17 @@ class AdminFinancialDashboard extends ConsumerWidget {
           children: [
             Expanded(
               child: _build3DFinancialCard(
-                'TOTAL REVENUE',
+                'Total Revenue',
                 formatter.format(summary.totalRevenue).replaceFirst('AED ', ''),
                 Icons.account_balance_wallet_rounded,
                 null,
                 AppTheme.lavenderPrimary,
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 5),
             Expanded(
               child: _build3DFinancialCard(
-                'OPERATIONAL COST',
+                'Operational Cost',
                 formatter.format(summary.totalExpenses).replaceFirst('AED ', ''),
                 Icons.speed_rounded,
                 null,
@@ -76,7 +150,7 @@ class AdminFinancialDashboard extends ConsumerWidget {
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 10),
         _build3DFinancialCard(
           'NET BUSINESS PROFIT',
           formatter.format(summary.netProfit).replaceFirst('AED ', ''),
@@ -101,10 +175,10 @@ class AdminFinancialDashboard extends ConsumerWidget {
     return Transform(
       transform: Matrix4.translationValues(0, offsetY, 0)..setEntry(3, 2, 0.002),
       child: Container(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           gradient: AppTheme.lavenderBlueGradient,
-          borderRadius: BorderRadius.circular(32),
+          borderRadius: BorderRadius.circular(15),
           border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
           boxShadow: [
             BoxShadow(
@@ -168,7 +242,7 @@ class AdminFinancialDashboard extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'EXPENSE BREAKDOWN',
+          'Expense Breakdown',
           style: TextStyle(
             color: AppTheme.lavenderPrimary,
             fontSize: 16,
@@ -176,13 +250,13 @@ class AdminFinancialDashboard extends ConsumerWidget {
             letterSpacing: 1.5,
           ),
         ),
-        const SizedBox(height: 32),
+        const SizedBox(height: 8),
         Container(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(32),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
           ),
           child: summary.totalExpenses == 0 
               ? const SizedBox(
@@ -192,18 +266,22 @@ class AdminFinancialDashboard extends ConsumerWidget {
               : isSmallScreen
                   ? Column(
                       children: [
-                        SizedBox(height: 180, child: _buildPieChart(summary)),
+                        SizedBox(height: 100, child: _buildPieChart(summary)),
                         const SizedBox(height: 32),
                         _buildExpenseIndicators(summary),
                       ],
                     )
                   : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Expanded(
                           flex: 4,
-                          child: SizedBox(height: 200, child: _buildPieChart(summary)),
+                          child: AspectRatio(
+                            aspectRatio: 1.2, 
+                            child: _buildPieChart(summary)
+                          ),
                         ),
-                        const SizedBox(width: 24),
+                        const SizedBox(width: 32),
                         Expanded(flex: 5, child: _buildExpenseIndicators(summary)),
                       ],
                     ),
@@ -231,7 +309,7 @@ class AdminFinancialDashboard extends ConsumerWidget {
         color: color,
         value: entry.value,
         title: '${percentage.toStringAsFixed(0)}%',
-        radius: 45,
+        radius: 30,
         titleStyle: const TextStyle(
           color: Colors.white,
           fontSize: 10,
@@ -321,7 +399,7 @@ class AdminFinancialDashboard extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'FINANCIAL ACTIVITY LOGS',
+          'Financial Activity Logs',
           style: TextStyle(
             color: AppTheme.lavenderPrimary,
             fontSize: 16,
@@ -329,7 +407,7 @@ class AdminFinancialDashboard extends ConsumerWidget {
             letterSpacing: 1.5,
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 10),
         expensesAsync.when(
           data: (expenses) {
             if (expenses.isEmpty) {
@@ -353,11 +431,11 @@ class AdminFinancialDashboard extends ConsumerWidget {
     final dateStr = DateFormat('dd MMM, yyyy').format(expense.date);
     
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(15),
         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Row(
@@ -369,7 +447,7 @@ class AdminFinancialDashboard extends ConsumerWidget {
               color: Colors.white,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

@@ -102,11 +102,27 @@ class _AdminAuditTrailPageState extends State<AdminAuditTrailPage> {
       );
     }
 
-    return ListView.builder(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.all(24),
-      itemCount: entries.length,
-      itemBuilder: (context, index) => _buildAuditTile(entries[index]),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 900;
+        final listWidget = ListView.builder(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.all(24),
+          itemCount: entries.length,
+          itemBuilder: (context, index) => _buildAuditTile(entries[index]),
+        );
+
+        if (isWide) {
+          return Align(
+            alignment: Alignment.topCenter,
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 900),
+              child: listWidget,
+            ),
+          );
+        }
+        return listWidget;
+      }
     );
   }
 

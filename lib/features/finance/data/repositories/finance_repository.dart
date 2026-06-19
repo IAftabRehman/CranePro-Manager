@@ -277,9 +277,13 @@ class FinanceRepository {
 
         for (var doc in revenueSnap.docs) {
           final data = doc.data() as Map<String, dynamic>;
-          revenue += (data['totalAmount'] as num?)?.toDouble() ?? 0.0;
-          
           final status = (data['status'] ?? 'pending').toString().toLowerCase();
+          
+          // Earnings are counted only when the job is completed
+          if (status == 'completed') {
+            revenue += (data['totalAmount'] as num?)?.toDouble() ?? 0.0;
+          }
+          
           if (status == 'pending' || status == 'in progress') {
             pendingJob++;
           }
@@ -331,6 +335,10 @@ class FinanceRepository {
         for (var doc in quoteSnap.docs) {
            final data = doc.data() as Map<String, dynamic>?;
            if (data == null) continue;
+           
+           final status = (data['status'] ?? 'pending').toString().toLowerCase();
+           // Only show completed jobs as positive income/activity on dashboard
+           if (status != 'completed') continue;
            
            final createdAt = data['createdAt'];
            list.add({

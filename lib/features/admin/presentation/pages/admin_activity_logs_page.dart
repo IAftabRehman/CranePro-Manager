@@ -20,7 +20,12 @@ class AdminActivityLogsPage extends ConsumerWidget {
               physics: const AlwaysScrollableScrollPhysics(
                 parent: BouncingScrollPhysics(),
               ),
-              child: ActivityTrackerWidget(activities: activities),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 800),
+                  child: ActivityTrackerWidget(activities: activities),
+                ),
+              ),
             ),
           );
         },

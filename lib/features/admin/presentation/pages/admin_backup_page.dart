@@ -161,6 +161,91 @@ class _AdminBackupPageState extends State<AdminBackupPage> {
     );
   }
 
+  Widget _buildWebLayout(BackupStatus? currentStatus) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 4,
+          child: Column(
+            children: [
+              _buildStatusCard(),
+              const SizedBox(height: 24),
+              if (_isBackingUp) ...[
+                Text('GENERATING SNAPSHOT...', style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.6), fontWeight: FontWeight.w900, fontSize: 13)),
+                const SizedBox(height: 16),
+                _buildProgressBar(),
+              ] else ...[
+                SizedBox(
+                  width: 300,
+                  child: CraneButton(
+                    text: 'Backup System Now',
+                    onPressed: _handleManualBackup,
+                    icon: null,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                if (currentStatus != null)
+                  SizedBox(
+                    width: 300,
+                    child: ElevatedButton(
+                      onPressed: () => _showRestoreWarning(currentStatus),
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.black.withValues(alpha: 0.5),
+                        side: const BorderSide(color: Colors.red, width: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      ),
+                      child: const Text('Restore Cloud Snapshot', style: TextStyle(color: Colors.red, fontSize: 15)),
+                    ),
+                  ),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(width: 32),
+        Expanded(
+          flex: 6,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.white12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'SYSTEM BACKUP DETAILS',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (currentStatus != null)
+                  _buildInfoTable(currentStatus)
+                else
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(40.0),
+                      child: Text(
+                        'No backup history found.',
+                        style: TextStyle(color: Colors.white54, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<BackupStatus?>(
@@ -168,60 +253,69 @@ class _AdminBackupPageState extends State<AdminBackupPage> {
       builder: (context, snapshot) {
         final currentStatus = snapshot.data;
 
-        return SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              _buildStatusCard(),
-              const SizedBox(height: 20),
-              if (currentStatus != null)
-                _buildInfoTable(currentStatus)
-              else
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Text(
-                      'No backup history found.',
-                      style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.5)),
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth >= 900;
+            return SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  if (isWide)
+                    _buildWebLayout(currentStatus)
+                  else ...[
+                    _buildStatusCard(),
+                    const SizedBox(height: 20),
+                    if (currentStatus != null)
+                      _buildInfoTable(currentStatus)
+                    else
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Text(
+                            'No backup history found.',
+                            style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.5)),
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 20),
+                    if (_isBackingUp) ...[
+                      Text('GENERATING SNAPSHOT...', style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.6), fontWeight: FontWeight.w900, fontSize: 13)),
+                      const SizedBox(height: 16),
+                      _buildProgressBar(),
+                    ] else ...[
+                      CraneButton(
+                        text: 'Backup',
+                        onPressed: _handleManualBackup,
+                        icon: null,
+                      ),
+                      const SizedBox(height: 20),
+                      if (currentStatus != null)
+                        ElevatedButton(
+                          onPressed: () => _showRestoreWarning(currentStatus),
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: Colors.black.withValues(alpha: 0.5),
+                            side: const BorderSide(color: Colors.red, width: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          ),
+                          child: const Text('Restore Cloud Snapshot', style: TextStyle(color: Colors.red, fontSize: 15)),
+                        ),
+                    ],
+                  ],
+                  const SizedBox(height: 100),
+                  // Hidden Debug Area
+                  Opacity(
+                    opacity: 0.1,
+                    child: TextButton(
+                      onPressed: () => FirebaseCrashlytics.instance.crash(),
+                      child: const Text('DEBUG: FORCE CRASH', style: TextStyle(color: Colors.black, fontSize: 10)),
                     ),
                   ),
-                ),
-              const SizedBox(height: 20),
-              if (_isBackingUp) ...[
-                Text('GENERATING SNAPSHOT...', style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.6), fontWeight: FontWeight.w900, fontSize: 13)),
-                const SizedBox(height: 16),
-                _buildProgressBar(),
-              ] else ...[
-                CraneButton(
-                  text: 'Create BackUp',
-                  onPressed: _handleManualBackup,
-                  icon: null,
-                ),
-                const SizedBox(height: 20),
-                if (currentStatus != null)
-                  ElevatedButton(
-                    onPressed: () => _showRestoreWarning(currentStatus),
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: Colors.black.withValues(alpha: 0.5),
-                      side: const BorderSide(color: Colors.red, width: 2),
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    ),
-                    child: const Text('Restore Cloud Snapshot', style: TextStyle(color: Colors.red, fontSize: 15)),
-                  ),
-              ],
-              const SizedBox(height: 100),
-              // Hidden Debug Area
-              Opacity(
-                opacity: 0.1,
-                child: TextButton(
-                  onPressed: () => FirebaseCrashlytics.instance.crash(),
-                  child: const Text('DEBUG: FORCE CRASH', style: TextStyle(color: Colors.black, fontSize: 10)),
-                ),
+                ],
               ),
-            ],
-          ),
+            );
+          }
         );
       }
     );

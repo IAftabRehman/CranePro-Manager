@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:extend_crane_services/core/themes/app_theme.dart';
 import 'package:extend_crane_services/features/reports/presentation/widgets/viewer_report_header.dart';
 import 'package:extend_crane_services/features/reports/presentation/pages/work_entry_details_page.dart';
-import 'dart:ui';
+import 'package:extend_crane_services/features/quotation/data/repositories/quotation_repository.dart';
+import 'package:intl/intl.dart';
 
-class WorkHistoryViewerPage extends StatefulWidget {
+class WorkHistoryViewerPage extends ConsumerStatefulWidget {
   const WorkHistoryViewerPage({super.key});
 
   @override
-  State<WorkHistoryViewerPage> createState() => _WorkHistoryViewerPageState();
+  ConsumerState<WorkHistoryViewerPage> createState() => _WorkHistoryViewerPageState();
 }
 
-class _WorkHistoryViewerPageState extends State<WorkHistoryViewerPage> {
+class _WorkHistoryViewerPageState extends ConsumerState<WorkHistoryViewerPage> {
   DateTime _fromDate = DateTime.now().subtract(const Duration(days: 7));
   DateTime _toDate = DateTime.now();
 
@@ -45,6 +47,8 @@ class _WorkHistoryViewerPageState extends State<WorkHistoryViewerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final quotationsAsync = ref.watch(allQuotationsProvider);
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: true,
@@ -52,7 +56,7 @@ class _WorkHistoryViewerPageState extends State<WorkHistoryViewerPage> {
         backgroundColor: Colors.lightBlueAccent.shade200,
         elevation: 5,
         shadowColor: Colors.blue,
-        title: Text(
+        title: const Text(
           "Work Report",
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
@@ -64,80 +68,93 @@ class _WorkHistoryViewerPageState extends State<WorkHistoryViewerPage> {
           gradient: AppTheme.lavenderBlueGradient,
         ),
         child: SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                child: ListView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                  children: [
-                    ViewerReportHeader(
-                      title: 'Work History',
-                      summaryLabel: 'Total Profit for',
-                      summaryValue: 'AED 38,420',
-                      fromDate: _fromDate,
-                      toDate: _toDate,
-                      onSelectDateRange: _selectDateRange,
+          child: quotationsAsync.when(
+            data: (quotations) {
+              // Filter completed quotations within date range
+              final completedQuotations = quotations.where((q) {
+                final isCompleted = q.status.toLowerCase() == 'completed';
+                final matchesDate = q.workDate.isAfter(_fromDate.subtract(const Duration(seconds: 1))) &&
+                    q.workDate.isBefore(_toDate.add(const Duration(days: 1)));
+                return isCompleted && matchesDate;
+              }).toList();
+
+              // Calculate total profit dynamically
+              double totalProfit = 0.0;
+              for (final q in completedQuotations) {
+                final isOwnCrane = !q.serviceType.toLowerCase().contains('commission') &&
+                    !q.serviceType.toLowerCase().contains('outsourced') &&
+                    !q.serviceType.toLowerCase().contains('partner');
+                final deduction = isOwnCrane ? q.totalAmount * 0.10 : q.totalAmount * 0.85;
+                totalProfit += (q.totalAmount - deduction);
+              }
+
+              final currencyFormatter = NumberFormat.currency(symbol: 'AED ', decimalDigits: 0);
+
+              return Column(
+                children: [
+                  Expanded(
+                    child: ListView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                      children: [
+                        ViewerReportHeader(
+                          title: 'Work History',
+                          summaryLabel: 'Total Profit for',
+                          summaryValue: currencyFormatter.format(totalProfit),
+                          fromDate: _fromDate,
+                          toDate: _toDate,
+                          onSelectDateRange: _selectDateRange,
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          'Detailed Transactions',
+                          style: TextStyle(
+                            color: AppTheme.deepNavyBlue,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.0,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        
+                        if (completedQuotations.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 40),
+                            child: Center(
+                              child: Text(
+                                'No completed jobs found for this period',
+                                style: TextStyle(color: AppTheme.deepNavyBlue, fontSize: 14, fontWeight: FontWeight.w500),
+                              ),
+                            ),
+                          )
+                        else
+                          ...completedQuotations.map((q) {
+                            final isOwnCrane = !q.serviceType.toLowerCase().contains('commission') &&
+                                !q.serviceType.toLowerCase().contains('outsourced') &&
+                                !q.serviceType.toLowerCase().contains('partner');
+                            final deduction = isOwnCrane ? q.totalAmount * 0.10 : q.totalAmount * 0.85;
+                            final deductionLabel = isOwnCrane ? 'Fuel Cost' : 'Outsourced Cost';
+
+                            return _buildHistoryCard(
+                              context,
+                              isOwnCrane: isOwnCrane,
+                              client: q.clientName,
+                              location: q.siteLocation,
+                              total: q.totalAmount,
+                              deduction: deduction,
+                              deductionLabel: deductionLabel,
+                            );
+                          }),
+                        
+                        const SizedBox(height: 40),
+                      ],
                     ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Detailed Transactions',
-                      style: TextStyle(
-                        color: AppTheme.deepNavyBlue,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.0,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    
-                    // Own Crane Entry
-                    _buildHistoryCard(
-                      context,
-                      isOwnCrane: true,
-                      client: 'Emaar Properties',
-                      location: 'Dubai Marina',
-                      total: 4500,
-                      deduction: 450,
-                      deductionLabel: 'Fuel Cost',
-                    ),
-                    
-                    // Commission Entry
-                    _buildHistoryCard(
-                      context,
-                      isOwnCrane: false,
-                      client: 'Sobha Realty',
-                      location: 'Dubai Creek Harbor',
-                      total: 8500,
-                      deduction: 6800,
-                      deductionLabel: 'Outsourced Cost',
-                    ),
-                    
-                    _buildHistoryCard(
-                      context,
-                      isOwnCrane: true,
-                      client: 'Damac Hills',
-                      location: 'Al Qudra Road',
-                      total: 2800,
-                      deduction: 320,
-                      deductionLabel: 'Fuel Cost',
-                    ),
-                    
-                    _buildHistoryCard(
-                      context,
-                      isOwnCrane: false,
-                      client: 'Azizi Developments',
-                      location: 'Al Furjan',
-                      total: 12000,
-                      deduction: 10200,
-                      deductionLabel: 'Outsourced Cost',
-                    ),
-                    
-                    const SizedBox(height: 40),
-                  ],
-                ),
-              ),
-            ],
+                  ),
+                ],
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator(color: Colors.amber)),
+            error: (err, _) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.redAccent))),
           ),
         ),
       ),

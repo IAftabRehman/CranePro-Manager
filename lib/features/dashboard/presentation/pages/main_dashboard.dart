@@ -23,6 +23,7 @@ import '../../../../core/services/local_notification_service.dart';
 
 class MainDashboard extends ConsumerStatefulWidget {
   final bool isViewer;
+
   const MainDashboard({super.key, this.isViewer = false});
 
   @override
@@ -136,11 +137,11 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
         child: AlertDialog(
           backgroundColor: const Color(0xFF1A1A2E),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(10),
             side: const BorderSide(color: Colors.redAccent, width: 2),
           ),
           title: const Text(
-            'ACTION REQUIRED',
+            'Action Required',
             style: TextStyle(
               color: Colors.redAccent,
               fontWeight: FontWeight.bold,
@@ -154,7 +155,7 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
                 'You must resolve your oldest pending quotation before proceeding:',
                 style: TextStyle(color: Colors.white70, fontSize: 13),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
               Text(
                 'Client: ${quotation.clientName}',
                 style: const TextStyle(
@@ -176,52 +177,64 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
             ],
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text(
-                'Still Pending',
-                style: TextStyle(color: Colors.white38),
-              ),
-            ),
-            TextButton(
-              onPressed: () async {
-                await ref
-                    .read(quotationRepositoryProvider)
-                    .updateQuotationStatus(quotation.id, 'cancelled');
-                if (context.mounted) Navigator.pop(context);
-              },
-              child: const Text(
-                'Cancel Job',
-                style: TextStyle(color: Colors.orangeAccent),
-              ),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.greenAccent,
-              ),
-              onPressed: () async {
-                await ref
-                    .read(quotationRepositoryProvider)
-                    .updateQuotationStatus(quotation.id, 'completed');
-                if (context.mounted) Navigator.pop(context);
-              },
-
-              child: const Text(
-                'Complete Job',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
+            Column(
+              children: [
+                Row(
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text(
+                        'Still Pending',
+                        style: TextStyle(color: Colors.white38),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        await ref
+                            .read(quotationRepositoryProvider)
+                            .updateQuotationStatus(quotation.id, 'cancelled');
+                        if (context.mounted) Navigator.pop(context);
+                      },
+                      child: const Text(
+                        'Cancel Job',
+                        style: TextStyle(color: Colors.orangeAccent),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text(
-                'Back to Screen',
-                style: TextStyle(color: Colors.orangeAccent),
-              ),
+                Row(
+                  children: [
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.greenAccent,
+                      ),
+                      onPressed: () async {
+                        await ref
+                            .read(quotationRepositoryProvider)
+                            .updateQuotationStatus(quotation.id, 'completed');
+                        if (context.mounted) Navigator.pop(context);
+                      },
+
+                      child: const Text(
+                        'Complete Job',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text(
+                        'Back to Screen',
+                        style: TextStyle(color: Colors.orangeAccent),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ],
         ),
@@ -714,10 +727,10 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
                                         Text(
                                           'Recent Activity',
                                           style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w800,
-                                                color: Colors.white,
-                                              ),
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w800,
+                                            color: Colors.white,
+                                          ),
                                         ),
                                         const SizedBox(height: 16),
                                         activityAsync.when(

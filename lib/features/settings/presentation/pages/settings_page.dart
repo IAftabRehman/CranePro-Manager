@@ -25,18 +25,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   void initState() {
     super.initState();
     final profile = ref.read(businessProfileProvider);
-    _nameController = TextEditingController(
-      text: widget.isViewer ? 'Bahadar Transport and Crane Services' : profile.businessName
-    );
-    _emailController = TextEditingController(
-      text: widget.isViewer ? 'official@bahadartransport.ae' : profile.email
-    );
-    _websiteController = TextEditingController(
-      text: widget.isViewer ? 'www.bahadartransport.ae' : profile.website
-    );
-    _addressController = TextEditingController(
-      text: widget.isViewer ? 'Dubai Industrial City, Dubai, UAE' : profile.address
-    );
+    _nameController = TextEditingController(text: profile.businessName);
+    _emailController = TextEditingController(text: profile.email);
+    _websiteController = TextEditingController(text: profile.website);
+    _addressController = TextEditingController(text: profile.address);
   }
 
   @override
@@ -49,7 +41,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   void _saveProfile() {
-    if (widget.isViewer) return;
 
     final currentProfile = ref.read(businessProfileProvider);
     ref
@@ -99,31 +90,30 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     children: [
                       _buildBusinessCard(theme, profile),
                       const SizedBox(height: 15),
-                      _buildReadOnlyField('Business Name', _nameController, Icons.business_rounded),
-                      _buildReadOnlyField('Email Address', _emailController, Icons.email_outlined),
-                      _buildReadOnlyField('Official Website', _websiteController, Icons.language_rounded),
-                      _buildReadOnlyField('Office Address', _addressController, Icons.location_on_outlined, maxLines: 2),
+                      _buildEditableField('Business Name', _nameController, Icons.business_rounded),
+                      _buildEditableField('Email Address', _emailController, Icons.email_outlined),
+                      _buildEditableField('Official Website', _websiteController, Icons.language_rounded),
+                      _buildEditableField('Office Address', _addressController, Icons.location_on_outlined, maxLines: 2),
                       const SizedBox(height: 15),
 
                       const SizedBox(height: 12),
 
-                      if (!widget.isViewer)
-                        ElevatedButton(
-                          onPressed: _saveProfile,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.deepNavyBlue,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 18),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            elevation: 8,
+                      ElevatedButton(
+                        onPressed: _saveProfile,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.deepNavyBlue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Text(
-                            'Update Profile',
-                            style: TextStyle(fontWeight: FontWeight.w900,),
-                          ),
+                          elevation: 8,
                         ),
+                        child: const Text(
+                          'Update Profile',
+                          style: TextStyle(fontWeight: FontWeight.w900,),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -205,7 +195,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
-  Widget _buildReadOnlyField(String label, TextEditingController controller, IconData icon, {int maxLines = 1}) {
+  Widget _buildEditableField(String label, TextEditingController controller, IconData icon, {int maxLines = 1}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(10),
@@ -231,15 +221,19 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     letterSpacing: 0.5,
                   ),
                 ),
-                Text(
-                  controller.text,
+                TextField(
+                  controller: controller,
+                  maxLines: maxLines,
                   style: const TextStyle(
                     color: AppTheme.deepNavyBlue,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
-                  maxLines: maxLines,
-                  overflow: TextOverflow.ellipsis,
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    contentPadding: EdgeInsets.symmetric(vertical: 4),
+                    border: InputBorder.none,
+                  ),
                 ),
               ],
             ),

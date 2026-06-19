@@ -61,3 +61,7 @@ class WorkRepository {
 }
 
 final workRepositoryProvider = Provider((ref) => WorkRepository());
+
+final allWorkOrdersProvider = StreamProvider<List<WorkOrderModel>>((ref) {
+  return ref.watch(workRepositoryProvider).getWorkOrdersStream();
+});

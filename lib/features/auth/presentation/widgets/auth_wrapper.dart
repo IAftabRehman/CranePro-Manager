@@ -17,6 +17,12 @@ class AuthWrapper extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Scaffold(
+            body: Center(child: Text('Auth Stream Error: ${snapshot.error}')),
+          );
+        }
+
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
@@ -34,6 +40,12 @@ class AuthWrapper extends StatelessWidget {
               .doc(user.uid)
               .snapshots(),
           builder: (context, userSnapshot) {
+            if (userSnapshot.hasError) {
+              return Scaffold(
+                body: Center(child: Text('Firestore Stream Error: ${userSnapshot.error}')),
+              );
+            }
+
             if (userSnapshot.connectionState == ConnectionState.waiting) {
               return const Scaffold(
                 body: Center(child: CircularProgressIndicator()),

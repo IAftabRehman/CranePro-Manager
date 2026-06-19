@@ -32,26 +32,261 @@ class _AdminControlPageState extends State<AdminControlPage> {
       _buildSecurityModule(),
     ];
 
-    return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: AppTheme.lavenderBlueGradient,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 900;
+        if (isWide) {
+          return Scaffold(
+            body: Container(
+              width: double.infinity,
+              height: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: AppTheme.lavenderBlueGradient,
+              ),
+              child: Row(
+                children: [
+                  _buildWebSidebar(),
+                  Expanded(
+                    child: SafeArea(
+                      child: Column(
+                        children: [
+                          _buildWebHeader(),
+                          Expanded(
+                            child: IndexedStack(index: _currentIndex, children: pages),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        } else {
+          return Scaffold(
+            body: Container(
+              width: double.infinity,
+              height: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: AppTheme.lavenderBlueGradient,
+              ),
+              child: SafeArea(
+                bottom: false,
+                child: Column(
+                  children: [
+                    _buildHeader(),
+                    Expanded(
+                      child: IndexedStack(index: _currentIndex, children: pages),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            bottomNavigationBar: _buildBottomNav(),
+          );
+        }
+      },
+    );
+  }
+
+  Widget _buildWebSidebar() {
+    final menuItems = [
+      {'title': 'Dashboard', 'icon': Icons.dashboard_rounded},
+      {'title': 'User Management', 'icon': Icons.people_alt_rounded},
+      {'title': 'Activity Tracker', 'icon': Icons.history_edu_rounded},
+      {'title': 'Advanced Reports', 'icon': Icons.assessment_outlined},
+      {'title': 'Security Hub', 'icon': Icons.security_rounded},
+    ];
+
+    return Container(
+      width: 260,
+      decoration: BoxDecoration(
+        color: AppTheme.primaryNavy.withValues(alpha: 0.85),
+        border: const Border(
+          right: BorderSide(color: Colors.white12, width: 1),
         ),
-        child: SafeArea(
-          bottom: false,
-          child: Column(
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.engineering_rounded,
+                  color: AppTheme.accentGold,
+                  size: 32,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'CRANEPRO',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                      Text(
+                        'ADMIN PANEL',
+                        style: TextStyle(
+                          color: AppTheme.accentGold.withValues(alpha: 0.8),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(color: Colors.white12, height: 1),
+          const SizedBox(height: 20),
+          Expanded(
+            child: ListView.builder(
+              itemCount: menuItems.length,
+              itemBuilder: (context, index) {
+                final item = menuItems[index];
+                final isSelected = _currentIndex == index;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: InkWell(
+                    onTap: () => setState(() => _currentIndex = index),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: isSelected 
+                            ? AppTheme.accentGold.withValues(alpha: 0.15) 
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                        border: isSelected
+                            ? Border.all(color: AppTheme.accentGold.withValues(alpha: 0.4), width: 1)
+                            : Border.all(color: Colors.transparent, width: 1),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            item['icon'] as IconData,
+                            color: isSelected ? AppTheme.accentGold : Colors.white70,
+                            size: 22,
+                          ),
+                          const SizedBox(width: 16),
+                          Text(
+                            item['title'] as String,
+                            style: TextStyle(
+                              color: isSelected ? AppTheme.accentGold : Colors.white70,
+                              fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const Divider(color: Colors.white12, height: 1),
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Colors.white12,
+                      child: Text(
+                        'A',
+                        style: TextStyle(color: AppTheme.accentGold, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Administrator',
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                          ),
+                          Text(
+                            'Super User',
+                            style: TextStyle(color: Colors.white54, fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent.withValues(alpha: 0.1),
+                    foregroundColor: Colors.redAccent,
+                    side: const BorderSide(color: Colors.redAccent, width: 1),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  icon: const Icon(Icons.logout_sharp, size: 18),
+                  label: const Text('LOGOUT', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  onPressed: _handleLogout,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWebHeader() {
+    final titles = [
+      'Financial Analytics Overview',
+      'System Users Management',
+      'Global System Activity Logs',
+      'Advanced Business Reports',
+      'Security & System Backups',
+    ];
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(30, 24, 30, 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(),
-              Expanded(
-                child: IndexedStack(index: _currentIndex, children: pages),
+              Text(
+                titles[_currentIndex],
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.0,
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Real-time system state monitoring',
+                style: TextStyle(
+                  color: Colors.white54,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
-        ),
+        ],
       ),
-      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
@@ -115,8 +350,8 @@ class _AdminControlPageState extends State<AdminControlPage> {
     final titles = [
       'Financial Overview',
       'User Management',
-      'Live Activity Tracker',
-      'Advanced Reports & Search',
+      'Activity Tracker',
+      'Advanced Reports',
       'Security & Data Hub',
     ];
     return Padding(
@@ -127,7 +362,7 @@ class _AdminControlPageState extends State<AdminControlPage> {
           Text(
             titles[_currentIndex],
             style: const TextStyle(
-              color: AppTheme.deepNavyBlue,
+              color: Colors.white,
               fontSize: 16,
               fontWeight: FontWeight.w900,
               letterSpacing: 1.5,
@@ -136,7 +371,7 @@ class _AdminControlPageState extends State<AdminControlPage> {
           IconButton(
             icon: const Icon(
               Icons.logout_sharp,
-              color: AppTheme.deepNavyBlue,
+              color: Colors.white,
               size: 25,
             ),
             onPressed: _handleLogout,
@@ -145,7 +380,6 @@ class _AdminControlPageState extends State<AdminControlPage> {
       ),
     );
   }
-
 
   Widget _buildSecurityModule() {
     return DefaultTabController(
@@ -166,7 +400,6 @@ class _AdminControlPageState extends State<AdminControlPage> {
               children: [AdminBackupPage(), AdminAuditTrailPage()],
             )
           ),
-
         ],
       ),
     );

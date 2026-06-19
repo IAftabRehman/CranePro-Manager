@@ -1,27 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:extend_crane_services/core/themes/app_theme.dart';
 import 'package:extend_crane_services/core/presentation/widgets/custom_drawer.dart';
 import 'package:extend_crane_services/features/dashboard/presentation/widgets/live_status_feed_item.dart';
 import 'package:extend_crane_services/features/quotation/data/models/quotation_model.dart';
 import 'package:extend_crane_services/features/reports/presentation/pages/work_history_viewer_page.dart';
-import 'dart:async';
+import 'package:extend_crane_services/features/finance/data/repositories/finance_repository.dart';
+import 'package:extend_crane_services/features/quotation/data/repositories/quotation_repository.dart';
+import 'package:extend_crane_services/features/work_order/data/repositories/work_repository.dart';
+import 'package:intl/intl.dart';
 
-class ViewerDashboard extends StatefulWidget {
+class ViewerDashboard extends ConsumerStatefulWidget {
   const ViewerDashboard({super.key});
 
   @override
-  State<ViewerDashboard> createState() => _ViewerDashboardState();
+  ConsumerState<ViewerDashboard> createState() => _ViewerDashboardState();
 }
 
-class _ViewerDashboardState extends State<ViewerDashboard>
+class _ViewerDashboardState extends ConsumerState<ViewerDashboard>
     with TickerProviderStateMixin {
   late AnimationController _alertController;
   late ScrollController _scrollController;
   double _parallaxOffset = 0.0;
-
-  // Stream simulation for "Live Status" updates
-  final StreamController<String> _statusStreamController =
-      StreamController<String>.broadcast();
 
   @override
   void initState() {
@@ -37,27 +37,32 @@ class _ViewerDashboardState extends State<ViewerDashboard>
           _parallaxOffset = _scrollController.offset * 0.3;
         });
       });
-
-    // Simulate real-time updates from Dubai
-    Timer.periodic(const Duration(seconds: 10), (timer) {
-      if (mounted) {
-        _statusStreamController.add(
-          'New Site Activity: Own 25T Crane @ Dubai Marina',
-        );
-      }
-    });
   }
 
   @override
   void dispose() {
     _alertController.dispose();
     _scrollController.dispose();
-    _statusStreamController.close();
     super.dispose();
+  }
+
+  QuotationStatus _parseStatus(String status) {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return QuotationStatus.completed;
+      case 'cancelled':
+        return QuotationStatus.cancelled;
+      default:
+        return QuotationStatus.pending;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final summaryAsync = ref.watch(financialSummaryProvider);
+    final quotationsAsync = ref.watch(allQuotationsProvider);
+    final workOrdersAsync = ref.watch(allWorkOrdersProvider);
+
     return Scaffold(
       drawer: const CustomDrawer(activeRoute: 'Dashboard', isViewer: true),
       appBar: AppBar(
@@ -65,7 +70,7 @@ class _ViewerDashboardState extends State<ViewerDashboard>
         backgroundColor: Colors.lightBlueAccent.shade200,
         elevation: 5,
         shadowColor: Colors.blue,
-        title: Text(
+        title: const Text(
           "Family Monitor",
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
@@ -85,32 +90,65 @@ class _ViewerDashboardState extends State<ViewerDashboard>
           ),
 
           SafeArea(
-            child: Column(
-              children: [
-                _buildLiveStatusHeader(),
-                Expanded(
-                  child: SingleChildScrollView(
-                    controller: _scrollController,
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 20,
-                    ),
-                    child: Column(
+            child: summaryAsync.when(
+              data: (summary) => quotationsAsync.when(
+                data: (quotations) => workOrdersAsync.when(
+                  data: (workOrders) {
+                    final liveProfit = summary.netProfit;
+                    final activeWorkCount = quotations.where((q) => q.status == 'pending').length +
+                        workOrders.where((w) => w.status == 'pending' || w.status == 'pending_approval').length;
+                    final maintenanceCost = summary.categoryBreakdown['Maintenance'] ?? 0.0;
+                    final cancelledTaskCount = quotations.where((q) => q.status == 'cancelled').length +
+                        workOrders.where((w) => w.status == 'cancelled').length;
+
+                    // Latest activity string
+                    String? latestActivity;
+                    if (quotations.isNotEmpty) {
+                      final latest = quotations.first;
+                      latestActivity = 'New Site Activity: ${latest.clientName} @ ${latest.siteLocation}';
+                    }
+
+                    // Get top 5 recent quotations for activity feed
+                    final recentQuotations = quotations.take(5).toList();
+
+                    return Column(
                       children: [
-                        _buildCommandCenterGrid(context),
-                        const SizedBox(height: 10),
-                        _buildExecutionTabs(context),
-
-                        const SizedBox(height: 20),
-
-                        // TASK 3: Status-Based Activity Feed
-                        _buildLiveActivityStream(context),
+                        _buildLiveStatusHeader(latestActivity),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            controller: _scrollController,
+                            physics: const BouncingScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 20,
+                            ),
+                            child: Column(
+                              children: [
+                                _buildCommandCenterGrid(
+                                  liveProfit: liveProfit,
+                                  activeWorkCount: activeWorkCount,
+                                  maintenanceCost: maintenanceCost,
+                                  cancelledTaskCount: cancelledTaskCount,
+                                ),
+                                const SizedBox(height: 10),
+                                _buildExecutionTabs(context),
+                                const SizedBox(height: 20),
+                                _buildLiveActivityStream(context, recentQuotations),
+                              ],
+                            ),
+                          ),
+                        ),
                       ],
-                    ),
-                  ),
+                    );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator(color: Colors.amber)),
+                  error: (err, _) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.redAccent))),
                 ),
-              ],
+                loading: () => const Center(child: CircularProgressIndicator(color: Colors.amber)),
+                error: (err, _) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.redAccent))),
+              ),
+              loading: () => const Center(child: CircularProgressIndicator(color: Colors.amber)),
+              error: (err, _) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.redAccent))),
             ),
           ),
         ],
@@ -118,61 +156,63 @@ class _ViewerDashboardState extends State<ViewerDashboard>
     );
   }
 
-  Widget _buildLiveStatusHeader() {
-    return StreamBuilder<String>(
-      stream: _statusStreamController.stream,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) return const SizedBox.shrink();
+  Widget _buildLiveStatusHeader(String? latestActivity) {
+    if (latestActivity == null || latestActivity.isEmpty) return const SizedBox.shrink();
 
-        return AnimatedBuilder(
-          animation: _alertController,
-          builder: (context, child) {
-            return Container(
-              width: double.infinity,
-              margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-              decoration: BoxDecoration(
-                color: Color.lerp(
-                  Colors.red.shade900,
-                  Colors.amber.shade900,
-                  _alertController.value,
-                )!.withValues(alpha: 0.9),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.red.withValues(
-                      alpha: 0.3 * _alertController.value,
-                    ),
-                    blurRadius: 15 * _alertController.value,
-                    spreadRadius: 2,
-                  ),
-                ],
+    return AnimatedBuilder(
+      animation: _alertController,
+      builder: (context, child) {
+        return Container(
+          width: double.infinity,
+          margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+          decoration: BoxDecoration(
+            color: Color.lerp(
+              Colors.red.shade900,
+              Colors.amber.shade900,
+              _alertController.value,
+            )!.withValues(alpha: 0.9),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.red.withValues(
+                  alpha: 0.3 * _alertController.value,
+                ),
+                blurRadius: 15 * _alertController.value,
+                spreadRadius: 2,
               ),
-              child: Row(
-                children: [
-                  const Icon(Icons.bolt_rounded, color: Colors.white, size: 24),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'DUBAI UPDATE: ${snapshot.data}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 11,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
+            ],
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.bolt_rounded, color: Colors.white, size: 24),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'DUBAI UPDATE: $latestActivity',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 11,
+                    letterSpacing: 0.5,
                   ),
-                ],
+                ),
               ),
-            );
-          },
+            ],
+          ),
         );
       },
     );
   }
 
-  Widget _buildCommandCenterGrid(BuildContext context) {
+  Widget _buildCommandCenterGrid({
+    required double liveProfit,
+    required int activeWorkCount,
+    required double maintenanceCost,
+    required int cancelledTaskCount,
+  }) {
+    final currencyFormatter = NumberFormat.currency(symbol: 'AED ', decimalDigits: 0);
+
     return Column(
       children: [
         Row(
@@ -180,7 +220,7 @@ class _ViewerDashboardState extends State<ViewerDashboard>
             Expanded(
               child: _CommandCard(
                 label: 'Live Profit',
-                value: 'AED 8,420',
+                value: currencyFormatter.format(liveProfit),
                 icon: Icons.auto_graph_rounded,
                 isPrimary: true,
               ),
@@ -189,7 +229,7 @@ class _ViewerDashboardState extends State<ViewerDashboard>
             Expanded(
               child: _CommandCard(
                 label: 'Active Work',
-                value: '4 JOBS',
+                value: '$activeWorkCount JOBS',
                 icon: Icons.timer_rounded,
               ),
             ),
@@ -201,7 +241,7 @@ class _ViewerDashboardState extends State<ViewerDashboard>
             Expanded(
               child: _CommandCard(
                 label: 'Maintenance',
-                value: 'AED 3,200',
+                value: currencyFormatter.format(maintenanceCost),
                 icon: Icons.build_circle_rounded,
               ),
             ),
@@ -209,7 +249,7 @@ class _ViewerDashboardState extends State<ViewerDashboard>
             Expanded(
               child: _CommandCard(
                 label: 'Cancelled',
-                value: '2 TASKS',
+                value: '$cancelledTaskCount TASKS',
                 icon: Icons.cancel_presentation_rounded,
                 isDanger: true,
               ),
@@ -280,7 +320,9 @@ class _ViewerDashboardState extends State<ViewerDashboard>
     );
   }
 
-  Widget _buildLiveActivityStream(BuildContext context) {
+  Widget _buildLiveActivityStream(BuildContext context, List<QuotationModel> recentQuotations) {
+    final currencyFormatter = NumberFormat.currency(symbol: 'AED ', decimalDigits: 0);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -296,25 +338,24 @@ class _ViewerDashboardState extends State<ViewerDashboard>
             ),
           ),
         ),
-        const LiveStatusFeedItem(
-          title: 'Damac Hills - Site 4',
-          subtitle: 'Dubai Al Qudra Road',
-          amount: 'AED 4,500',
-          status: QuotationStatus.completed,
-        ),
-        const LiveStatusFeedItem(
-          title: 'Sobha Realty - Ground',
-          subtitle: 'Meydan, Dubai',
-          amount: 'AED 12,000',
-          status: QuotationStatus.pending,
-        ),
-        const LiveStatusFeedItem(
-          title: 'Emaar Marini',
-          subtitle: 'Dubai Marina JBR',
-          amount: 'AED 2,800',
-          status: QuotationStatus.cancelled,
-          reason: 'Operator Tired - No Night Shift',
-        ),
+        if (recentQuotations.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Center(
+              child: Text(
+                'No recent activity',
+                style: TextStyle(color: AppTheme.deepNavyBlue, fontSize: 13, fontWeight: FontWeight.w500),
+              ),
+            ),
+          )
+        else
+          ...recentQuotations.map((q) => LiveStatusFeedItem(
+                title: q.clientName,
+                subtitle: q.siteLocation,
+                amount: currencyFormatter.format(q.totalAmount),
+                status: _parseStatus(q.status),
+                reason: q.cancellationReason,
+              )),
         const SizedBox(height: 40),
       ],
     );

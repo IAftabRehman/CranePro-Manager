@@ -31,198 +31,256 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
 
   bool _isSaving = false;
 
+  void _saveChanges(
+    BuildContext sheetContext,
+    UserModel user,
+    String currentRole,
+    bool isApproved,
+    bool isBlocked,
+    TextEditingController reasonController,
+  ) async {
+    setState(() => _isSaving = true);
+    Navigator.pop(sheetContext);
+    
+    try {
+      // 1. Update general status and role
+      await ref.read(adminRepositoryProvider).updateUserStatus(
+        user.id, 
+        isApproved, 
+        currentRole,
+      );
+      
+      // 2. Update rejection reason if rejected
+      if (!isApproved && reasonController.text.isNotEmpty) {
+        await ref.read(adminRepositoryProvider).rejectUser(
+          user.id, 
+          reasonController.text.trim(),
+        );
+      }
+
+      // 3. Update block status
+      await ref.read(adminRepositoryProvider).toggleBlockUser(
+        user.id, 
+        isBlocked,
+      );
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('User profile updated successfully!'),
+            backgroundColor: AppTheme.deepNavyBlue,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error updating user: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
+  }
+
   void _showEditUserSheet(UserModel user) {
     String currentRole = user.role;
     bool isApproved = user.isAdminApproved;
     bool isBlocked = user.isBlocked;
     final reasonController = TextEditingController(text: user.rejectionReason ?? '');
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (sheetContext) => StatefulBuilder(
-        builder: (sheetContext, setModalState) => Container(
-          padding: EdgeInsets.only(
-            left: 24,
-            right: 24,
-            top: 24,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+    Widget buildSheetContent(BuildContext ctx, StateSetter setModalState, VoidCallback onSave) {
+      return Container(
+        padding: const EdgeInsets.all(24),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'EDIT USER ACCESS',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white54),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              _buildDetailRow(Icons.person, 'Full Name', user.fullName),
+              _buildDetailRow(Icons.email, 'Email', user.email),
+              _buildDetailRow(Icons.phone, 'Phone', user.phoneNumber ?? 'Not provided'),
+              const Divider(color: Colors.white24, height: 32),
+              
+              const Text(
+                'ASSIGN ROLE',
+                style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+              ),
+              DropdownButton<String>(
+                value: currentRole,
+                dropdownColor: AppTheme.deepNavyBlue,
+                isExpanded: true,
+                underline: Container(height: 2, color: Colors.amber),
+                items: ['operator', 'viewer'].map((role) {
+                  return DropdownMenuItem(
+                    value: role,
+                    child: Text(
+                      role.toUpperCase(),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (val) => setModalState(() => currentRole = val!),
+              ),
+              
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'ADMIN APPROVAL',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  Switch(
+                    value: isApproved,
+                    activeThumbColor: Colors.green,
+                    onChanged: (val) => setModalState(() => isApproved = val),
+                  ),
+                ],
+              ),
+              
+              if (!isApproved) ...[
+                const SizedBox(height: 16),
+                const Text(
+                  'REJECTION REASON (OPTIONAL)',
+                  style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: reasonController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white.withValues(alpha: 0.05),
+                    hintText: 'Enter reason for rejection...',
+                    hintStyle: const TextStyle(color: Colors.white24),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ],
+              
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'BLOCK ACCOUNT',
+                    style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+                  ),
+                  Switch(
+                    value: isBlocked,
+                    activeThumbColor: Colors.redAccent,
+                    onChanged: (val) => setModalState(() => isBlocked = val),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                height: 55,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: _isSaving ? null : onSave,
+                  child: _isSaving 
+                    ? const CircularProgressIndicator(color: AppTheme.deepNavyBlue)
+                    : const Text(
+                        'SAVE ALL CHANGES',
+                        style: TextStyle(color: AppTheme.deepNavyBlue, fontWeight: FontWeight.w900),
+                      ),
+                ),
+              ),
+            ],
           ),
+        ),
+      );
+    }
+
+    final isWide = MediaQuery.of(context).size.width >= 900;
+
+    if (isWide) {
+      showDialog(
+        context: context,
+        builder: (dialogContext) => Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            width: 480,
+            decoration: BoxDecoration(
+              color: AppTheme.deepNavyBlue,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.white24),
+            ),
+            child: StatefulBuilder(
+              builder: (dialogContext, setModalState) => buildSheetContent(
+                dialogContext,
+                setModalState,
+                () => _saveChanges(
+                  dialogContext,
+                  user,
+                  currentRole,
+                  isApproved,
+                  isBlocked,
+                  reasonController,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    } else {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (sheetContext) => Container(
           decoration: const BoxDecoration(
             color: AppTheme.deepNavyBlue,
             borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
           ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'EDIT USER ACCESS',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white54),
-                      onPressed: () => Navigator.pop(sheetContext),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                _buildDetailRow(Icons.person, 'Full Name', user.fullName),
-                _buildDetailRow(Icons.email, 'Email', user.email),
-                _buildDetailRow(Icons.phone, 'Phone', user.phoneNumber ?? 'Not provided'),
-                const Divider(color: Colors.white24, height: 32),
-                
-                const Text(
-                  'ASSIGN ROLE',
-                  style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
-                ),
-                DropdownButton<String>(
-                  value: currentRole,
-                  dropdownColor: AppTheme.deepNavyBlue,
-                  isExpanded: true,
-                  underline: Container(height: 2, color: Colors.amber),
-                  items: ['operator', 'viewer'].map((role) {
-                    return DropdownMenuItem(
-                      value: role,
-                      child: Text(
-                        role.toUpperCase(),
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (val) => setModalState(() => currentRole = val!),
-                ),
-                
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'ADMIN APPROVAL',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                    ),
-                    Switch(
-                      value: isApproved,
-                      activeThumbColor: Colors.green,
-                      onChanged: (val) => setModalState(() => isApproved = val),
-                    ),
-                  ],
-                ),
-                
-                if (!isApproved) ...[
-                  const SizedBox(height: 16),
-                  const Text(
-                    'REJECTION REASON (OPTIONAL)',
-                    style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: reasonController,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Colors.white.withValues(alpha: 0.05),
-                      hintText: 'Enter reason for rejection...',
-                      hintStyle: const TextStyle(color: Colors.white24),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                  ),
-                ],
-                
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'BLOCK ACCOUNT',
-                      style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
-                    ),
-                    Switch(
-                      value: isBlocked,
-                      activeThumbColor: Colors.redAccent,
-                      onChanged: (val) => setModalState(() => isBlocked = val),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  height: 55,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.amber,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    onPressed: _isSaving ? null : () async {
-                      setState(() => _isSaving = true);
-                      Navigator.pop(sheetContext);
-                      
-                      try {
-                        // 1. Update general status and role
-                        await ref.read(adminRepositoryProvider).updateUserStatus(
-                          user.id, 
-                          isApproved, 
-                          currentRole,
-                        );
-                        
-                        // 2. Update rejection reason if rejected
-                        if (!isApproved && reasonController.text.isNotEmpty) {
-                          await ref.read(adminRepositoryProvider).rejectUser(
-                            user.id, 
-                            reasonController.text.trim(),
-                          );
-                        }
-
-                        // 3. Update block status
-                        await ref.read(adminRepositoryProvider).toggleBlockUser(
-                          user.id, 
-                          isBlocked,
-                        );
-                        
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('User profile updated successfully!'),
-                              backgroundColor: AppTheme.deepNavyBlue,
-                            ),
-                          );
-                        }
-                      } catch (e) {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Error updating user: $e')),
-                          );
-                        }
-                      } finally {
-                        setState(() => _isSaving = false);
-                      }
-                    },
-                    child: _isSaving 
-                      ? const CircularProgressIndicator(color: AppTheme.deepNavyBlue)
-                      : const Text(
-                          'SAVE ALL CHANGES',
-                          style: TextStyle(color: AppTheme.deepNavyBlue, fontWeight: FontWeight.w900),
-                        ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
+          ),
+          child: StatefulBuilder(
+            builder: (sheetContext, setModalState) => buildSheetContent(
+              sheetContext,
+              setModalState,
+              () => _saveChanges(
+                sheetContext,
+                user,
+                currentRole,
+                isApproved,
+                isBlocked,
+                reasonController,
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
+    }
   }
 
   Widget _buildDetailRow(IconData icon, String label, String value) {
@@ -266,6 +324,8 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
               ),
               bottom: TabBar(
                 controller: _tabController,
+                isScrollable: true,
+                tabAlignment: TabAlignment.center,
                 tabs: const [
                   Tab(text: 'PENDING'),
                   Tab(text: 'APPROVED'),
@@ -324,13 +384,40 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: users.length,
-      itemBuilder: (context, index) {
-        final user = users[index];
-        return _buildUserCard(user);
-      },
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 900;
+        if (isWide) {
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1200),
+              child: GridView.builder(
+                padding: const EdgeInsets.all(32),
+                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 350,
+                  mainAxisSpacing: 24,
+                  crossAxisSpacing: 24,
+                  childAspectRatio: 2.5,
+                ),
+                itemCount: users.length,
+                itemBuilder: (context, index) {
+                  final user = users[index];
+                  return _buildUserCard(user);
+                },
+              ),
+            ),
+          );
+        } else {
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: users.length,
+            itemBuilder: (context, index) {
+              final user = users[index];
+              return _buildUserCard(user);
+            },
+          );
+        }
+      }
     );
   }
 

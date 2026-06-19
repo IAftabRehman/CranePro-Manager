@@ -1,6 +1,7 @@
-import 'package:extend_crane_services/features/auth/presentation/pages/role_selection_page.dart';
 import 'package:extend_crane_services/features/quotation/presentation/pages/add_quotation_page.dart';
 import 'package:extend_crane_services/features/reports/presentation/pages/maintenance_log_viewer_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:extend_crane_services/features/auth/presentation/widgets/auth_wrapper.dart';
 import 'package:extend_crane_services/features/reports/presentation/pages/work_history_viewer_page.dart';
 import 'package:extend_crane_services/features/settings/presentation/pages/settings_page.dart';
 import 'package:extend_crane_services/features/home/presentation/pages/operator_stats_page.dart';
@@ -44,7 +45,7 @@ class CustomDrawer extends StatelessWidget {
                       _buildNavItem(context, Icons.dashboard_outlined, 'Dashboard', theme),
                       _buildNavItem(context, Icons.bar_chart_outlined, 'Work Reports', theme),
                       _buildNavItem(context, Icons.build_circle_outlined, 'Maintenance', theme),
-                      _buildNavItem(context, Icons.person_outline, 'Business Profile', theme),
+                      _buildNavItem(context, Icons.person_outline, 'Profile', theme),
                     ]
                   : [
                       _buildNavItem(context, Icons.dashboard_outlined, 'Dashboard', theme),
@@ -172,12 +173,15 @@ class CustomDrawer extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: ListTile(
-        onTap: () {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const RoleSelectionPage()),
-            (route) => false,
-          );
+        onTap: () async {
+          await FirebaseAuth.instance.signOut();
+          if (context.mounted) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const AuthWrapper()),
+              (route) => false,
+            );
+          }
         },
         leading: const Icon(Icons.logout, color: Colors.redAccent),
         title: const Text(
