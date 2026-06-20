@@ -25,10 +25,7 @@ class BlockedAccountPage extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF1A1A1A),
-              Color(0xFF000000),
-            ],
+            colors: [Color(0xFF1A1A1A), Color(0xFF000000)],
           ),
         ),
         child: SafeArea(
@@ -51,23 +48,23 @@ class BlockedAccountPage extends StatelessWidget {
                     fontWeight: FontWeight.w900,
                     letterSpacing: 2,
                   ),
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
                 Text(
                   'Hello ${user.fullName.split(' ')[0]}, your access to the CranePro terminal has been suspended by an administrator.',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 16,
-                  ),
+                  style: const TextStyle(color: Colors.white70, fontSize: 16),
                 ),
                 const SizedBox(height: 48),
                 Container(
                   padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: const Color(0x0DFFFFFF),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white10),
+                  decoration: const BoxDecoration(
+                    color: Color(0x0DFFFFFF),
+                    borderRadius: BorderRadius.all(Radius.circular(16)),
+                    border: Border.fromBorderSide(
+                      BorderSide(color: Colors.white10),
+                    ),
                   ),
                   child: Column(
                     children: [
@@ -79,7 +76,11 @@ class BlockedAccountPage extends StatelessWidget {
                       const SizedBox(height: 16),
                       TextButton.icon(
                         onPressed: _contactAdmin,
-                        icon: const Icon(Icons.phone, color: Colors.amber, size: 18),
+                        icon: const Icon(
+                          Icons.phone,
+                          color: Colors.amber,
+                          size: 18,
+                        ),
                         label: const Text(
                           '+92 332 3220916',
                           style: TextStyle(

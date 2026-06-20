@@ -69,7 +69,10 @@ class QuotationDetailPage extends ConsumerWidget {
                 // Component Extraction: Extracted QuotationFinancialSummary widget
                 QuotationFinancialSummary(quotation: quotation),
                 const SizedBox(height: 40),
-                _buildActionButtons(context),
+                // Component Extraction (Level 2):
+                // Extracted action buttons into a StatelessWidget so the
+                // framework can skip rebuilding them when state changes above.
+                _QuotationActionButtons(onShare: () => _handleShare(context)),
               ],
             ),
           ),
@@ -77,13 +80,21 @@ class QuotationDetailPage extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _buildActionButtons(BuildContext context) {
+// Extracted standalone StatelessWidget for action buttons (Level 2)
+class _QuotationActionButtons extends StatelessWidget {
+  final VoidCallback onShare;
+
+  const _QuotationActionButtons({required this.onShare});
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       children: [
         Expanded(
           child: ElevatedButton.icon(
-            onPressed: () => _handleShare(context),
+            onPressed: onShare,
             icon: const Icon(Icons.share),
             label: const Text('SHARE INVOICE'),
             style: ElevatedButton.styleFrom(

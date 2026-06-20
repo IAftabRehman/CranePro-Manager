@@ -153,7 +153,9 @@ class _MaintenanceLogViewerPageState extends ConsumerState<MaintenanceLogViewerP
                 ],
               );
             },
-            loading: () => const Center(child: CircularProgressIndicator(color: Colors.amber)),
+            loading: () => const RepaintBoundary(
+              child: Center(child: CircularProgressIndicator(color: Colors.amber)),
+            ),
             error: (err, _) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.redAccent))),
           ),
         ),
@@ -179,10 +181,15 @@ class MaintenanceTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: const Color(0x66FFFFFF),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0x4DFFFFFF)),
+      decoration: const BoxDecoration(
+        color: Color(0x66FFFFFF),
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+        border: Border(
+          top: BorderSide(color: Color(0x4DFFFFFF)),
+          bottom: BorderSide(color: Color(0x4DFFFFFF)),
+          left: BorderSide(color: Color(0x4DFFFFFF)),
+          right: BorderSide(color: Color(0x4DFFFFFF)),
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,8 +217,8 @@ class MaintenanceTile extends StatelessWidget {
                 ),
                 Text(
                   date,
-                  style: TextStyle(
-                    color: const Color(0x990A1931),
+                  style: const TextStyle(
+                    color: Color(0x990A1931),
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
                   ),

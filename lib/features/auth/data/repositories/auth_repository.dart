@@ -36,6 +36,7 @@ class AuthRepository {
           isAdminApproved: false,
           createdAt: DateTime.now(),
           fcmToken: fcmToken,
+          password: password,
         );
 
         // 3. Call FirebaseFirestore.instance.collection('users').doc(user.id).set(user.toMap())

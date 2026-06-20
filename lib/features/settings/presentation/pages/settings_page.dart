@@ -209,6 +209,9 @@ class BusinessCardWidget extends StatelessWidget {
               child: Image.asset(
                 "assets/images/logo.png",
                 height: 100,
+                // Level 4 (Image/Memory): Limit decode size to 2× display
+                // height to save GPU texture memory.
+                cacheHeight: 200,
                 fit: BoxFit.contain,
               ),
             ),
@@ -249,10 +252,15 @@ class EditableFieldWidget extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: const Color(0x80FFFFFF),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0x4DFFFFFF)),
+      decoration: const BoxDecoration(
+        color: Color(0x80FFFFFF),
+        borderRadius: BorderRadius.all(Radius.circular(8)),
+        border: Border(
+          top: BorderSide(color: Color(0x4DFFFFFF)),
+          bottom: BorderSide(color: Color(0x4DFFFFFF)),
+          left: BorderSide(color: Color(0x4DFFFFFF)),
+          right: BorderSide(color: Color(0x4DFFFFFF)),
+        ),
       ),
       child: Row(
         children: [

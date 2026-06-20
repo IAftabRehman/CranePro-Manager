@@ -404,10 +404,12 @@ class ViewerActivityStream extends ConsumerWidget {
               },
             );
           },
-          loading: () => const Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
-              child: CircularProgressIndicator(color: Colors.amber),
+          loading: () => const RepaintBoundary(
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: CircularProgressIndicator(color: Colors.amber),
+              ),
             ),
           ),
           error: (err, _) => Padding(
@@ -431,7 +433,9 @@ class _LoadingPlaceholder extends StatelessWidget {
   Widget build(BuildContext context) {
     return const SizedBox(
       height: 150,
-      child: Center(child: CircularProgressIndicator(color: Colors.amber)),
+      child: RepaintBoundary(
+        child: Center(child: CircularProgressIndicator(color: Colors.amber)),
+      ),
     );
   }
 }

@@ -472,14 +472,16 @@ class PdfActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = isPrimary ? theme.colorScheme.secondary : Colors.white;
     final textColor = isPrimary ? theme.colorScheme.primary : Colors.white;
+    // Level 5: Cache the responsive check to avoid computing it twice per build.
+    final isMobile = Responsive.isMobile(context);
 
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: EdgeInsets.symmetric(
-          vertical: Responsive.isMobile(context) ? 12 : 16,
-          horizontal: Responsive.isMobile(context) ? 24 : 48,
+          vertical: isMobile ? 12 : 16,
+          horizontal: isMobile ? 24 : 48,
         ),
         decoration: BoxDecoration(
           color: isPrimary ? color : color.withValues(alpha: 0.1),

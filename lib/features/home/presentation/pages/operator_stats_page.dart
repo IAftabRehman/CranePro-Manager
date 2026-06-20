@@ -119,10 +119,12 @@ class OperatorSummaryCardsSection extends ConsumerWidget {
           ),
         ],
       ),
-      loading: () => const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24.0),
-          child: CircularProgressIndicator(color: Colors.amber),
+      loading: () => const RepaintBoundary(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.all(24.0),
+            child: CircularProgressIndicator(color: Colors.amber),
+          ),
         ),
       ),
       error: (err, _) => Padding(
@@ -370,10 +372,12 @@ class OperatorActivityListSection extends ConsumerWidget {
           },
         );
       },
-      loading: () => const Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 20),
-          child: CircularProgressIndicator(color: Colors.amber),
+      loading: () => const RepaintBoundary(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: CircularProgressIndicator(color: Colors.amber),
+          ),
         ),
       ),
       error: (err, _) => Padding(
@@ -416,7 +420,9 @@ class DownloadReportButton extends ConsumerWidget {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator(color: Colors.amber)),
+      builder: (context) => const RepaintBoundary(
+        child: Center(child: CircularProgressIndicator(color: Colors.amber)),
+      ),
     );
 
     try {

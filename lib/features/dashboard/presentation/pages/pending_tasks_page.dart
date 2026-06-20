@@ -13,7 +13,24 @@ class PendingTasksPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userAsync = ref.watch(currentUserProvider);
+    // Level 1 (Riverpod Precision): Watch only the user ID to prevent page
+    // rebuilds triggered by other user profile field changes.
+    final userId = ref.watch(
+      currentUserProvider.select((u) => u.asData?.value?.id),
+    );
+
+    if (userId == null) {
+      return Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(gradient: AppTheme.lavenderBlueGradient),
+          child: const RepaintBoundary(
+            child: Center(child: CircularProgressIndicator(color: Colors.amber)),
+          ),
+        ),
+      );
+    }
+
+    final pendingTasksAsync = ref.watch(pendingWorkProvider(userId));
 
     return Scaffold(
       body: SafeArea(
@@ -44,75 +61,58 @@ class PendingTasksPage extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 5),
-              userAsync.when(
-                data: (user) {
-                  if (user == null) {
-                    return const Center(child: Text('User not found'));
-                  }
-
-                  final pendingTasksAsync = ref.watch(
-                    pendingWorkProvider(user.id),
-                  );
-
-                  return pendingTasksAsync.when(
-                    data: (tasks) {
-                      if (tasks.isEmpty) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.check_circle_outline,
-                                size: 80,
-                                color: const Color(0x80FFFFFF),
-                              ),
-                              const SizedBox(height: 16),
-                              const Text(
-                                'No Pending Tasks',
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const Text(
-                                'All your work is up to date!',
-                                style: TextStyle(
-                                  color: Colors.white38,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
+              pendingTasksAsync.when(
+                data: (tasks) {
+                  if (tasks.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.check_circle_outline,
+                            size: 80,
+                            color: Color(0x80FFFFFF),
                           ),
-                        );
-                      }
-
-                      return Expanded(
-                        child: ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: tasks.length,
-                          itemBuilder: (context, index) {
-                            final task = tasks[index];
-                            return _TaskCard(task: task);
-                          },
-                        ),
-                      );
-                    },
-                    loading: () => const Center(
-                      child: CircularProgressIndicator(color: Colors.amber),
-                    ),
-                    error: (err, stack) => Center(
-                      child: Text(
-                        'Error: $err',
-                        style: const TextStyle(color: Colors.redAccent),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'No Pending Tasks',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const Text(
+                            'All your work is up to date!',
+                            style: TextStyle(
+                              color: Colors.white38,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
                       ),
+                    );
+                  }
+                  return Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: tasks.length,
+                      itemBuilder: (context, index) {
+                        final task = tasks[index];
+                        return _TaskCard(task: task);
+                      },
                     ),
                   );
                 },
-                loading: () => const Center(
-                  child: CircularProgressIndicator(color: Colors.amber),
+                loading: () => const RepaintBoundary(
+                  child: Center(child: CircularProgressIndicator(color: Colors.amber)),
                 ),
-                error: (err, stack) => Center(child: Text('Error: $err')),
+                error: (err, stack) => Center(
+                  child: Text(
+                    'Error: $err',
+                    style: const TextStyle(color: Colors.redAccent),
+                  ),
+                ),
               ),
             ],
           ),

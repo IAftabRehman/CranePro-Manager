@@ -37,21 +37,45 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
 
         final user = userCredential.user;
         if (user != null && mounted) {
-          // 2. Fetch Firestore profile to verify Admin status immediately
-          final userDoc = await FirebaseFirestore.instance
+          // 2. Fetch Firestore profile to verify Admin status
+          // First try by UID (standard path)
+          DocumentSnapshot? userDoc = await FirebaseFirestore.instance
               .collection('users')
               .doc(user.uid)
               .get();
 
+          // Fallback: If no doc found by UID, search by email.
+          // This handles the case where the Firestore doc was created with
+          // a different ID than the Firebase Auth UID.
+          if (!userDoc.exists) {
+            final query = await FirebaseFirestore.instance
+                .collection('users')
+                .where('email', isEqualTo: user.email)
+                .limit(1)
+                .get();
+            if (query.docs.isNotEmpty) {
+              userDoc = query.docs.first;
+            }
+          }
+
           if (!mounted) return;
 
-          if (!userDoc.exists || userDoc.data()?['role'] != 'admin') {
-            // Not an admin!
+          final data = userDoc.data() as Map<String, dynamic>?;
+          final role = data?['role'] as String?;
+          final isAdminApproved = data?['isAdminApproved'] as bool? ?? false;
+
+          if (!userDoc.exists || role != 'admin' || !isAdminApproved) {
+            // Not an admin — sign out immediately
             await FirebaseAuth.instance.signOut();
             if (mounted) {
+              final reason = !userDoc.exists
+                  ? 'User record not found in database.'
+                  : role != 'admin'
+                      ? 'Access Denied: Not an authorized Administrator account.'
+                      : 'Access Denied: Admin account is not yet approved.';
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Access Denied: Not an authorized Administrator account.'),
+                SnackBar(
+                  content: Text(reason),
                   backgroundColor: Colors.redAccent,
                 ),
               );
@@ -127,10 +151,12 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                       // Restricted Icon
                       Container(
                         padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: const Color(0x0DFFC107),
+                        decoration: const BoxDecoration(
+                          color: Color(0x0DFFC107),
                           shape: BoxShape.circle,
-                          border: Border.all(color: const Color(0x33FFC107), width: 2),
+                          border: Border.fromBorderSide(
+                            BorderSide(color: Color(0x33FFC107), width: 2),
+                          ),
                         ),
                         child: const Icon(Icons.lock_person_rounded, size: 70, color: Colors.amber),
                       ),

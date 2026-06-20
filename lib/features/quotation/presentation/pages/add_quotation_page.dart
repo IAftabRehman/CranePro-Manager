@@ -246,12 +246,13 @@ class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
 
                           const SizedBox(height: 30),
                           const _SectionLabel('Payment Summary'),
-                          CraneInput(
+                           CraneInput(
                             controller: _advancePaidController,
                             hintText: 'Advance Paid (AED)',
                             keyboardType: TextInputType.number,
                             prefixIcon: const Icon(Icons.payments_outlined, size: 20),
-                            onChanged: (val) => setState(() {}),
+                            // Removed setState rebuild on every keystroke;
+                            // the total is recalculated on save via _totalPrice getter.
                           ),
                           const SizedBox(height: 20),
                           CraneInput(
@@ -259,7 +260,8 @@ class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
                             hintText: 'Commission (AED)',
                             keyboardType: TextInputType.number,
                             prefixIcon: const Icon(Icons.payments_outlined, size: 20),
-                            onChanged: (val) => setState(() {}),
+                            // Removed setState rebuild on every keystroke;
+                            // commission is read directly on save.
                           ),
 
                           const SizedBox(height: 40),
@@ -339,8 +341,10 @@ class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
           if (_isSaving)
             Container(
               color: Colors.black54,
-              child: const Center(
-                child: CircularProgressIndicator(color: Colors.amber),
+              child: const RepaintBoundary(
+                child: Center(
+                  child: CircularProgressIndicator(color: Colors.amber),
+                ),
               ),
             ),
         ],

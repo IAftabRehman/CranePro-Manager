@@ -12,7 +12,11 @@ class QuotationHistoryPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userAsync = ref.watch(currentUserProvider);
+    // Level 1 (Riverpod Precision): Watch only userId to avoid rebuilding the
+    // entire page when other user profile fields change.
+    final userId = ref.watch(
+      currentUserProvider.select((u) => u.asData?.value?.id),
+    );
 
     return Scaffold(
       body: SafeArea(
@@ -46,80 +50,66 @@ class QuotationHistoryPage extends ConsumerWidget {
               ),
               const SizedBox(height: 10),
               Expanded(
-                child: userAsync.when(
-                  data: (user) {
-                    if (user == null) {
-                      return const Center(
-                        child: Text(
-                          'User not logged in',
-                          style: TextStyle(color: Colors.white70),
+                child: userId == null
+                    ? const RepaintBoundary(
+                        child: Center(
+                          child: CircularProgressIndicator(color: Colors.amber),
                         ),
-                      );
-                    }
+                      )
+                    : StreamBuilder<List<QuotationModel>>(
+                        stream: ref.read(quotationRepositoryProvider).getMyQuotations(userId),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const RepaintBoundary(
+                              child: Center(
+                                child: CircularProgressIndicator(color: Colors.amber),
+                              ),
+                            );
+                          }
 
-                    return StreamBuilder<List<QuotationModel>>(
-                      stream: ref.read(quotationRepositoryProvider).getMyQuotations(user.id),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Center(
-                            child: CircularProgressIndicator(color: Colors.amber),
-                          );
-                        }
+                          if (snapshot.hasError) {
+                            return Center(
+                              child: Text(
+                                'Error: ${snapshot.error}',
+                                style: const TextStyle(color: Colors.redAccent),
+                              ),
+                            );
+                          }
 
-                        if (snapshot.hasError) {
-                          return Center(
-                            child: Text(
-                              'Error: ${snapshot.error}',
-                              style: const TextStyle(color: Colors.redAccent),
-                            ),
-                          );
-                        }
-
-                        final quotations = snapshot.data ?? [];
-                        if (quotations.isEmpty) {
-                          return Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.description_outlined,
-                                  size: 80,
-                                  color: const Color(0x80FFFFFF),
-                                ),
-                                const SizedBox(height: 16),
-                                const Text(
-                                  'No Quotations Found',
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
+                          final quotations = snapshot.data ?? [];
+                          if (quotations.isEmpty) {
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.description_outlined,
+                                    size: 80,
+                                    color: Color(0x80FFFFFF),
                                   ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    'No Quotations Found',
+                                    style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
 
-                        return ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          itemCount: quotations.length,
-                          itemBuilder: (context, index) {
-                            return QuotationHistoryCard(q: quotations[index]);
-                          },
-                        );
-                      },
-                    );
-                  },
-                  loading: () => const Center(
-                    child: CircularProgressIndicator(color: Colors.amber),
-                  ),
-                  error: (err, stack) => Center(
-                    child: Text(
-                      'Error: $err',
-                      style: const TextStyle(color: Colors.redAccent),
-                    ),
-                  ),
-                ),
+                          return ListView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            itemCount: quotations.length,
+                            itemBuilder: (context, index) {
+                              return QuotationHistoryCard(q: quotations[index]);
+                            },
+                          );
+                        },
+                      ),
               ),
             ],
           ),

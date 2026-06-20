@@ -25,11 +25,17 @@ class FirebaseUpdateService {
       return null;
     } catch (e, stack) {
       log("Error fetching version info: $e");
-      FirebaseCrashlytics.instance.recordError(
-        e,
-        stack,
-        reason: 'Failed to fetch OTA version info from Firestore',
-      );
+      if (e is FirebaseException && e.code == 'permission-denied') {
+        log("WARNING: Permission denied when reading '/app_settings/version_info'. "
+            "Please check your Firestore security rules. Since update checks run on startup before login, "
+            "the 'app_settings' collection must allow public/unauthenticated reads.");
+      } else {
+        FirebaseCrashlytics.instance.recordError(
+          e,
+          stack,
+          reason: 'Failed to fetch OTA version info from Firestore',
+        );
+      }
       return null;
     }
   }

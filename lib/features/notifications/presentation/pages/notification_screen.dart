@@ -35,7 +35,11 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
         elevation: 0,
       ),
       body: userId == null || userRole == null
-          ? const Center(child: CircularProgressIndicator(color: Colors.amber))
+          ? const Center(
+              child: RepaintBoundary(
+                child: CircularProgressIndicator(color: Colors.amber),
+              ),
+            )
           : Consumer(
               builder: (context, ref, child) {
                 final notificationsAsync = ref.watch(
@@ -112,7 +116,9 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
                     );
                   },
                   loading: () => const Center(
-                    child: CircularProgressIndicator(color: Colors.amber),
+                    child: RepaintBoundary(
+                      child: CircularProgressIndicator(color: Colors.amber),
+                    ),
                   ),
                   error: (err, stack) => Center(
                     child: Text(
@@ -280,8 +286,8 @@ class EmptyStateWidget extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(40),
-            decoration: BoxDecoration(
-              color: const Color(0x0DFFFFFF),
+            decoration: const BoxDecoration(
+              color: Color(0x0DFFFFFF),
               shape: BoxShape.circle,
             ),
             child: const Icon(

@@ -13,7 +13,9 @@ class WaitingRoomPage extends StatelessWidget {
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Cannot return until verified or logged out')),
+          const SnackBar(
+            content: Text('Cannot return until verified or logged out'),
+          ),
         );
       },
       child: Scaffold(
@@ -38,45 +40,48 @@ class WaitingRoomPage extends StatelessWidget {
                     child: Image.asset(
                       'assets/images/logo.png',
                       height: 120,
+                      cacheHeight: 360,
                       fit: BoxFit.contain,
                     ),
                   ),
-                  const SizedBox(height: 48),
-                  
+                  const SizedBox(height: 40),
+
                   const Text(
                     'Verification in Progress',
                     style: TextStyle(
                       color: AppTheme.deepNavyBlue,
-                      fontSize: 28,
+                      fontSize: 20,
                       fontWeight: FontWeight.w900,
                     ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
-                  
+
                   const Text(
-                    "Admin is reviewing your request. You will get access once approved.\nIf you have been waiting for too long, please contact Admin at +92 332 3220916.",
+                    "Admin is reviewing your request. You will get access once approved.\nIf you have been waiting for too long, please contact Admin at \nWhatsapp: +92 3323220916 \nEmail: iamaftabrehman@gmail.com",
                     style: TextStyle(
                       color: AppTheme.deepNavyBlue,
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  
-                  const SizedBox(height: 60),
 
-                  const SizedBox(
-                    width: 40,
-                    height: 40,
-                    child: CircularProgressIndicator(
-                      color: AppTheme.deepNavyBlue,
-                      strokeWidth: 3,
+                  const SizedBox(height: 40),
+
+                  const RepaintBoundary(
+                    child: SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: CircularProgressIndicator(
+                        color: AppTheme.deepNavyBlue,
+                        strokeWidth: 3,
+                      ),
                     ),
                   ),
 
-                  const SizedBox(height: 60),
-                  
+                  const SizedBox(height: 40),
+
                   CraneButton(
                     text: 'Logout',
                     onPressed: () => FirebaseAuth.instance.signOut(),

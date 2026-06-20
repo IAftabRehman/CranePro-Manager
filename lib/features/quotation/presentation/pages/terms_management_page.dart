@@ -60,9 +60,9 @@ class _TermsManagementPageState extends State<TermsManagementPage> {
             margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
             width: double.infinity,
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: const Color(0x14FFFFFF),
-              borderRadius: BorderRadius.circular(10)
+            decoration: const BoxDecoration(
+              color: Color(0x14FFFFFF),
+              borderRadius: BorderRadius.all(Radius.circular(10)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

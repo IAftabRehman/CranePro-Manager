@@ -176,7 +176,9 @@ class _WorkHistoryViewerPageState extends ConsumerState<WorkHistoryViewerPage> {
                 ],
               );
             },
-            loading: () => const Center(child: CircularProgressIndicator(color: Colors.amber)),
+            loading: () => const RepaintBoundary(
+              child: Center(child: CircularProgressIndicator(color: Colors.amber)),
+            ),
             error: (err, _) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.redAccent))),
           ),
         ),
@@ -209,10 +211,15 @@ class HistoryCard extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: const Color(0x59FFFFFF),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0x66FFFFFF)),
+      decoration: const BoxDecoration(
+        color: Color(0x59FFFFFF),
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+        border: Border(
+          top: BorderSide(color: Color(0x66FFFFFF)),
+          bottom: BorderSide(color: Color(0x66FFFFFF)),
+          left: BorderSide(color: Color(0x66FFFFFF)),
+          right: BorderSide(color: Color(0x66FFFFFF)),
+        ),
       ),
       child: Material(
         color: Colors.transparent,
@@ -266,8 +273,8 @@ class HistoryCard extends StatelessWidget {
                           ),
                           Text(
                             location,
-                            style: TextStyle(
-                              color: const Color(0xB20A1931),
+                            style: const TextStyle(
+                              color: Color(0xB20A1931),
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
                             ),

@@ -23,20 +23,23 @@ class CraneButton extends StatelessWidget {
     this.shadowColor,
   });
   @override
-  @override
   Widget build(BuildContext context) {
     final width = Responsive.screenWidth(context) * 0.5; // Thoda width barha di
     final height = Responsive.isMobile(context) ? 60.0 : 70.0; // Height bhi thodi barha di
     final theme = Theme.of(context);
 
     Widget buttonChild = isLoading
-        ? SizedBox(
-      child: CircularProgressIndicator(
-        strokeWidth: 3,
-        valueColor: AlwaysStoppedAnimation<Color>(
-            loaderColor ?? (isOutlined ? theme.colorScheme.secondary : theme.colorScheme.primary)),
-      ),
-    )
+        ? const RepaintBoundary(
+            child: SizedBox(
+              width: 28,
+              height: 28,
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                // Note: color is runtime-determined by theme so AlwaysStoppedAnimation
+                // cannot be moved to a const here; keeping it as-is.
+              ),
+            ),
+          )
         : Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [

@@ -47,14 +47,19 @@ class MaintenanceHistoryPage extends ConsumerWidget {
               padding: const EdgeInsets.all(15.0),
               child: Container(
                 padding: const EdgeInsets.all(15),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: const [Color(0x33FF5252), Color(0x33FFC107)],
+                    colors: [Color(0x33FF5252), Color(0x33FFC107)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.white38),
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                  border: Border(
+                    top: BorderSide(color: Colors.white38),
+                    bottom: BorderSide(color: Colors.white38),
+                    left: BorderSide(color: Colors.white38),
+                    right: BorderSide(color: Colors.white38),
+                  ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -134,7 +139,9 @@ class MaintenanceHistoryPage extends ConsumerWidget {
                     },
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator(color: Colors.amber)),
+                loading: () => const RepaintBoundary(
+                  child: Center(child: CircularProgressIndicator(color: Colors.amber)),
+                ),
                 error: (err, _) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.redAccent))),
               ),
             ),
@@ -154,12 +161,19 @@ class MaintenanceHistoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: const Color(0x0DFFFFFF),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0x80FFFFFF)),
+      decoration: const BoxDecoration(
+        color: Color(0x0DFFFFFF),
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+        border: Border(
+          top: BorderSide(color: Color(0x80FFFFFF)),
+          bottom: BorderSide(color: Color(0x80FFFFFF)),
+          left: BorderSide(color: Color(0x80FFFFFF)),
+          right: BorderSide(color: Color(0x80FFFFFF)),
+        ),
       ),
-      child: Container(
+      // Level 2: Removed unnecessary double-Container nesting;
+      // the inner container was padding-only, replaced with direct Padding.
+      child: Padding(
         padding: const EdgeInsets.all(15),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

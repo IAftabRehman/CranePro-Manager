@@ -30,7 +30,7 @@ class WorkEntryDetailsPage extends StatelessWidget {
         backgroundColor: Colors.lightBlueAccent.shade200,
         elevation: 5,
         shadowColor: Colors.blue,
-        title: Text(
+        title: const Text(
           "Entry Details",
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
@@ -163,14 +163,24 @@ class EntryHeaderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-      decoration: BoxDecoration(
-        color: const Color(0x59FFFFFF),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0x80FFFFFF)),
+      decoration: const BoxDecoration(
+        color: Color(0x59FFFFFF),
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+        border: Border(
+          top: BorderSide(color: Color(0x80FFFFFF)),
+          bottom: BorderSide(color: Color(0x80FFFFFF)),
+          left: BorderSide(color: Color(0x80FFFFFF)),
+          right: BorderSide(color: Color(0x80FFFFFF)),
+        ),
       ),
       child: Column(
         children: [
-          Image.asset('assets/images/logo.png', height: 50),
+          Image.asset(
+            'assets/images/logo.png',
+            height: 50,
+            // Level 4: Limit GPU texture decode size to 2× display height.
+            cacheHeight: 100,
+          ),
           const SizedBox(height: 10),
           Text(
             client.toUpperCase(),
@@ -184,9 +194,9 @@ class EntryHeaderCard extends StatelessWidget {
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            decoration: BoxDecoration(
-              color: const Color(0x1A0A1931),
-              borderRadius: BorderRadius.circular(20),
+            decoration: const BoxDecoration(
+              color: Color(0x1A0A1931),
+              borderRadius: BorderRadius.all(Radius.circular(20)),
             ),
             child: Text(
               isOwnCrane ? 'Own Crane Details' : 'Commission Details',
@@ -220,10 +230,15 @@ class EntryDetailSection extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-      decoration: BoxDecoration(
-        color: const Color(0x33FFFFFF),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0x40FFFFFF)),
+      decoration: const BoxDecoration(
+        color: Color(0x33FFFFFF),
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+        border: Border(
+          top: BorderSide(color: Color(0x40FFFFFF)),
+          bottom: BorderSide(color: Color(0x40FFFFFF)),
+          left: BorderSide(color: Color(0x40FFFFFF)),
+          right: BorderSide(color: Color(0x40FFFFFF)),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -271,8 +286,8 @@ class EntryDetailRow extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: TextStyle(
-                    color: const Color(0x800A1931),
+                  style: const TextStyle(
+                    color: Color(0x800A1931),
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                   ),
@@ -319,8 +334,8 @@ class EntryFinancialRow extends StatelessWidget {
         children: [
           Text(
             label,
-            style: TextStyle(
-              color: const Color(0xB20A1931),
+            style: const TextStyle(
+              color: Color(0xB20A1931),
               fontSize: 12,
               fontWeight: FontWeight.w800,
             ),
@@ -396,8 +411,8 @@ class EntryStatusHistoryRow extends StatelessWidget {
                   ),
                   Text(
                     time,
-                    style: TextStyle(
-                      color: const Color(0x800A1931),
+                    style: const TextStyle(
+                      color: Color(0x800A1931),
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),

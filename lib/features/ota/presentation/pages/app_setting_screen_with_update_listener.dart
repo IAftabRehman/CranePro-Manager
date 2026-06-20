@@ -9,7 +9,8 @@ class AppSettingScreenWithUpdateListener extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(updateProvider);
+    final isLoading = ref.watch(updateProvider.select((s) => s.isLoading));
+    final errorMessage = ref.watch(updateProvider.select((s) => s.errorMessage));
 
     // Listen to changes in the OTA update state to show dialog
     ref.listen(updateProvider, (previous, next) {
@@ -69,30 +70,30 @@ class AppSettingScreenWithUpdateListener extends ConsumerWidget {
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                onPressed: state.isLoading
-                    ? null
-                    : () {
-                        ref.read(updateProvider.notifier).checkForUpdates();
-                      },
-                icon: state.isLoading
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.black,
-                        ),
-                      )
-                    : const Icon(Icons.refresh_rounded),
+                onPressed: isLoading
+                  ? null
+                  : () {
+                      ref.read(updateProvider.notifier).checkForUpdates();
+                    },
+                icon: isLoading
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.black,
+                      ),
+                    )
+                  : const Icon(Icons.refresh_rounded),
                 label: Text(
-                  state.isLoading ? 'CHECKING...' : 'CHECK FOR UPDATES',
+                  isLoading ? 'CHECKING...' : 'CHECK FOR UPDATES',
                   style: const TextStyle(fontWeight: FontWeight.w900),
                 ),
               ),
-              if (state.errorMessage != null) ...[
+              if (errorMessage != null) ...[
                 const SizedBox(height: 16),
                 Text(
-                  state.errorMessage!,
+                  errorMessage,
                   style: const TextStyle(color: Colors.redAccent, fontSize: 13),
                   textAlign: TextAlign.center,
                 ),

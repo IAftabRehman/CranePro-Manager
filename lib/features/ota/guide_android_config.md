@@ -11,6 +11,7 @@ To download the APK and initiate the installation, the following permissions are
 ```xml
 <uses-permission android:name="android.permission.INTERNET"/>
 <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 ```
 
 ### Explanation:

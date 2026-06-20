@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user_model.dart';
 import 'dart:developer';
@@ -29,12 +30,33 @@ class UserRepository {
   }
 
   /// Fetches user data from Firestore by UID.
+  /// Falls back to an email-based query if the UID-based doc doesn't exist,
+  /// which handles cases where the Firestore doc ID ≠ Firebase Auth UID.
   Future<UserModel?> getCurrentUser(String uid) async {
     try {
+      // Primary lookup: by UID (standard, fastest path)
       final doc = await _firestore.collection('users').doc(uid).get();
       if (doc.exists && doc.data() != null) {
         return UserModel.fromMap(doc.data()!);
       }
+
+      // Fallback lookup: by Firebase Auth email
+      // Needed when the Firestore doc was stored under a different ID.
+      final authUser = await FirebaseAuth.instance.currentUser?.reload().then(
+        (_) => FirebaseAuth.instance.currentUser,
+      );
+      if (authUser?.email == null) return null;
+
+      final query = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: authUser!.email)
+          .limit(1)
+          .get();
+
+      if (query.docs.isNotEmpty) {
+        return UserModel.fromMap(query.docs.first.data());
+      }
+
       return null;
     } catch (e) {
       log("Error fetching current user: $e");

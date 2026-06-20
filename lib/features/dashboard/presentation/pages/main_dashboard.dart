@@ -338,7 +338,7 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
               },
             ),
       body: userId == null
-          ? const Center(child: CircularProgressIndicator(color: Colors.amber))
+          ? const RepaintBoundary(child: Center(child: CircularProgressIndicator(color: Colors.amber)))
           : Consumer(
               builder: (context, ref, child) {
                 final pendingAsync = ref.watch(np.pendingWorkProvider(userId));
@@ -444,8 +444,10 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
                       ),
                     );
                   },
-                  loading: () => const Center(
-                    child: CircularProgressIndicator(color: Colors.white),
+                  loading: () => const RepaintBoundary(
+                    child: Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    ),
                   ),
                   error: (err, stack) {
                     debugPrint('Firestore Pending Stream Error: $err');
@@ -494,7 +496,7 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
         IconButton(
           onPressed: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => SettingsPage()),
+            MaterialPageRoute(builder: (_) => const SettingsPage()),
           ),
           icon: const Icon(Icons.person_outline, color: Colors.white),
         ),
@@ -574,9 +576,9 @@ class _PendingWarningBanner extends StatelessWidget {
           horizontal: 16,
           vertical: 10,
         ),
-        decoration: BoxDecoration(
-          color: const Color(0xE6F44336),
-          boxShadow: const [
+        decoration: const BoxDecoration(
+          color: Color(0xE6F44336),
+          boxShadow: [
             BoxShadow(color: Colors.black45, blurRadius: 10),
           ],
         ),
@@ -667,10 +669,12 @@ class StatsGridSection extends ConsumerWidget {
     return statsAsync.when(
       data: (stats) => StatsGrid(stats: stats, isTablet: isTablet),
       loading: () => const SliverToBoxAdapter(
-        child: Center(
-          child: Padding(
-            padding: EdgeInsets.all(24.0),
-            child: CircularProgressIndicator(color: Colors.amber),
+        child: RepaintBoundary(
+          child: Center(
+            child: Padding(
+              padding: EdgeInsets.all(24.0),
+              child: CircularProgressIndicator(color: Colors.amber),
+            ),
           ),
         ),
       ),
@@ -868,10 +872,12 @@ class RecentActivitySection extends ConsumerWidget {
           },
         );
       },
-      loading: () => const Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 20),
-          child: CircularProgressIndicator(color: Colors.amber),
+      loading: () => const RepaintBoundary(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: CircularProgressIndicator(color: Colors.amber),
+          ),
         ),
       ),
       error: (err, _) => Center(

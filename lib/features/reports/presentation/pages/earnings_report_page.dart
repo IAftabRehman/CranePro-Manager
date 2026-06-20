@@ -64,7 +64,9 @@ class _EarningsReportPageState extends ConsumerState<EarningsReportPage> {
       ),
       body: SafeArea(
         child: userId == null
-            ? const Center(child: CircularProgressIndicator(color: Colors.amber))
+            ? const RepaintBoundary(
+                child: Center(child: CircularProgressIndicator(color: Colors.amber)),
+              )
             : Consumer(
                 builder: (context, ref, child) {
                   final reportAsync = ref.watch(
@@ -117,7 +119,9 @@ class _EarningsReportPageState extends ConsumerState<EarningsReportPage> {
                         ),
                       ),
                     ),
-                    loading: () => const Center(child: CircularProgressIndicator(color: Colors.amber)),
+                    loading: () => const RepaintBoundary(
+                      child: Center(child: CircularProgressIndicator(color: Colors.amber)),
+                    ),
                     error: (err, stack) => Center(
                       child: Text(
                         'Error loading report: $err',

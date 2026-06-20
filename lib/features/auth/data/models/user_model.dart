@@ -15,6 +15,7 @@ class UserModel {
   final String? phoneNumber;
   final int totalQuotations;
   final DateTime? lastLogin;
+  final String? password;
 
   UserModel({
     required this.id,
@@ -29,6 +30,7 @@ class UserModel {
     this.phoneNumber,
     this.totalQuotations = 0,
     this.lastLogin,
+    this.password,
   });
 
   UserModel copyWith({
@@ -44,6 +46,7 @@ class UserModel {
     String? phoneNumber,
     int? totalQuotations,
     DateTime? lastLogin,
+    String? password,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -58,6 +61,7 @@ class UserModel {
       phoneNumber: phoneNumber ?? this.phoneNumber,
       totalQuotations: totalQuotations ?? this.totalQuotations,
       lastLogin: lastLogin ?? this.lastLogin,
+      password: password ?? this.password,
     );
   }
 
@@ -75,6 +79,7 @@ class UserModel {
       'phoneNumber': phoneNumber,
       'totalQuotations': totalQuotations,
       'lastLogin': lastLogin != null ? Timestamp.fromDate(lastLogin!) : null,
+      'password': password,
     };
   }
 
@@ -92,6 +97,7 @@ class UserModel {
       phoneNumber: map['phoneNumber'],
       totalQuotations: map['totalQuotations'] ?? 0,
       lastLogin: (map['lastLogin'] as Timestamp?)?.toDate(),
+      password: map['password'],
     );
   }
 }

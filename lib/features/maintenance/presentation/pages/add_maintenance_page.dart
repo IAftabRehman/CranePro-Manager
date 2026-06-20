@@ -114,7 +114,11 @@ class _AddMaintenancePageState extends ConsumerState<AddMaintenancePage> {
 
   @override
   Widget build(BuildContext context) {
-    final userAsync = ref.watch(currentUserProvider);
+    // Level 1 (Riverpod Precision): Watch only the hasValue flag to determine
+    // button loading state — avoids rebuilding the entire form on user updates.
+    final userReady = ref.watch(
+      currentUserProvider.select((u) => u.hasValue && u.asData?.value != null),
+    );
 
     return PremiumScaffold(
       appBar: AppBar(
@@ -147,13 +151,17 @@ class _AddMaintenancePageState extends ConsumerState<AddMaintenancePage> {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                      decoration: BoxDecoration(
-                        color: const Color(0x1AFFFFFF),
-                        borderRadius: const BorderRadius.only(
+                      decoration: const BoxDecoration(
+                        color: Color(0x1AFFFFFF),
+                        borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(8),
                           bottomLeft: Radius.circular(8),
                         ),
-                        border: Border.all(color: Colors.white12),
+                        border: Border(
+                          top: BorderSide(color: Colors.white12),
+                          bottom: BorderSide(color: Colors.white12),
+                          left: BorderSide(color: Colors.white12),
+                        ),
                       ),
                       child: const Text(
                         'AED',
@@ -210,7 +218,7 @@ class _AddMaintenancePageState extends ConsumerState<AddMaintenancePage> {
                   text: _isSaving ? 'Saving...' : 'Save Entry',
                   icon: _isSaving ? Icons.hourglass_top : Icons.check_circle_outline,
                   onPressed: _saveMaintenance,
-                  isLoading: _isSaving || !userAsync.hasValue,
+                  isLoading: _isSaving || !userReady,
                 ),
                 
                 const SizedBox(height: 10),
