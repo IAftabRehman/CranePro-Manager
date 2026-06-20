@@ -267,9 +267,9 @@ class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.05),
+                              color: const Color(0x0DFFFFFF),
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                              border: Border.all(color: const Color(0x1AFFFFFF)),
                             ),
                             child: Column(
                               children: [
@@ -277,17 +277,17 @@ class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text('${_terms.length} Terms Added', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
-                                        Text('Click below to edit or add more points.', style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 12)),
+                                        const Text('Click below to edit or add more points.', style: TextStyle(color: Color(0xB3FFFFFF), fontSize: 12)),
                                       ],
                                     ),
                                 const SizedBox(height: 10),
                                 ElevatedButton(
                                   onPressed: _navigateToTerms,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red.withValues(alpha: 0.5),
+                                    backgroundColor: const Color(0x80F44336),
                                     foregroundColor: Colors.white,
                                     minimumSize: const Size(double.infinity, 40),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: const BorderSide(color: Color(0x0DFFFFFF))),
                                   ),
                                   child: const Text('Manage Terms and Conditions', style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12, letterSpacing: 0.2, wordSpacing: 2), textAlign: TextAlign.center,),
                                 ),
@@ -383,11 +383,11 @@ class _ServiceCard extends StatelessWidget {
       margin: const EdgeInsets.only(top: 10),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: const Color(0x0DFFFFFF),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-        boxShadow: [
-          BoxShadow(color: Colors.blue.withValues(alpha: 0.07), blurRadius: 10, offset: const Offset(7, 7)),
+        border: Border.all(color: const Color(0x0DFFFFFF)),
+        boxShadow: const [
+          BoxShadow(color: Color(0x122196F3), blurRadius: 10, offset: Offset(7, 7)),
         ],
       ),
       child: Column(
@@ -440,9 +440,9 @@ class _ServiceCard extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.05),
+                color: const Color(0x0DFFFFFF),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                border: Border.all(color: const Color(0x0DFFFFFF)),
               ),
               child: Row(
                 children: [

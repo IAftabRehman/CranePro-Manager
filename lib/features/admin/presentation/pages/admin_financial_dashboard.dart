@@ -11,7 +11,6 @@ class AdminFinancialDashboard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final summaryAsync = ref.watch(financialSummaryProvider);
-    final currencyFormatter = NumberFormat.currency(symbol: 'AED ', decimalDigits: 2);
 
     return summaryAsync.when(
       data: (summary) => RefreshIndicator(
@@ -34,14 +33,30 @@ class AdminFinancialDashboard extends ConsumerWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildTopAnalyticsCards(summary, currencyFormatter, isWide),
+                              // Extracted analytics cards section
+                              TopAnalyticsCardsSection(summary: summary, isWide: isWide),
                               const SizedBox(height: 24),
                               if (isWide)
-                                _buildWebDashboardBody(context, ref, summary)
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      flex: 5,
+                                      child: ExpenseBreakdownSection(summary: summary),
+                                    ),
+                                    const SizedBox(width: 32),
+                                    const Expanded(
+                                      flex: 5,
+                                      child: RecentTransactionsSection(),
+                                    ),
+                                  ],
+                                )
                               else ...[
-                                _buildExpenditureSection(context, summary),
+                                // Extracted expenditure breakdown section
+                                ExpenseBreakdownSection(summary: summary),
                                 const SizedBox(height: 20),
-                                _buildRecentTransactionsSection(ref),
+                                // Extracted financial activity log section which watches its own providers
+                                const RecentTransactionsSection(),
                               ],
                               const SizedBox(height: 20),
                             ],
@@ -67,56 +82,55 @@ class AdminFinancialDashboard extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _buildWebDashboardBody(BuildContext context, WidgetRef ref, FinancialSummary summary) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          flex: 5,
-          child: _buildExpenditureSection(context, summary),
-        ),
-        const SizedBox(width: 32),
-        Expanded(
-          flex: 5,
-          child: _buildRecentTransactionsSection(ref),
-        ),
-      ],
-    );
-  }
+// Extracted widget for the 3D-effect top analytic summary cards
+class TopAnalyticsCardsSection extends StatelessWidget {
+  final FinancialSummary summary;
+  final bool isWide;
 
-  Widget _buildTopAnalyticsCards(FinancialSummary summary, NumberFormat formatter, bool isWide) {
+  const TopAnalyticsCardsSection({
+    super.key,
+    required this.summary,
+    required this.isWide,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final formatter = NumberFormat.currency(symbol: 'AED ', decimalDigits: 2);
+    final revenueText = formatter.format(summary.totalRevenue).replaceFirst('AED ', '');
+    final expenseText = formatter.format(summary.totalExpenses).replaceFirst('AED ', '');
+    final profitText = formatter.format(summary.netProfit).replaceFirst('AED ', '');
+    final profitColor = summary.netProfit >= 0 ? Colors.greenAccent : Colors.redAccent;
+
     if (isWide) {
       return Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            child: _build3DFinancialCard(
-              'Total Revenue',
-              formatter.format(summary.totalRevenue).replaceFirst('AED ', ''),
-              Icons.account_balance_wallet_rounded,
-              null,
-              AppTheme.lavenderPrimary,
+            child: FinancialCard(
+              title: 'Total Revenue',
+              amount: revenueText,
+              icon: Icons.account_balance_wallet_rounded,
+              color: AppTheme.lavenderPrimary,
             ),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: _build3DFinancialCard(
-              'Operational Cost',
-              formatter.format(summary.totalExpenses).replaceFirst('AED ', ''),
-              Icons.speed_rounded,
-              null,
-              const Color(0xFFFF5252), // Vibrant Red
+            child: FinancialCard(
+              title: 'Operational Cost',
+              amount: expenseText,
+              icon: Icons.speed_rounded,
+              color: const Color(0xFFFF5252),
             ),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: _build3DFinancialCard(
-              'NET BUSINESS PROFIT',
-              formatter.format(summary.netProfit).replaceFirst('AED ', ''),
-              Icons.trending_up_rounded,
-              null,
-              summary.netProfit >= 0 ? Colors.greenAccent : Colors.redAccent,
+            child: FinancialCard(
+              title: 'NET BUSINESS PROFIT',
+              amount: profitText,
+              icon: Icons.trending_up_rounded,
+              color: profitColor,
               isMain: true,
             ),
           ),
@@ -130,48 +144,61 @@ class AdminFinancialDashboard extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
-              child: _build3DFinancialCard(
-                'Total Revenue',
-                formatter.format(summary.totalRevenue).replaceFirst('AED ', ''),
-                Icons.account_balance_wallet_rounded,
-                null,
-                AppTheme.lavenderPrimary,
+              child: FinancialCard(
+                title: 'Total Revenue',
+                amount: revenueText,
+                icon: Icons.account_balance_wallet_rounded,
+                color: AppTheme.lavenderPrimary,
               ),
             ),
             const SizedBox(width: 5),
             Expanded(
-              child: _build3DFinancialCard(
-                'Operational Cost',
-                formatter.format(summary.totalExpenses).replaceFirst('AED ', ''),
-                Icons.speed_rounded,
-                null,
-                const Color(0xFFFF5252), // Vibrant Red
+              child: FinancialCard(
+                title: 'Operational Cost',
+                amount: expenseText,
+                icon: Icons.speed_rounded,
+                color: const Color(0xFFFF5252),
               ),
             ),
           ],
         ),
         const SizedBox(height: 10),
-        _build3DFinancialCard(
-          'NET BUSINESS PROFIT',
-          formatter.format(summary.netProfit).replaceFirst('AED ', ''),
-          Icons.trending_up_rounded,
-          18.0,
-          summary.netProfit >= 0 ? Colors.greenAccent : Colors.redAccent,
+        FinancialCard(
+          title: 'NET BUSINESS PROFIT',
+          amount: profitText,
+          icon: Icons.trending_up_rounded,
+          color: profitColor,
           isMain: true,
+          fontSize: 18.0,
         ),
       ],
     );
   }
+}
 
-  Widget _build3DFinancialCard(
-    String title,
-    String amount,
-    IconData icon,
-    double? fontSize,
-    Color color, {
-    double offsetY = 0,
-    bool isMain = false,
-  }) {
+// Optimized FinancialCard component with const constructor
+class FinancialCard extends StatelessWidget {
+  final String title;
+  final String amount;
+  final IconData icon;
+  final double? fontSize;
+  final Color color;
+  final double offsetY;
+  final bool isMain;
+
+  const FinancialCard({
+    super.key,
+    required this.title,
+    required this.amount,
+    required this.icon,
+    required this.color,
+    this.fontSize,
+    this.offsetY = 0,
+    this.isMain = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Transform(
       transform: Matrix4.translationValues(0, offsetY, 0)..setEntry(3, 2, 0.002),
       child: Container(
@@ -179,12 +206,12 @@ class AdminFinancialDashboard extends ConsumerWidget {
         decoration: BoxDecoration(
           gradient: AppTheme.lavenderBlueGradient,
           borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
-          boxShadow: [
+          border: Border.all(color: const Color(0x66FFFFFF)),
+          boxShadow: const [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
+              color: Color(0x1A000000),
               blurRadius: 30,
-              offset: const Offset(0, 20),
+              offset: Offset(0, 20),
             ),
           ],
         ),
@@ -194,7 +221,7 @@ class AdminFinancialDashboard extends ConsumerWidget {
             Text(
               title,
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.8),
+                color: const Color(0xCCFFFFFF),
                 fontSize: fontSize ?? 12,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 1.1,
@@ -233,8 +260,16 @@ class AdminFinancialDashboard extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _buildExpenditureSection(BuildContext context, FinancialSummary summary) {
+// Extracted Expense breakdown card segment
+class ExpenseBreakdownSection extends StatelessWidget {
+  final FinancialSummary summary;
+
+  const ExpenseBreakdownSection({super.key, required this.summary});
+
+  @override
+  Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 360;
 
@@ -254,21 +289,26 @@ class AdminFinancialDashboard extends ConsumerWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
+            color: const Color(0x0DFFFFFF),
             borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+            border: Border.all(color: const Color(0x4DFFFFFF)),
           ),
-          child: summary.totalExpenses == 0 
+          child: summary.totalExpenses == 0
               ? const SizedBox(
                   height: 100,
-                  child: Center(child: Text('No expenses recorded yet', style: TextStyle(color: Colors.white60)))
+                  child: Center(
+                    child: Text(
+                      'No expenses recorded yet',
+                      style: TextStyle(color: Colors.white60),
+                    ),
+                  ),
                 )
               : isSmallScreen
                   ? Column(
                       children: [
-                        SizedBox(height: 100, child: _buildPieChart(summary)),
+                        SizedBox(height: 100, child: _PieChart(summary: summary)),
                         const SizedBox(height: 32),
-                        _buildExpenseIndicators(summary),
+                        _ExpenseIndicators(summary: summary),
                       ],
                     )
                   : Row(
@@ -277,34 +317,45 @@ class AdminFinancialDashboard extends ConsumerWidget {
                         Expanded(
                           flex: 4,
                           child: AspectRatio(
-                            aspectRatio: 1.2, 
-                            child: _buildPieChart(summary)
+                            aspectRatio: 1.2,
+                            child: _PieChart(summary: summary),
                           ),
                         ),
                         const SizedBox(width: 32),
-                        Expanded(flex: 5, child: _buildExpenseIndicators(summary)),
+                        Expanded(
+                          flex: 5,
+                          child: _ExpenseIndicators(summary: summary),
+                        ),
                       ],
                     ),
         ),
       ],
     );
   }
+}
 
-  Widget _buildPieChart(FinancialSummary summary) {
+// Isolated Pie chart to avoid layout shifts and optimize drawing
+class _PieChart extends StatelessWidget {
+  final FinancialSummary summary;
+
+  const _PieChart({required this.summary});
+
+  @override
+  Widget build(BuildContext context) {
     final List<Color> palette = [
-      Colors.amber, 
-      Colors.lightBlueAccent, 
-      Colors.redAccent, 
-      Colors.greenAccent, 
+      Colors.amber,
+      Colors.lightBlueAccent,
+      Colors.redAccent,
+      Colors.greenAccent,
       Colors.purpleAccent
     ];
-    
+
     int index = 0;
     final sections = summary.categoryBreakdown.entries.map((entry) {
       final color = palette[index % palette.length];
       final percentage = (entry.value / summary.totalExpenses) * 100;
       index++;
-      
+
       return PieChartSectionData(
         color: color,
         value: entry.value,
@@ -326,16 +377,24 @@ class AdminFinancialDashboard extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _buildExpenseIndicators(FinancialSummary summary) {
+// Extracted indicators container
+class _ExpenseIndicators extends StatelessWidget {
+  final FinancialSummary summary;
+
+  const _ExpenseIndicators({required this.summary});
+
+  @override
+  Widget build(BuildContext context) {
     final List<Color> palette = [
-      Colors.amber, 
-      Colors.lightBlueAccent, 
-      Colors.redAccent, 
-      Colors.greenAccent, 
+      Colors.amber,
+      Colors.lightBlueAccent,
+      Colors.redAccent,
+      Colors.greenAccent,
       Colors.purpleAccent
     ];
-    
+
     int index = 0;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -345,15 +404,33 @@ class AdminFinancialDashboard extends ConsumerWidget {
         index++;
         return Column(
           children: [
-            _buildExpenseIndicator(entry.key, percentage, color),
+            _ExpenseIndicatorTile(
+              label: entry.key,
+              percent: percentage,
+              color: color,
+            ),
             const SizedBox(height: 16),
           ],
         );
       }).toList(),
     );
   }
+}
 
-  Widget _buildExpenseIndicator(String label, double percent, Color color) {
+// Isolated single progress indicator tile to prevent rebuild cascading
+class _ExpenseIndicatorTile extends StatelessWidget {
+  final String label;
+  final double percent;
+  final Color color;
+
+  const _ExpenseIndicatorTile({
+    required this.label,
+    required this.percent,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -383,7 +460,7 @@ class AdminFinancialDashboard extends ConsumerWidget {
           borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(
             value: percent / 100,
-            backgroundColor: Colors.white.withValues(alpha: 0.1),
+            backgroundColor: const Color(0x1AFFFFFF),
             valueColor: AlwaysStoppedAnimation<Color>(color),
             minHeight: 6,
           ),
@@ -391,8 +468,15 @@ class AdminFinancialDashboard extends ConsumerWidget {
       ],
     );
   }
+}
 
-  Widget _buildRecentTransactionsSection(WidgetRef ref) {
+// Riverpod Optimized: watches the transaction list independently. 
+// When transactional states alter, the rest of the financial dashboard is skipped from rebuilds.
+class RecentTransactionsSection extends ConsumerWidget {
+  const RecentTransactionsSection({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final expensesAsync = ref.watch(recentExpensesProvider(10));
 
     return Column(
@@ -411,38 +495,66 @@ class AdminFinancialDashboard extends ConsumerWidget {
         expensesAsync.when(
           data: (expenses) {
             if (expenses.isEmpty) {
-              return const Center(child: Text('No transactions yet', style: TextStyle(color: Colors.white60)));
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Text(
+                    'No transactions yet',
+                    style: TextStyle(color: Colors.white60),
+                  ),
+                ),
+              );
             }
             return ListView.builder(
               shrinkWrap: true,
+              padding: EdgeInsets.zero,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: expenses.length > 10 ? 10 : expenses.length,
-              itemBuilder: (context, index) => _buildTransactionTile(expenses[index]),
+              itemBuilder: (context, index) => TransactionTile(expense: expenses[index]),
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.accentGold)),
-          error: (err, _) => Text('Error loading transactions: $err', style: const TextStyle(color: Colors.redAccent)),
+          loading: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: CircularProgressIndicator(color: AppTheme.accentGold),
+            ),
+          ),
+          error: (err, _) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Text(
+              'Error loading transactions: $err',
+              style: const TextStyle(color: Colors.redAccent),
+            ),
+          ),
         ),
       ],
     );
   }
+}
 
-  Widget _buildTransactionTile(dynamic expense) {
+// Extracted widget representing each single transaction tile
+class TransactionTile extends StatelessWidget {
+  final dynamic expense;
+
+  const TransactionTile({super.key, required this.expense});
+
+  @override
+  Widget build(BuildContext context) {
     final dateStr = DateFormat('dd MMM, yyyy').format(expense.date);
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: const Color(0x0DFFFFFF),
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: const Color(0x1AFFFFFF)),
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            backgroundColor: Colors.white.withValues(alpha: 0.1),
-            child: const Icon(
+          const CircleAvatar(
+            backgroundColor: Color(0x1AFFFFFF),
+            child: Icon(
               Icons.receipt_long_rounded,
               color: Colors.white,
             ),
@@ -464,10 +576,10 @@ class AdminFinancialDashboard extends ConsumerWidget {
                 ),
                 Text(
                   dateStr,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 12,
-                    color: Colors.white.withValues(alpha: 0.5),
+                    color: Color(0x80FFFFFF),
                   ),
                 ),
               ],

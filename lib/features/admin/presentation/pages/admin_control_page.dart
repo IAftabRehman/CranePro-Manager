@@ -29,7 +29,7 @@ class _AdminControlPageState extends State<AdminControlPage> {
       const UserManagementPage(),
       const AdminActivityLogsPage(),
       const AdminReportsPage(),
-      _buildSecurityModule(),
+      const AdminSecurityModule(),
     ];
 
     return LayoutBuilder(
@@ -45,12 +45,16 @@ class _AdminControlPageState extends State<AdminControlPage> {
               ),
               child: Row(
                 children: [
-                  _buildWebSidebar(),
+                  AdminWebSidebar(
+                    currentIndex: _currentIndex,
+                    onIndexChanged: (index) => setState(() => _currentIndex = index),
+                    onLogout: _handleLogout,
+                  ),
                   Expanded(
                     child: SafeArea(
                       child: Column(
                         children: [
-                          _buildWebHeader(),
+                          AdminWebHeader(currentIndex: _currentIndex),
                           Expanded(
                             child: IndexedStack(index: _currentIndex, children: pages),
                           ),
@@ -74,7 +78,10 @@ class _AdminControlPageState extends State<AdminControlPage> {
                 bottom: false,
                 child: Column(
                   children: [
-                    _buildHeader(),
+                    AdminMobileHeader(
+                      currentIndex: _currentIndex,
+                      onLogout: _handleLogout,
+                    ),
                     Expanded(
                       child: IndexedStack(index: _currentIndex, children: pages),
                     ),
@@ -82,14 +89,31 @@ class _AdminControlPageState extends State<AdminControlPage> {
                 ),
               ),
             ),
-            bottomNavigationBar: _buildBottomNav(),
+            bottomNavigationBar: AdminBottomNav(
+              currentIndex: _currentIndex,
+              onTap: (index) => setState(() => _currentIndex = index),
+            ),
           );
         }
       },
     );
   }
+}
 
-  Widget _buildWebSidebar() {
+class AdminWebSidebar extends StatelessWidget {
+  final int currentIndex;
+  final ValueChanged<int> onIndexChanged;
+  final VoidCallback onLogout;
+
+  const AdminWebSidebar({
+    super.key,
+    required this.currentIndex,
+    required this.onIndexChanged,
+    required this.onLogout,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final menuItems = [
       {'title': 'Dashboard', 'icon': Icons.dashboard_rounded},
       {'title': 'User Management', 'icon': Icons.people_alt_rounded},
@@ -101,7 +125,7 @@ class _AdminControlPageState extends State<AdminControlPage> {
     return Container(
       width: 260,
       decoration: BoxDecoration(
-        color: AppTheme.primaryNavy.withValues(alpha: 0.85),
+        color: const Color(0xD90D1B3E),
         border: const Border(
           right: BorderSide(color: Colors.white12, width: 1),
         ),
@@ -135,7 +159,7 @@ class _AdminControlPageState extends State<AdminControlPage> {
                       Text(
                         'ADMIN PANEL',
                         style: TextStyle(
-                          color: AppTheme.accentGold.withValues(alpha: 0.8),
+                          color: const Color(0xCCFFB300),
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 1.0,
@@ -154,21 +178,21 @@ class _AdminControlPageState extends State<AdminControlPage> {
               itemCount: menuItems.length,
               itemBuilder: (context, index) {
                 final item = menuItems[index];
-                final isSelected = _currentIndex == index;
+                final isSelected = currentIndex == index;
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   child: InkWell(
-                    onTap: () => setState(() => _currentIndex = index),
+                    onTap: () => onIndexChanged(index),
                     borderRadius: BorderRadius.circular(12),
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                       decoration: BoxDecoration(
                         color: isSelected 
-                            ? AppTheme.accentGold.withValues(alpha: 0.15) 
+                            ? const Color(0x26FFB300) 
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
                         border: isSelected
-                            ? Border.all(color: AppTheme.accentGold.withValues(alpha: 0.4), width: 1)
+                            ? Border.all(color: const Color(0x66FFB300), width: 1)
                             : Border.all(color: Colors.transparent, width: 1),
                       ),
                       child: Row(
@@ -203,7 +227,7 @@ class _AdminControlPageState extends State<AdminControlPage> {
               children: [
                 Row(
                   children: [
-                    CircleAvatar(
+                    const CircleAvatar(
                       backgroundColor: Colors.white12,
                       child: Text(
                         'A',
@@ -231,7 +255,7 @@ class _AdminControlPageState extends State<AdminControlPage> {
                 const SizedBox(height: 16),
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.redAccent.withValues(alpha: 0.1),
+                    backgroundColor: const Color(0x1AFF5252),
                     foregroundColor: Colors.redAccent,
                     side: const BorderSide(color: Colors.redAccent, width: 1),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -239,7 +263,7 @@ class _AdminControlPageState extends State<AdminControlPage> {
                   ),
                   icon: const Icon(Icons.logout_sharp, size: 18),
                   label: const Text('LOGOUT', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                  onPressed: _handleLogout,
+                  onPressed: onLogout,
                 ),
               ],
             ),
@@ -248,8 +272,15 @@ class _AdminControlPageState extends State<AdminControlPage> {
       ),
     );
   }
+}
 
-  Widget _buildWebHeader() {
+class AdminWebHeader extends StatelessWidget {
+  final int currentIndex;
+
+  const AdminWebHeader({super.key, required this.currentIndex});
+
+  @override
+  Widget build(BuildContext context) {
     final titles = [
       'Financial Analytics Overview',
       'System Users Management',
@@ -266,7 +297,7 @@ class _AdminControlPageState extends State<AdminControlPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                titles[_currentIndex],
+                titles[currentIndex],
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 22,
@@ -289,21 +320,33 @@ class _AdminControlPageState extends State<AdminControlPage> {
       ),
     );
   }
+}
 
-  Widget _buildBottomNav() {
+class AdminBottomNav extends StatelessWidget {
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+
+  const AdminBottomNav({
+    super.key,
+    required this.currentIndex,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.withValues(alpha: 0.5),
+            color: const Color(0x802196F3),
             blurRadius: 20,
             offset: const Offset(0, -10),
           ),
         ],
       ),
       child: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
+        currentIndex: currentIndex,
+        onTap: onTap,
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.black26,
         selectedItemColor: Colors.green,
@@ -345,8 +388,20 @@ class _AdminControlPageState extends State<AdminControlPage> {
       ),
     );
   }
+}
 
-  Widget _buildHeader() {
+class AdminMobileHeader extends StatelessWidget {
+  final int currentIndex;
+  final VoidCallback onLogout;
+
+  const AdminMobileHeader({
+    super.key,
+    required this.currentIndex,
+    required this.onLogout,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final titles = [
       'Financial Overview',
       'User Management',
@@ -360,7 +415,7 @@ class _AdminControlPageState extends State<AdminControlPage> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            titles[_currentIndex],
+            titles[currentIndex],
             style: const TextStyle(
               color: Colors.white,
               fontSize: 16,
@@ -374,14 +429,19 @@ class _AdminControlPageState extends State<AdminControlPage> {
               color: Colors.white,
               size: 25,
             ),
-            onPressed: _handleLogout,
+            onPressed: onLogout,
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildSecurityModule() {
+class AdminSecurityModule extends StatelessWidget {
+  const AdminSecurityModule({super.key});
+
+  @override
+  Widget build(BuildContext context) {
     return DefaultTabController(
       length: 2,
       child: Column(

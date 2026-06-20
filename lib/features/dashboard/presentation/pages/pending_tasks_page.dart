@@ -30,10 +30,10 @@ class PendingTasksPage extends ConsumerWidget {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: Icon(Icons.arrow_back, color: Colors.white),
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
                   ),
                   const SizedBox(width: 10),
-                  Text(
+                  const Text(
                     'Pending Tasks',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
@@ -64,7 +64,7 @@ class PendingTasksPage extends ConsumerWidget {
                               Icon(
                                 Icons.check_circle_outline,
                                 size: 80,
-                                color: Colors.white.withValues(alpha: 0.5),
+                                color: const Color(0x80FFFFFF),
                               ),
                               const SizedBox(height: 16),
                               const Text(
@@ -137,7 +137,7 @@ class _TaskCard extends ConsumerWidget {
       color: Colors.black26,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+        side: const BorderSide(color: Color(0x1AFFFFFF)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -163,9 +163,7 @@ class _TaskCard extends ConsumerWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: task.type == 'quotation'
-                        ? Colors.black.withValues(alpha: 0.2)
-                        : Colors.black.withValues(alpha: 0.2),
+                    color: const Color(0x33000000),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: task.type == 'quotation'
@@ -236,53 +234,22 @@ class _TaskCard extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    buildElevatedButton(
-                      context,
-                      ref,
-                      "cancelled",
-                      Colors.red,
-                      "Cancel Task",
+                    TaskActionButton(
+                      bgColor: Colors.red,
+                      title: "Cancel Task",
+                      onTap: () => _showResolutionDialog(context, ref, "cancelled"),
                     ),
                     const SizedBox(width: 8),
-                    buildElevatedButton(
-                      context,
-                      ref,
-                      "completed",
-                      Colors.green,
-                      "Complete Task",
+                    TaskActionButton(
+                      bgColor: Colors.green,
+                      title: "Complete Task",
+                      onTap: () => _showResolutionDialog(context, ref, "completed"),
                     ),
                   ],
                 ),
               ],
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  GestureDetector buildElevatedButton(
-    BuildContext context,
-    WidgetRef ref,
-    String onTapString,
-    Color bgColor,
-    String title,
-  ) {
-    return GestureDetector(
-      onTap: () => _showResolutionDialog(context, ref, onTapString),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Text(
-          title,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-          ),
         ),
       ),
     );
@@ -325,7 +292,7 @@ class _TaskCard extends ConsumerWidget {
                     color: Colors.red,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Text(
+                  child: const Text(
                     "No",
                     style: TextStyle(
                       color: Colors.white,
@@ -357,7 +324,7 @@ class _TaskCard extends ConsumerWidget {
                     color: Colors.green,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Text(
+                  child: const Text(
                     "Yes",
                     style: TextStyle(
                       color: Colors.white,
@@ -370,6 +337,41 @@ class _TaskCard extends ConsumerWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class TaskActionButton extends StatelessWidget {
+  final Color bgColor;
+  final String title;
+  final VoidCallback onTap;
+
+  const TaskActionButton({
+    super.key,
+    required this.bgColor,
+    required this.title,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
   }

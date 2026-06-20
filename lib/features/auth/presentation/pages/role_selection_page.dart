@@ -67,6 +67,7 @@ class _RoleSelectionPageState extends State<RoleSelectionPage> {
                       child: Image.asset(
                         'assets/images/logo.png',
                         height: Responsive.scale(context, 100).clamp(80.0, 150.0),
+                        cacheHeight: 450,
                         fit: BoxFit.contain,
                       ),
                     ),
@@ -186,113 +187,115 @@ class _RoleCard3DState extends State<RoleCard3D> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) {
-        setState(() => _isPressed = false);
-        widget.onTap();
-      },
-      onTapCancel: () => setState(() => _isPressed = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOut,
-        transform: Matrix4.translationValues(0, _isPressed ? 4.0 : 0.0, 0)
-          ..setEntry(3, 2, 0.001) // Depth perception
-          ..multiply(Matrix4.diagonal3Values(_isPressed ? 0.95 : 1.0, _isPressed ? 0.95 : 1.0, 1.0)), // Scale effect
-        child: Container(
-          width: widget.boxWidth ?? 250,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            // TASK: Sinking effect shadows
-            boxShadow: _isPressed 
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    offset: const Offset(0, 4),
-                    blurRadius: 10,
-                  ),
-                ] 
-              : [
-                  // Bottom Shadow (Deep)
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.3),
-                    offset: const Offset(0, 15),
-                    blurRadius: 20,
-                    spreadRadius: 2,
-                  ),
-                  // Side Shadow (Soft)
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    offset: const Offset(10, 5),
-                    blurRadius: 15,
-                  ),
-                  // Highlighting Effect (Inner white glow simulation)
-                  BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.4),
-                    offset: const Offset(-2, -2),
-                    blurRadius: 5,
-                  ),
-                ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.3),
-                    width: 1.5,
-                  ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Premium 3D-style icon container
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            offset: const Offset(0, 4),
-                            blurRadius: 8,
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        widget.icon,
-                        size: 30,
-                        color: AppTheme.deepNavyBlue,
-                      ),
+    return RepaintBoundary(
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) {
+          setState(() => _isPressed = false);
+          widget.onTap();
+        },
+        onTapCancel: () => setState(() => _isPressed = false),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+          transform: Matrix4.translationValues(0, _isPressed ? 4.0 : 0.0, 0)
+            ..setEntry(3, 2, 0.001) // Depth perception
+            ..multiply(Matrix4.diagonal3Values(_isPressed ? 0.95 : 1.0, _isPressed ? 0.95 : 1.0, 1.0)), // Scale effect
+          child: Container(
+            width: widget.boxWidth ?? 250,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              // TASK: Sinking effect shadows
+              boxShadow: _isPressed 
+                ? const [
+                    BoxShadow(
+                      color: Color(0x33000000),
+                      offset: Offset(0, 4),
+                      blurRadius: 10,
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      widget.title,
-                      style: const TextStyle(
-                        color: AppTheme.deepNavyBlue,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.1,
-                      ),
-                      textAlign: TextAlign.center,
+                  ] 
+                : const [
+                    // Bottom Shadow (Deep)
+                    BoxShadow(
+                      color: Color(0x4D000000),
+                      offset: Offset(0, 15),
+                      blurRadius: 20,
+                      spreadRadius: 2,
                     ),
-                    const SizedBox(height: 5),
-                    Text(
-                      widget.subtitle,
-                      style: TextStyle(
-                        color: AppTheme.deepNavyBlue.withValues(alpha: 0.7),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      textAlign: TextAlign.center,
+                    // Side Shadow (Soft)
+                    BoxShadow(
+                      color: Color(0x1A000000),
+                      offset: Offset(10, 5),
+                      blurRadius: 15,
+                    ),
+                    // Highlighting Effect (Inner white glow simulation)
+                    BoxShadow(
+                      color: Color(0x66FFFFFF),
+                      offset: Offset(-2, -2),
+                      blurRadius: 5,
                     ),
                   ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: const Color(0x26FFFFFF),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: const Color(0x4DFFFFFF),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Premium 3D-style icon container
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: const BoxDecoration(
+                          color: Color(0x33FFFFFF),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(0x1A000000),
+                              offset: Offset(0, 4),
+                              blurRadius: 8,
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          widget.icon,
+                          size: 30,
+                          color: AppTheme.deepNavyBlue,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        widget.title,
+                        style: const TextStyle(
+                          color: AppTheme.deepNavyBlue,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.1,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        widget.subtitle,
+                        style: const TextStyle(
+                          color: Color(0xB30A1931),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

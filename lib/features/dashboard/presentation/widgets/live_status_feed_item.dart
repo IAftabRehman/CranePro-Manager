@@ -26,17 +26,17 @@ class LiveStatusFeedItem extends StatelessWidget {
 
     switch (status) {
       case QuotationStatus.completed:
-        statusColor = Colors.green.shade800;
+        statusColor = const Color(0xFF2E7D32);
         statusIcon = Icons.check_circle_rounded;
         statusLabel = 'COMPLETED';
         break;
       case QuotationStatus.pending:
-        statusColor = Colors.orange.shade900;
+        statusColor = const Color(0xFFE65100);
         statusIcon = Icons.hourglass_top_rounded;
         statusLabel = 'PENDING';
         break;
       case QuotationStatus.cancelled:
-        statusColor = Colors.red.shade900;
+        statusColor = const Color(0xFFB71C1C);
         statusIcon = Icons.cancel_rounded;
         statusLabel = 'CANCELLED';
         break;
@@ -46,7 +46,7 @@ class LiveStatusFeedItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.4),
+        color: const Color(0x66FFFFFF),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: statusColor.withValues(alpha: 0.2), width: 1.5),
       ),
@@ -88,8 +88,8 @@ class LiveStatusFeedItem extends StatelessWidget {
           ),
           Text(
             subtitle,
-            style: TextStyle(
-              color: AppTheme.deepNavyBlue.withValues(alpha: 0.6),
+            style: const TextStyle(
+              color: Color(0x990A1931),
               fontSize: 12,
               fontWeight: FontWeight.w800,
             ),
@@ -101,13 +101,13 @@ class LiveStatusFeedItem extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               width: double.infinity,
               decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.1),
+                color: const Color(0x1AF44336),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 'Reason: $reason',
-                style: TextStyle(
-                  color: Colors.red.shade900,
+                style: const TextStyle(
+                  color: Color(0xFFB71C1C),
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                 ),

@@ -24,14 +24,19 @@ class RoleGuard extends ConsumerWidget {
           return child;
         }
         
-        return fallback ?? _buildAccessDenied(context);
+        return fallback ?? const _AccessDeniedView();
       },
       loading: () => const SizedBox.shrink(), // Silent loading for guards
-      error: (_, _) => fallback ?? _buildAccessDenied(context),
+      error: (_, _) => fallback ?? const _AccessDeniedView(),
     );
   }
+}
 
-  Widget _buildAccessDenied(BuildContext context) {
+class _AccessDeniedView extends StatelessWidget {
+  const _AccessDeniedView();
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
         child: Column(

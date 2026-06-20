@@ -51,6 +51,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     child: Image.asset(
                       'assets/images/logo.png',
                       height: 100,
+                      cacheHeight: 300,
                       fit: BoxFit.contain,
                     ),
                   ),

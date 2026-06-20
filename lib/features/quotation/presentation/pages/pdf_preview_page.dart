@@ -341,19 +341,19 @@ class _PdfPreviewPageState extends ConsumerState<PdfPreviewPage> {
             vertical: 16,
             horizontal: Responsive.scale(context, 16).clamp(16.0, 32.0),
           ),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
+          decoration: const BoxDecoration(
+            color: Color(0x0DFFFFFF),
             border: Border(
-              top: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+              top: BorderSide(color: Color(0x1AFFFFFF)),
             ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildActionButton(
-                Icons.download,
-                'Save',
-                theme,
+              PdfActionButton(
+                icon: Icons.download,
+                label: 'Save',
+                theme: theme,
                 onTap: () async {
                   final messenger = ScaffoldMessenger.of(context);
                   try {
@@ -394,10 +394,10 @@ class _PdfPreviewPageState extends ConsumerState<PdfPreviewPage> {
                   }
                 },
               ),
-              _buildActionButton(
-                Icons.share,
-                'Share',
-                theme,
+              PdfActionButton(
+                icon: Icons.share,
+                label: 'Share',
+                theme: theme,
                 isPrimary: true,
                 onTap: () async {
                   final messenger = ScaffoldMessenger.of(context);
@@ -420,10 +420,10 @@ class _PdfPreviewPageState extends ConsumerState<PdfPreviewPage> {
                   }
                 },
               ),
-              _buildActionButton(
-                Icons.print,
-                'Print',
-                theme,
+              PdfActionButton(
+                icon: Icons.print,
+                label: 'Print',
+                theme: theme,
                 onTap: () async {
                   final messenger = ScaffoldMessenger.of(context);
                   try {
@@ -450,25 +450,31 @@ class _PdfPreviewPageState extends ConsumerState<PdfPreviewPage> {
       ),
     );
   }
+}
 
-  Widget _buildActionButton(
-    IconData icon,
-    String label,
-    ThemeData theme, {
-    bool isPrimary = false,
-    VoidCallback? onTap,
-  }) {
+class PdfActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final ThemeData theme;
+  final bool isPrimary;
+  final VoidCallback onTap;
+
+  const PdfActionButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.theme,
+    this.isPrimary = false,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final color = isPrimary ? theme.colorScheme.secondary : Colors.white;
     final textColor = isPrimary ? theme.colorScheme.primary : Colors.white;
 
     return InkWell(
-      onTap:
-          onTap ??
-          () {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text('$label action triggered')));
-          },
+      onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: EdgeInsets.symmetric(

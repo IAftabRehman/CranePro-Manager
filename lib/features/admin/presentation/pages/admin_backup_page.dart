@@ -77,7 +77,7 @@ class _AdminBackupPageState extends State<AdminBackupPage> {
       builder: (context) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: AlertDialog(
-          backgroundColor: Colors.white.withValues(alpha: 0.9),
+          backgroundColor: const Color(0xE6FFFFFF),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: const Row(
             children: [
@@ -109,7 +109,7 @@ class _AdminBackupPageState extends State<AdminBackupPage> {
                   context: context,
                   barrierDismissible: false,
                   builder: (context) => AlertDialog(
-                    backgroundColor: Colors.white.withValues(alpha: 0.9),
+                    backgroundColor: const Color(0xE6FFFFFF),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                     content: const Column(
                       mainAxisSize: MainAxisSize.min,
@@ -161,91 +161,6 @@ class _AdminBackupPageState extends State<AdminBackupPage> {
     );
   }
 
-  Widget _buildWebLayout(BackupStatus? currentStatus) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          flex: 4,
-          child: Column(
-            children: [
-              _buildStatusCard(),
-              const SizedBox(height: 24),
-              if (_isBackingUp) ...[
-                Text('GENERATING SNAPSHOT...', style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.6), fontWeight: FontWeight.w900, fontSize: 13)),
-                const SizedBox(height: 16),
-                _buildProgressBar(),
-              ] else ...[
-                SizedBox(
-                  width: 300,
-                  child: CraneButton(
-                    text: 'Backup System Now',
-                    onPressed: _handleManualBackup,
-                    icon: null,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                if (currentStatus != null)
-                  SizedBox(
-                    width: 300,
-                    child: ElevatedButton(
-                      onPressed: () => _showRestoreWarning(currentStatus),
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: Colors.black.withValues(alpha: 0.5),
-                        side: const BorderSide(color: Colors.red, width: 2),
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                      ),
-                      child: const Text('Restore Cloud Snapshot', style: TextStyle(color: Colors.red, fontSize: 15)),
-                    ),
-                  ),
-              ],
-            ],
-          ),
-        ),
-        const SizedBox(width: 32),
-        Expanded(
-          flex: 6,
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.white12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'SYSTEM BACKUP DETAILS',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 16,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                if (currentStatus != null)
-                  _buildInfoTable(currentStatus)
-                else
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(40.0),
-                      child: Text(
-                        'No backup history found.',
-                        style: TextStyle(color: Colors.white54, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<BackupStatus?>(
@@ -262,27 +177,33 @@ class _AdminBackupPageState extends State<AdminBackupPage> {
               child: Column(
                 children: [
                   if (isWide)
-                    _buildWebLayout(currentStatus)
+                    BackupWebLayout(
+                      currentStatus: currentStatus,
+                      isBackingUp: _isBackingUp,
+                      progress: _progress,
+                      onManualBackup: _handleManualBackup,
+                      onShowRestoreWarning: _showRestoreWarning,
+                    )
                   else ...[
-                    _buildStatusCard(),
+                    const BackupStatusCard(),
                     const SizedBox(height: 20),
                     if (currentStatus != null)
-                      _buildInfoTable(currentStatus)
+                      BackupInfoTable(status: currentStatus)
                     else
                       Center(
                         child: Padding(
                           padding: const EdgeInsets.all(20.0),
                           child: Text(
                             'No backup history found.',
-                            style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.5)),
+                            style: const TextStyle(color: Color(0x800A1931)),
                           ),
                         ),
                       ),
                     const SizedBox(height: 20),
                     if (_isBackingUp) ...[
-                      Text('GENERATING SNAPSHOT...', style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.6), fontWeight: FontWeight.w900, fontSize: 13)),
+                      const Text('GENERATING SNAPSHOT...', style: TextStyle(color: Color(0x990A1931), fontWeight: FontWeight.w900, fontSize: 13)),
                       const SizedBox(height: 16),
-                      _buildProgressBar(),
+                      BackupProgressBar(progress: _progress),
                     ] else ...[
                       CraneButton(
                         text: 'Backup',
@@ -294,7 +215,7 @@ class _AdminBackupPageState extends State<AdminBackupPage> {
                         ElevatedButton(
                           onPressed: () => _showRestoreWarning(currentStatus),
                           style: OutlinedButton.styleFrom(
-                            backgroundColor: Colors.black.withValues(alpha: 0.5),
+                            backgroundColor: const Color(0x80000000),
                             side: const BorderSide(color: Colors.red, width: 2),
                             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -320,20 +241,25 @@ class _AdminBackupPageState extends State<AdminBackupPage> {
       }
     );
   }
+}
 
-  Widget _buildStatusCard() {
+class BackupStatusCard extends StatelessWidget {
+  const BackupStatusCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.25),
+        color: const Color(0x40FFFFFF),
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
-        boxShadow: [
+        border: Border.all(color: const Color(0x66FFFFFF)),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
+            color: Color(0x33000000),
             blurRadius: 20,
-            offset: const Offset(5, 20),
+            offset: Offset(5, 20),
           ),
         ],
       ),
@@ -346,43 +272,172 @@ class _AdminBackupPageState extends State<AdminBackupPage> {
       ),
     );
   }
+}
 
-  Widget _buildInfoTable(BackupStatus status) {
+class BackupInfoTable extends StatelessWidget {
+  final BackupStatus status;
+
+  const BackupInfoTable({super.key, required this.status});
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildInfoRow('LAST BACKUP', DateFormat('MMM dd, HH:mm').format(status.lastBackupDate)),
+        BackupInfoRow(label: 'LAST BACKUP', value: DateFormat('MMM dd, HH:mm').format(status.lastBackupDate)),
         const Divider(color: Colors.white24),
-        _buildInfoRow('FILE SIZE', status.fileSize),
+        BackupInfoRow(label: 'FILE SIZE', value: status.fileSize),
         const Divider(color: Colors.white24),
-        _buildInfoRow('BACKUP TYPE', status.backupType),
+        BackupInfoRow(label: 'BACKUP TYPE', value: status.backupType),
         const Divider(color: Colors.white24),
-        _buildInfoRow('ENCRYPTION', 'AES-256 (Cloud Restricted)'),
+        const BackupInfoRow(label: 'ENCRYPTION', value: 'AES-256 (Cloud Restricted)'),
       ],
     );
   }
+}
 
-  Widget _buildInfoRow(String label, String value) {
+class BackupInfoRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const BackupInfoRow({
+    super.key,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.8), fontSize: 13, fontWeight: FontWeight.w900)),
+          Text(label, style: const TextStyle(color: Color(0xCC0A1931), fontSize: 13, fontWeight: FontWeight.w900)),
           Text(value, style: const TextStyle(color: AppTheme.deepNavyBlue, fontSize: 16, fontWeight: FontWeight.w900)),
         ],
       ),
     );
   }
+}
 
-  Widget _buildProgressBar() {
+class BackupProgressBar extends StatelessWidget {
+  final double progress;
+
+  const BackupProgressBar({super.key, required this.progress});
+
+  @override
+  Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: LinearProgressIndicator(
-        value: _progress,
+        value: progress,
         minHeight: 12,
-        backgroundColor: Colors.white.withValues(alpha: 0.2),
+        backgroundColor: const Color(0x33FFFFFF),
         valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.deepNavyBlue),
       ),
+    );
+  }
+}
+
+class BackupWebLayout extends StatelessWidget {
+  final BackupStatus? currentStatus;
+  final bool isBackingUp;
+  final double progress;
+  final VoidCallback onManualBackup;
+  final void Function(BackupStatus) onShowRestoreWarning;
+
+  const BackupWebLayout({
+    super.key,
+    required this.currentStatus,
+    required this.isBackingUp,
+    required this.progress,
+    required this.onManualBackup,
+    required this.onShowRestoreWarning,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 4,
+          child: Column(
+            children: [
+              const BackupStatusCard(),
+              const SizedBox(height: 24),
+              if (isBackingUp) ...[
+                const Text('GENERATING SNAPSHOT...', style: TextStyle(color: Color(0x990A1931), fontWeight: FontWeight.w900, fontSize: 13)),
+                const SizedBox(height: 16),
+                BackupProgressBar(progress: progress),
+              ] else ...[
+                SizedBox(
+                  width: 300,
+                  child: CraneButton(
+                    text: 'Backup System Now',
+                    onPressed: onManualBackup,
+                    icon: null,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                if (currentStatus != null)
+                  SizedBox(
+                    width: 300,
+                    child: ElevatedButton(
+                      onPressed: () => onShowRestoreWarning(currentStatus!),
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: const Color(0x80000000),
+                        side: const BorderSide(color: Colors.red, width: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      ),
+                      child: const Text('Restore Cloud Snapshot', style: TextStyle(color: Colors.red, fontSize: 15)),
+                    ),
+                  ),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(width: 32),
+        Expanded(
+          flex: 6,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: const Color(0x0DFFFFFF),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.white12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'SYSTEM BACKUP DETAILS',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (currentStatus != null)
+                  BackupInfoTable(status: currentStatus!)
+                else
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(40.0),
+                      child: Text(
+                        'No backup history found.',
+                        style: TextStyle(color: Colors.white54, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

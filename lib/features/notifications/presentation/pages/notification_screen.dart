@@ -16,8 +16,9 @@ class NotificationScreen extends ConsumerStatefulWidget {
 class _NotificationScreenState extends ConsumerState<NotificationScreen> {
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final userAsync = ref.watch(currentUserProvider);
+    // Only watch the user ID and user role to prevent screen rebuilds on other profile field changes
+    final userId = ref.watch(currentUserProvider.select((userAsync) => userAsync.asData?.value?.id));
+    final userRole = ref.watch(currentUserProvider.select((userAsync) => userAsync.asData?.value?.role));
 
     return PremiumScaffold(
       appBar: AppBar(
@@ -33,115 +34,113 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: userAsync.when(
-        data: (user) {
-          if (user == null) {
-            return const Center(child: Text('User session ended.'));
-          }
+      body: userId == null || userRole == null
+          ? const Center(child: CircularProgressIndicator(color: Colors.amber))
+          : Consumer(
+              builder: (context, ref, child) {
+                final notificationsAsync = ref.watch(
+                  notificationsStreamProvider((userId, userRole)),
+                );
 
-          final notificationsAsync = ref.watch(
-            notificationsStreamProvider((user.id, user.role)),
-          );
+                return notificationsAsync.when(
+                  data: (notifications) {
+                    final unreadNotifications = notifications.where(
+                      (n) => !n.readBy.contains(userId),
+                    ).toList();
 
-          return notificationsAsync.when(
-            data: (notifications) {
-              final unreadNotifications = notifications.where(
-                (n) => !n.readBy.contains(user.id),
-              ).toList();
-
-              return Scaffold(
-                backgroundColor: Colors.transparent,
-                appBar: unreadNotifications.isNotEmpty
-                    ? AppBar(
-                        automaticallyImplyLeading: false,
-                        backgroundColor: Colors.transparent,
-                        elevation: 0,
-                        toolbarHeight: 40,
-                        actions: [
-                          TextButton.icon(
-                            onPressed: () {
-                              final unreadIds = unreadNotifications
-                                  .map((n) => n.id)
-                                  .toList();
-                              ref
-                                  .read(notificationRepositoryProvider)
-                                  .markAllAsRead(unreadIds, user.id);
-                            },
-                            icon: const Icon(
-                              Icons.done_all,
-                              color: Colors.amber,
-                              size: 18,
-                            ),
-                            label: const Text(
-                              'Mark all as read',
-                              style: TextStyle(
-                                color: Colors.amber,
-                                fontWeight: FontWeight.bold,
+                    return Scaffold(
+                      backgroundColor: Colors.transparent,
+                      appBar: unreadNotifications.isNotEmpty
+                          ? AppBar(
+                              automaticallyImplyLeading: false,
+                              backgroundColor: Colors.transparent,
+                              elevation: 0,
+                              toolbarHeight: 40,
+                              actions: [
+                                TextButton.icon(
+                                  onPressed: () {
+                                    final unreadIds = unreadNotifications
+                                        .map((n) => n.id)
+                                        .toList();
+                                    ref
+                                        .read(notificationRepositoryProvider)
+                                        .markAllAsRead(unreadIds, userId);
+                                  },
+                                  icon: const Icon(
+                                    Icons.done_all,
+                                    color: Colors.amber,
+                                    size: 18,
+                                  ),
+                                  label: const Text(
+                                    'Mark all as read',
+                                    style: TextStyle(
+                                      color: Colors.amber,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                              ],
+                            )
+                          : null,
+                      body: notifications.isEmpty
+                          ? const EmptyStateWidget()
+                          : Center(
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(maxWidth: 700),
+                                child: ListView.separated(
+                                  physics: const BouncingScrollPhysics(),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                    horizontal: 16,
+                                  ),
+                                  itemCount: notifications.length,
+                                  separatorBuilder: (context, index) =>
+                                      const SizedBox(height: 16),
+                                  itemBuilder: (context, index) {
+                                    // Component Extraction: 
+                                    // Isolated each NotificationTile as a ConsumerWidget. 
+                                    // Tapping to read or swiping to dismiss will only rebuild/animate this tile.
+                                    return NotificationTile(
+                                      item: notifications[index],
+                                      currentUserId: userId,
+                                    );
+                                  },
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                        ],
-                      )
-                    : null,
-                body: notifications.isEmpty
-                    ? _buildEmptyState(theme)
-                    : Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 700),
-                          child: ListView.separated(
-                            physics: const BouncingScrollPhysics(),
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 16,
-                              horizontal: 16,
-                            ),
-                            itemCount: notifications.length,
-                            separatorBuilder: (context, index) =>
-                                const SizedBox(height: 16),
-                            itemBuilder: (context, index) {
-                              final item = notifications[index];
-                              return _buildNotificationTile(
-                                context,
-                                item,
-                                user.id,
-                                theme,
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-              );
-            },
-            loading: () => const Center(
-              child: CircularProgressIndicator(color: Colors.amber),
+                    );
+                  },
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(color: Colors.amber),
+                  ),
+                  error: (err, stack) => Center(
+                    child: Text(
+                      'Error: $err',
+                      style: const TextStyle(color: Colors.redAccent),
+                    ),
+                  ),
+                );
+              },
             ),
-            error: (err, _) => Center(
-              child: Text(
-                'Error: $err',
-                style: const TextStyle(color: Colors.redAccent),
-              ),
-            ),
-          );
-        },
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: Colors.amber),
-        ),
-        error: (err, _) => Center(
-          child: Text(
-            'Error: $err',
-            style: const TextStyle(color: Colors.redAccent),
-          ),
-        ),
-      ),
     );
   }
+}
 
-  Widget _buildNotificationTile(
-    BuildContext context,
-    NotificationModel item,
-    String currentUserId,
-    ThemeData theme,
-  ) {
+// Extracted NotificationTile Widget (ConsumerWidget with const constructor)
+class NotificationTile extends ConsumerWidget {
+  final NotificationModel item;
+  final String currentUserId;
+
+  const NotificationTile({
+    super.key,
+    required this.item,
+    required this.currentUserId,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final isRead = item.readBy.contains(currentUserId);
     final titleLower = item.title.toLowerCase();
 
@@ -164,7 +163,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
       direction: DismissDirection.endToStart,
       background: Container(
         decoration: BoxDecoration(
-          color: Colors.redAccent.withValues(alpha: 0.2),
+          color: const Color(0x33FF5252),
           borderRadius: BorderRadius.circular(16),
         ),
         alignment: Alignment.centerRight,
@@ -182,13 +181,13 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
       },
       child: Card(
         elevation: 0,
-        color: Colors.white.withValues(alpha: 0.05),
+        color: const Color(0x0DFFFFFF),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(
             color: isRead
                 ? Colors.white10
-                : Colors.amber.withValues(alpha: 0.3),
+                : const Color(0x4DFFC107),
             width: 1.5,
           ),
         ),
@@ -266,8 +265,15 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
       ),
     );
   }
+}
 
-  Widget _buildEmptyState(ThemeData theme) {
+// Extracted EmptyState Widget (StatelessWidget with const constructor)
+class EmptyStateWidget extends StatelessWidget {
+  const EmptyStateWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -275,7 +281,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
           Container(
             padding: const EdgeInsets.all(40),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
+              color: const Color(0x0DFFFFFF),
               shape: BoxShape.circle,
             ),
             child: const Icon(

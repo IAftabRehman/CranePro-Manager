@@ -12,12 +12,15 @@ class AdminReportsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return DefaultTabController(
+    return const DefaultTabController(
       length: 2,
       child: Column(
         children: [
-          _buildFilterHeader(context, ref),
-          const TabBar(
+          // Component Extraction & Riverpod Optimization: 
+          // FilterHeaderSection watches date range and search/status states locally,
+          // avoiding parent rebuilds on key input or filter changes.
+          FilterHeaderSection(),
+          TabBar(
             tabs: [
               Tab(text: 'Quotations'),
               Tab(text: 'Expenses'),
@@ -39,8 +42,14 @@ class AdminReportsPage extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _buildFilterHeader(BuildContext context, WidgetRef ref) {
+// Extracted FilterHeaderSection widget (ConsumerWidget with const constructor)
+class FilterHeaderSection extends ConsumerWidget {
+  const FilterHeaderSection({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final dateRange = ref.watch(reportDateRangeProvider);
     final statusFilter = ref.watch(reportStatusFilterProvider);
 
@@ -53,9 +62,9 @@ class AdminReportsPage extends ConsumerWidget {
               constraints: const BoxConstraints(maxWidth: 1200),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+                decoration: const BoxDecoration(
+                  color: Color(0x0DFFFFFF),
+                  border: Border(bottom: BorderSide(color: Color(0x1AFFFFFF))),
                 ),
                 child: Row(
                   children: [
@@ -67,7 +76,7 @@ class AdminReportsPage extends ConsumerWidget {
                           hintText: 'Search client, crane, or category...',
                           prefixIcon: const Icon(Icons.search, color: Colors.grey),
                           filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.1),
+                          fillColor: const Color(0x1AFFFFFF),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
@@ -97,7 +106,7 @@ class AdminReportsPage extends ConsumerWidget {
                               style: const TextStyle(fontSize: 12),
                             ),
                             onDeleted: () => ref.read(reportDateRangeProvider.notifier).state = null,
-                            backgroundColor: AppTheme.lavenderPrimary.withValues(alpha: 0.2),
+                            backgroundColor: const Color(0x33E6E6FA),
                           ),
                         ],
                       ],
@@ -116,7 +125,7 @@ class AdminReportsPage extends ConsumerWidget {
                               if (val) ref.read(reportStatusFilterProvider.notifier).state = status;
                             },
                             selectedColor: AppTheme.bluePrimary,
-                            backgroundColor: Colors.white.withValues(alpha: 0.1),
+                            backgroundColor: const Color(0x1AFFFFFF),
                             labelStyle: TextStyle(
                               color: isSelected ? Colors.white : Colors.white70,
                               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -134,9 +143,9 @@ class AdminReportsPage extends ConsumerWidget {
 
         return Container(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
-            border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+          decoration: const BoxDecoration(
+            color: Color(0x0DFFFFFF),
+            border: Border(bottom: BorderSide(color: Color(0x1AFFFFFF))),
           ),
           child: Column(
             children: [
@@ -149,7 +158,7 @@ class AdminReportsPage extends ConsumerWidget {
                         hintText: 'Search client, crane, or category...',
                         prefixIcon: const Icon(Icons.search, color: Colors.grey),
                         filled: true,
-                        fillColor: Colors.white.withValues(alpha: 0.1),
+                        fillColor: const Color(0x1AFFFFFF),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
@@ -180,7 +189,7 @@ class AdminReportsPage extends ConsumerWidget {
                         style: const TextStyle(fontSize: 12),
                       ),
                       onDeleted: () => ref.read(reportDateRangeProvider.notifier).state = null,
-                      backgroundColor: AppTheme.lavenderPrimary.withValues(alpha: 0.2),
+                      backgroundColor: const Color(0x33E6E6FA),
                     ),
                   ],
                 ),
@@ -200,7 +209,7 @@ class AdminReportsPage extends ConsumerWidget {
                           if (val) ref.read(reportStatusFilterProvider.notifier).state = status;
                         },
                         selectedColor: AppTheme.bluePrimary,
-                        backgroundColor: Colors.white.withValues(alpha: 0.1),
+                        backgroundColor: const Color(0x1AFFFFFF),
                         labelStyle: TextStyle(
                           color: isSelected ? Colors.white : Colors.white70,
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -244,6 +253,8 @@ class AdminReportsPage extends ConsumerWidget {
 }
 
 class _QuotationsReportList extends ConsumerWidget {
+  const _QuotationsReportList();
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final filteredQuotations = ref.watch(filteredQuotationsProvider);
@@ -296,6 +307,8 @@ class _QuotationsReportList extends ConsumerWidget {
 }
 
 class _ExpensesReportList extends ConsumerWidget {
+  const _ExpensesReportList();
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final filteredExpenses = ref.watch(filteredExpensesProvider);
@@ -357,7 +370,7 @@ class _QuotationReportCard extends StatelessWidget {
     
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: Colors.white.withValues(alpha: 0.05),
+      color: const Color(0x0DFFFFFF),
       child: ListTile(
         onTap: () => Navigator.push(
           context,
@@ -386,11 +399,11 @@ class _ExpenseReportCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: Colors.white.withValues(alpha: 0.05),
+      color: const Color(0x0DFFFFFF),
       child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: AppTheme.lavenderPrimary.withValues(alpha: 0.2),
-          child: const Icon(Icons.receipt_long, color: AppTheme.lavenderPrimary, size: 20),
+        leading: const CircleAvatar(
+          backgroundColor: Color(0x33E6E6FA),
+          child: Icon(Icons.receipt_long, color: AppTheme.lavenderPrimary, size: 20),
         ),
         title: Text(expense.category, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text('${DateFormat('MMM dd, yyyy').format(expense.date)} • ${expense.description}'),

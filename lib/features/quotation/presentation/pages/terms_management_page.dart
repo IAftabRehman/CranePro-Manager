@@ -61,7 +61,7 @@ class _TermsManagementPageState extends State<TermsManagementPage> {
             width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.08),
+              color: const Color(0x14FFFFFF),
               borderRadius: BorderRadius.circular(10)
             ),
             child: Column(
@@ -96,7 +96,7 @@ class _TermsManagementPageState extends State<TermsManagementPage> {
                   children: [
                     CircleAvatar(
                       radius: 15,
-                      backgroundColor: Colors.white.withValues(alpha: 0.1),
+                      backgroundColor: const Color(0x1AFFFFFF),
                       child: Text(
                         '${index + 1}',
                         style: const TextStyle(
@@ -135,25 +135,25 @@ class _TermsManagementPageState extends State<TermsManagementPage> {
               child: Row(
                 children: [
                   Expanded(
-                    child: buildElevatedButton(
-                      theme,
-                      _addTerm,
-                      Icons.add_box,
-                      "Add New Line",
+                    child: TermsActionButton(
+                      theme: theme,
+                      onTap: _addTerm,
+                      icon: Icons.add_box,
+                      name: "Add New Line",
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: buildElevatedButton(
-                      theme,
-                      () {
+                    child: TermsActionButton(
+                      theme: theme,
+                      onTap: () {
                         Navigator.pop(
                           context,
                           _terms.where((t) => t.trim().isNotEmpty).toList(),
                         );
                       },
-                      Icons.save_as,
-                      "Save",
+                      icon: Icons.save_as,
+                      name: "Save",
                     ),
                   ),
                 ],
@@ -164,13 +164,24 @@ class _TermsManagementPageState extends State<TermsManagementPage> {
       ),
     );
   }
+}
 
-  ElevatedButton buildElevatedButton(
-    ThemeData theme,
-    VoidCallback onTap,
-    IconData icon,
-    String name,
-  ) {
+class TermsActionButton extends StatelessWidget {
+  final ThemeData theme;
+  final VoidCallback onTap;
+  final IconData icon;
+  final String name;
+
+  const TermsActionButton({
+    super.key,
+    required this.theme,
+    required this.onTap,
+    required this.icon,
+    required this.name,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return ElevatedButton.icon(
       onPressed: onTap,
       icon: Icon(icon),

@@ -78,8 +78,14 @@ class _AdminAuditTrailPageState extends State<AdminAuditTrailPage> {
               Expanded(
                 child: TabBarView(
                   children: [
-                    _buildAuditList(auditTrail, false),
-                    _buildAuditList(auditTrail, true),
+                    AuditList(
+                      entries: _filterEntries(auditTrail, false),
+                      showDeleted: false,
+                    ),
+                    AuditList(
+                      entries: _filterEntries(auditTrail, true),
+                      showDeleted: true,
+                    ),
                   ],
                 ),
               ),
@@ -89,15 +95,25 @@ class _AdminAuditTrailPageState extends State<AdminAuditTrailPage> {
       }
     );
   }
+}
 
-  Widget _buildAuditList(List<AuditEntry> auditTrail, bool showDeleted) {
-    final entries = _filterEntries(auditTrail, showDeleted);
+class AuditList extends StatelessWidget {
+  final List<AuditEntry> entries;
+  final bool showDeleted;
 
+  const AuditList({
+    super.key,
+    required this.entries,
+    required this.showDeleted,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     if (entries.isEmpty) {
       return Center(
         child: Text(
           showDeleted ? 'Recycle Bin is Empty' : 'No Changes Logged',
-          style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.5), fontWeight: FontWeight.w800),
+          style: const TextStyle(color: Color(0x800A1931), fontWeight: FontWeight.w800),
         ),
       );
     }
@@ -109,7 +125,7 @@ class _AdminAuditTrailPageState extends State<AdminAuditTrailPage> {
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.all(24),
           itemCount: entries.length,
-          itemBuilder: (context, index) => _buildAuditTile(entries[index]),
+          itemBuilder: (context, index) => AuditTile(entry: entries[index]),
         );
 
         if (isWide) {
@@ -125,14 +141,21 @@ class _AdminAuditTrailPageState extends State<AdminAuditTrailPage> {
       }
     );
   }
+}
 
-  Widget _buildAuditTile(AuditEntry entry) {
+class AuditTile extends StatelessWidget {
+  final AuditEntry entry;
+
+  const AuditTile({super.key, required this.entry});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
+        color: const Color(0x26FFFFFF),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+        border: Border.all(color: const Color(0x4DFFFFFF)),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
@@ -158,7 +181,7 @@ class _AdminAuditTrailPageState extends State<AdminAuditTrailPage> {
                         ),
                         Text(
                           '${entry.targetType} - ${entry.userName}',
-                          style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.6), fontSize: 12, fontWeight: FontWeight.w700),
+                          style: const TextStyle(color: Color(0x990A1931), fontSize: 12, fontWeight: FontWeight.w700),
                         ),
                       ],
                     ),
@@ -173,14 +196,14 @@ class _AdminAuditTrailPageState extends State<AdminAuditTrailPage> {
               ),
               subtitle: Text(
                 DateFormat('MMM dd, HH:mm').format(entry.timestamp),
-                style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.4), fontSize: 10, fontWeight: FontWeight.w800),
+                style: const TextStyle(color: Color(0x660A1931), fontSize: 10, fontWeight: FontWeight.w800),
               ),
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
                   child: Column(
                     children: entry.action == AuditAction.delete
-                        ? [_buildDeletedSummary(entry)]
+                        ? [AuditDeletedSummary(entry: entry)]
                         : entry.beforeValues.keys.map((key) {
                             return AuditDiffWidget(
                               label: key,
@@ -197,8 +220,15 @@ class _AdminAuditTrailPageState extends State<AdminAuditTrailPage> {
       ),
     );
   }
+}
 
-  Widget _buildDeletedSummary(AuditEntry entry) {
+class AuditDeletedSummary extends StatelessWidget {
+  final AuditEntry entry;
+
+  const AuditDeletedSummary({super.key, required this.entry});
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -213,7 +243,7 @@ class _AdminAuditTrailPageState extends State<AdminAuditTrailPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(e.key, style: TextStyle(color: AppTheme.deepNavyBlue.withValues(alpha: 0.6), fontSize: 12, fontWeight: FontWeight.w700)),
+              Text(e.key, style: const TextStyle(color: Color(0x990A1931), fontSize: 12, fontWeight: FontWeight.w700)),
               Text(e.value, style: const TextStyle(color: AppTheme.deepNavyBlue, fontSize: 13, fontWeight: FontWeight.w800)),
             ],
           ),

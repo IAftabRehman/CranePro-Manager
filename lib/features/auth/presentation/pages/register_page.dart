@@ -84,6 +84,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     child: Image.asset(
                       'assets/images/logo.png',
                       height: 100,
+                      cacheHeight: 300,
                       fit: BoxFit.contain,
                     ),
                   ),
@@ -109,7 +110,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.shield_rounded, size: 16, color: const Color(0xFFFFB300)),
+                        const Icon(Icons.shield_rounded, size: 16, color: Color(0xFFFFB300)),
                         const SizedBox(width: 8),
                         Text(
                           'REGISTERING AS: ${widget.roleTitle.toUpperCase()}',
@@ -165,11 +166,15 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                   
                   const SizedBox(height: 48),
                   
-                  CraneButton(
-                    text: 'SignUp',
-                    onPressed: _handleRegister,
-                    isLoading: ref.watch(signupProvider).isLoading,
-                    loaderColor: AppTheme.deepNavyBlue,
+                  Consumer(
+                    builder: (context, ref, child) {
+                      return CraneButton(
+                        text: 'SignUp',
+                        onPressed: _handleRegister,
+                        isLoading: ref.watch(signupProvider.select((s) => s.isLoading)),
+                        loaderColor: AppTheme.deepNavyBlue,
+                      );
+                    },
                   ),
                   
                   const SizedBox(height: 24),

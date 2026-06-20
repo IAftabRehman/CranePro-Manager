@@ -134,20 +134,20 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
             Row(
               children: [
                 Expanded(
-                  child: _buildModeToggle(
-                    'Own Crane',
-                    Icons.engineering, 
-                    _isOwnCrane, 
-                    () => setState(() => _isOwnCrane = true)
+                  child: DirectModeToggle(
+                    text: 'Own Crane',
+                    icon: Icons.engineering, 
+                    isActive: _isOwnCrane, 
+                    onTap: () => setState(() => _isOwnCrane = true)
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _buildModeToggle(
-                    'Another Person',
-                    Icons.handshake_outlined, 
-                    !_isOwnCrane, 
-                    () => setState(() {
+                  child: DirectModeToggle(
+                    text: 'Another Person',
+                    icon: Icons.handshake_outlined, 
+                    isActive: !_isOwnCrane, 
+                    onTap: () => setState(() {
                       _isOwnCrane = false;
                       _calculateCommission();
                     })
@@ -157,7 +157,7 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
             ),
             const SizedBox(height: 20),
             
-            _buildLabel('Client Name (Optional)'),
+            const DirectInputLabel(text: 'Client Name (Optional)'),
             CraneInput(
               controller: _clientController,
               hintText: 'e.g. Street Client',
@@ -165,7 +165,7 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
             ),
             
             const SizedBox(height: 15),
-            _buildLabel('Service Type'),
+            const DirectInputLabel(text: 'Service Type'),
             CraneInput(
               controller: _serviceController,
               hintText: 'e.g. 25 Ton Crane',
@@ -173,7 +173,7 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
             ),
             
             const SizedBox(height: 15),
-            _buildLabel('Location'),
+            const DirectInputLabel(text: 'Location'),
             CraneInput(
               controller: _locationController,
               hintText: 'e.g. Musaffah M-12',
@@ -187,7 +187,7 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildLabel('Total Received (AED)'),
+                      const DirectInputLabel(text: 'Total Received (AED)'),
                       CraneInput(
                         controller: _earningsController,
                         hintText: '0',
@@ -205,7 +205,7 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildLabel(_isOwnCrane ? 'Fuel Expense (AED)' : 'Paid To Partner (AED)'),
+                      DirectInputLabel(text: _isOwnCrane ? 'Fuel Expense (AED)' : 'Paid To Partner (AED)'),
                       CraneInput(
                         controller: _expenseController,
                         hintText: '0',
@@ -226,9 +226,9 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.1),
+                  color: const Color(0x1A4CAF50),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.green.withValues(alpha: 0.1)),
+                  border: Border.all(color: const Color(0x1A4CAF50)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -265,14 +265,30 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
       ),
     );
   }
+}
 
-  Widget _buildModeToggle(String text, IconData icon, bool isActive, VoidCallback onTap) {
+class DirectModeToggle extends StatelessWidget {
+  final String text;
+  final IconData icon;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const DirectModeToggle({
+    super.key,
+    required this.text,
+    required this.icon,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: isActive ? Colors.amber.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.05),
+          color: isActive ? const Color(0x33FFC107) : const Color(0x0DFFFFFF),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: isActive ? Colors.amber : Colors.white12),
         ),
@@ -293,8 +309,18 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
       ),
     );
   }
+}
 
-  Widget _buildLabel(String text) {
+class DirectInputLabel extends StatelessWidget {
+  final String text;
+
+  const DirectInputLabel({
+    super.key,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 5, left: 4),
       child: Text(

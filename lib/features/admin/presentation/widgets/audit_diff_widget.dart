@@ -22,8 +22,8 @@ class AuditDiffWidget extends StatelessWidget {
         children: [
           Text(
             label.toUpperCase(),
-            style: TextStyle(
-              color: AppTheme.deepNavyBlue.withValues(alpha: 0.5),
+            style: const TextStyle(
+              color: Color(0x800A1931),
               fontSize: 10,
               fontWeight: FontWeight.w900,
               letterSpacing: 1.2,
@@ -63,11 +63,11 @@ class AuditDiffWidget extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('AFTER', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.green.shade900)),
+                      const Text('AFTER', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFF1B5E20))),
                       Text(
                         after!,
-                        style: TextStyle(
-                          color: Colors.green.shade900,
+                        style: const TextStyle(
+                          color: Color(0xFF1B5E20),
                           fontSize: 18,
                           fontWeight: FontWeight.w900,
                         ),

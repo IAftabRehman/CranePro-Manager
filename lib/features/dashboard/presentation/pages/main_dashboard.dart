@@ -33,7 +33,7 @@ class MainDashboard extends ConsumerStatefulWidget {
 
 class _MainDashboardState extends ConsumerState<MainDashboard>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
-  late AnimationController _pulseController;
+  late final AnimationController _pulseController;
   List<PendingItem> _currentPendingItems = [];
   bool _hasShownPendingAlert = false;
 
@@ -110,7 +110,6 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
               style: ElevatedButton.styleFrom(backgroundColor: Colors.amber),
               onPressed: () {
                 Navigator.pop(context);
-                // Navigate to processing page or open modal
               },
               child: const Text(
                 'ACCEPT / PROCESS',
@@ -257,120 +256,11 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
                 ),
               ],
             )
-
           ],
         ),
       ),
     );
   }
-
-  // void _checkAndShowMidnightPopup() {
-  //   WidgetsBinding.instance.addPostFrameCallback((_) {
-  //     showDialog(
-  //       context: context,
-  //       barrierDismissible: false,
-  //       builder: (context) => AlertDialog(
-  //         backgroundColor: const Color(0xFF1A1A2E),
-  //         shape: RoundedRectangleBorder(
-  //           borderRadius: BorderRadius.circular(16),
-  //           side: const BorderSide(color: Colors.redAccent, width: 2),
-  //         ),
-  //         title: const Row(
-  //           children: [
-  //             Icon(
-  //               Icons.notification_important_rounded,
-  //               color: Colors.redAccent,
-  //             ),
-  //             SizedBox(width: 12),
-  //             Expanded(
-  //               child: Text(
-  //                 'MIDNIGHT UPDATE',
-  //                 style: TextStyle(
-  //                   color: Colors.white,
-  //                   fontWeight: FontWeight.bold,
-  //                 ),
-  //               ),
-  //             ),
-  //           ],
-  //         ),
-  //         content: Column(
-  //           mainAxisSize: MainAxisSize.min,
-  //           crossAxisAlignment: CrossAxisAlignment.start,
-  //           children: [
-  //             const Text(
-  //               'Work Update Required for:',
-  //               style: TextStyle(color: Colors.white70, fontSize: 12),
-  //             ),
-  //             const Text(
-  //               'Street Client',
-  //               style: TextStyle(
-  //                 color: Colors.white,
-  //                 fontWeight: FontWeight.w900,
-  //                 fontSize: 18,
-  //               ),
-  //             ),
-  //             const SizedBox(height: 8),
-  //             const Text(
-  //               'Location: Musaffah M-27',
-  //               style: TextStyle(
-  //                 color: Colors.blueAccent,
-  //                 fontWeight: FontWeight.bold,
-  //                 fontSize: 14,
-  //               ),
-  //             ),
-  //             const SizedBox(height: 16),
-  //             const Text(
-  //               'Please update the status to clear this from your dashboard.',
-  //               style: TextStyle(color: Colors.white60, fontSize: 12),
-  //             ),
-  //           ],
-  //         ),
-  //         actions: [
-  //           TextButton(onPressed: () => Navigator.pop(context), child: const Text(
-  //             'Cancel',
-  //             style: TextStyle(
-  //               color: Colors.redAccent,
-  //               fontWeight: FontWeight.bold,
-  //             ),
-  //           ),),
-  //           const Spacer(),
-  //           TextButton(
-  //             onPressed: () {
-  //               Navigator.pop(context);
-  //               showModalBottomSheet(
-  //                 context: context,
-  //                 isScrollControlled: true,
-  //                 backgroundColor: Colors.transparent,
-  //                 builder: (_) => MidnightStatusModal(
-  //                   date: DateTime.now().subtract(const Duration(days: 1)),
-  //                   quotation: QuotationModel(
-  //                     id: 'mock_1',
-  //                     operatorId: 'mock_op',
-  //                     clientName: 'Street Client',
-  //                     siteLocation: 'Musaffah M-27',
-  //                     serviceType: '50 Ton Crane',
-  //                     totalAmount: 1000,
-  //                     balanceAmount: 1000,
-  //                     createdAt: DateTime.now(),
-  //                     updatedAt: DateTime.now(),
-  //                     workDate: DateTime.now(),
-  //                   ),
-  //                 ),
-  //               );
-  //             },
-  //             child: const Text(
-  //               'UPDATE NOW',
-  //               style: TextStyle(
-  //                 color: Colors.redAccent,
-  //                 fontWeight: FontWeight.bold,
-  //               ),
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     );
-  //   });
-  // }
 
   @override
   void dispose() {
@@ -379,14 +269,502 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
     super.dispose();
   }
 
-  Widget _buildSummaryCard(
-    BuildContext context,
-    String title,
-    String value,
-    IconData icon,
-    Color color, [
-    Widget? destination,
-  ]) {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    // Optimization: Listen to only the user ID to reduce unnecessary rebuilding
+    final userId = ref.watch(currentUserProvider.select((userAsync) => userAsync.asData?.value?.id));
+    final userName = ref.watch(currentUserProvider.select((userAsync) => userAsync.asData?.value?.fullName));
+    
+    final screenWidth = MediaQuery.of(context).size.width;
+    final useSidebar = screenWidth > 900;
+
+    // TASK 2: High-reliability listener for forced modals
+    if (userId != null && !widget.isViewer) {
+      ref.listen<AsyncValue<QuotationModel?>>(
+        firstPendingQuotationProvider(userId),
+        (previous, next) {
+          if (!_hasShownPendingAlert) {
+            next.whenData((quotation) {
+              if (quotation != null) {
+                _hasShownPendingAlert = true;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _showForcedResolutionDialog(quotation);
+                });
+              }
+            });
+          }
+        },
+      );
+
+      // Task: Move notifications to listener to improve performance
+      ref.listen<AsyncValue<List<PendingItem>>>(
+        np.pendingWorkProvider(userId),
+        (previous, next) {
+          next.whenData((items) {
+            if (items.isNotEmpty) {
+              LocalNotificationService.scheduleMidnightCheck(
+                items.first.clientName,
+              );
+              if (DateTime.now().hour >= 0 && DateTime.now().hour < 6) {
+                LocalNotificationService.showHighPriorityAlert(
+                  items.first.clientName,
+                );
+              }
+            }
+          });
+        },
+      );
+    }
+
+    return PremiumScaffold(
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      drawer: useSidebar
+          ? null
+          : CustomDrawer(activeRoute: 'Dashboard', isViewer: widget.isViewer),
+      floatingActionButton: widget.isViewer 
+          ? null 
+          : Consumer(
+              builder: (context, ref, child) {
+                final userAsync = ref.watch(currentUserProvider);
+                return userAsync.when(
+                  data: (user) {
+                    if (user == null) return const SizedBox.shrink();
+                    return const _DashboardFabRow();
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (err, stack) => const SizedBox.shrink(),
+                );
+              },
+            ),
+      body: userId == null
+          ? const Center(child: CircularProgressIndicator(color: Colors.amber))
+          : Consumer(
+              builder: (context, ref, child) {
+                final pendingAsync = ref.watch(np.pendingWorkProvider(userId));
+                return pendingAsync.when(
+                  data: (pendingItems) {
+                    _currentPendingItems = pendingItems;
+                    final hasPending = !widget.isViewer && pendingItems.isNotEmpty;
+
+                    return SafeArea(
+                      child: Stack(
+                        children: [
+                          Container(
+                            width: double.infinity,
+                            height: double.infinity,
+                            decoration: const BoxDecoration(
+                              gradient: AppTheme.lavenderBlueGradient,
+                            ),
+                          ),
+                          if (hasPending)
+                            _PendingWarningBanner(pendingItem: pendingItems.first),
+                          Padding(
+                            padding: EdgeInsets.only(top: hasPending ? 50 : 0),
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                final isTablet = constraints.maxWidth > 600;
+                                return Center(
+                                  child: ConstrainedBox(
+                                    constraints: const BoxConstraints(maxWidth: 1200),
+                                    child: CustomScrollView(
+                                      physics: const BouncingScrollPhysics(),
+                                      slivers: [
+                                        _buildDashboardAppBar(theme, userName),
+                                        // Component Extraction & Riverpod Optimization:
+                                        // Extracted StatsGridSection watches its own provider, preventing rebuilds of the entire screen when stats update
+                                        StatsGridSection(userId: userId, isTablet: isTablet),
+                                        SliverPadding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 24,
+                                            vertical: 0,
+                                          ),
+                                          sliver: SliverList(
+                                            delegate: SliverChildListDelegate([
+                                              if (hasPending)
+                                                Padding(
+                                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                                  child: FadeTransition(
+                                                    opacity: Tween<double>(
+                                                      begin: 0.6,
+                                                      end: 1.0,
+                                                    ).animate(_pulseController),
+                                                    child: FloatingActionButton.extended(
+                                                      onPressed: () {
+                                                        Navigator.push(
+                                                          context,
+                                                          MaterialPageRoute(
+                                                            builder: (context) =>
+                                                                const PendingTasksPage(),
+                                                          ),
+                                                        );
+                                                      },
+                                                      backgroundColor: Colors.redAccent,
+                                                      icon: const Icon(
+                                                        Icons.assignment_late,
+                                                        color: Colors.white,
+                                                      ),
+                                                      label: Text(
+                                                        '${pendingItems.length} PENDING',
+                                                        style: const TextStyle(
+                                                          fontWeight: FontWeight.bold,
+                                                          color: Colors.white,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              const SizedBox(height: 10),
+                                              const Text(
+                                                'Recent Activity',
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 16),
+                                              // Component Extraction & List Optimization:
+                                              // Extracted RecentActivitySection watches its own provider and uses a ListView.builder for performance
+                                              RecentActivitySection(userId: userId),
+                                            ]),
+                                          ),
+                                        ),
+                                        const SliverToBoxAdapter(
+                                          child: SizedBox(height: 100),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  ),
+                  error: (err, stack) {
+                    debugPrint('Firestore Pending Stream Error: $err');
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Text(
+                          'Error loading pending work: $err',
+                          style: const TextStyle(color: Colors.white, fontSize: 12),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+    );
+  }
+
+  Widget _buildDashboardAppBar(ThemeData theme, String? name) {
+    return SliverAppBar(
+      floating: true,
+      pinned: false,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      title: Text(
+        'Welcome ${name ?? 'Operator'} 👋',
+        style: theme.textTheme.titleMedium?.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
+        ),
+      ),
+      actions: [
+        IconButton(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const NotificationScreen()),
+          ),
+          icon: const Icon(
+            Icons.notifications_active_outlined,
+            color: Colors.white,
+          ),
+        ),
+        IconButton(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => SettingsPage()),
+          ),
+          icon: const Icon(Icons.person_outline, color: Colors.white),
+        ),
+      ],
+    );
+  }
+}
+
+// Standalone FAB Row to prevent main rebuilds
+class _DashboardFabRow extends StatelessWidget {
+  const _DashboardFabRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        FloatingActionButton.extended(
+          heroTag: 'direct_work',
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (_) => const DirectWorkModal(),
+            );
+          },
+          icon: const Icon(
+            Icons.flash_on_rounded,
+            size: 20,
+            color: Colors.black,
+          ),
+          label: const Text(
+            'Direct Work',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: Colors.amber,
+          foregroundColor: Colors.black,
+        ),
+        const SizedBox(width: 16),
+        FloatingActionButton.extended(
+          heroTag: 'quotation',
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AddQuotationPage()),
+            );
+          },
+          icon: const Icon(Icons.add_box, size: 20, color: Colors.black),
+          label: const Text(
+            'Generate Q',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: Colors.amber,
+          foregroundColor: Colors.black,
+        ),
+      ],
+    );
+  }
+}
+
+// Standalone Pending Warning Banner to prevent unnecessary builds
+class _PendingWarningBanner extends StatelessWidget {
+  final PendingItem pendingItem;
+
+  const _PendingWarningBanner({required this.pendingItem});
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 10,
+        ),
+        decoration: BoxDecoration(
+          color: const Color(0xE6F44336),
+          boxShadow: const [
+            BoxShadow(color: Colors.black45, blurRadius: 10),
+          ],
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: Row(
+            children: [
+              const Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.white,
+                size: 22,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '⚠️ PENDING: ${pendingItem.clientName} @ ${pendingItem.location} (${pendingItem.type.toUpperCase()})',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 11,
+                      ),
+                    ),
+                    Text(
+                      'Amount: AED ${pendingItem.totalPrice.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const PendingTasksPage(),
+                    ),
+                  );
+                },
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.black26,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'MANAGE',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Extracted Stats Grid Section (ConsumerWidget)
+class StatsGridSection extends ConsumerWidget {
+  final String userId;
+  final bool isTablet;
+
+  const StatsGridSection({
+    super.key,
+    required this.userId,
+    required this.isTablet,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final statsAsync = ref.watch(operatorStatsProvider(userId));
+    return statsAsync.when(
+      data: (stats) => StatsGrid(stats: stats, isTablet: isTablet),
+      loading: () => const SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.all(24.0),
+            child: CircularProgressIndicator(color: Colors.amber),
+          ),
+        ),
+      ),
+      error: (err, _) => SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Text(
+              'Error loading stats: $err',
+              style: const TextStyle(color: Colors.redAccent),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Stats Grid Display (StatelessWidget)
+class StatsGrid extends StatelessWidget {
+  final OperatorStats stats;
+  final bool isTablet;
+
+  const StatsGrid({
+    super.key,
+    required this.stats,
+    required this.isTablet,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverPadding(
+      padding: const EdgeInsets.all(16),
+      sliver: SliverGrid(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: isTablet ? 4 : 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 1.0,
+        ),
+        delegate: SliverChildListDelegate([
+          SummaryCard(
+            title: 'Total Quotes',
+            value: '${stats.totalQuotes}',
+            icon: Icons.request_quote,
+            color: Colors.blue,
+            destination: const QuotationHistoryPage(),
+          ),
+          SummaryCard(
+            title: 'Pending Jobs',
+            value: '${stats.pendingJob}',
+            icon: Icons.engineering,
+            color: Colors.orange,
+            destination: const PendingTasksPage(),
+          ),
+          SummaryCard(
+            title: 'Maintenance',
+            value: '${stats.maintenanceCount}',
+            icon: Icons.build,
+            color: Colors.redAccent,
+            destination: const MaintenanceHistoryPage(),
+          ),
+          SummaryCard(
+            title: 'Earnings',
+            value: 'AED ${stats.totalEarnings.toStringAsFixed(0)}',
+            icon: Icons.monetization_on,
+            color: Colors.green,
+            destination: const EarningsReportPage(),
+          ),
+        ]),
+      ),
+    );
+  }
+}
+
+// Summary Card Widget (StatelessWidget with const constructor)
+class SummaryCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final IconData icon;
+  final Color color;
+  final Widget? destination;
+
+  const SummaryCard({
+    super.key,
+    required this.title,
+    required this.value,
+    required this.icon,
+    required this.color,
+    this.destination,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Card(
       elevation: 6,
@@ -394,18 +772,18 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
       child: InkWell(
         onTap: destination != null
             ? () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => destination),
-              )
+                  context,
+                  MaterialPageRoute(builder: (_) => destination!),
+                )
             : null,
         borderRadius: BorderRadius.circular(16),
         child: AspectRatio(
           aspectRatio: 1.0,
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.08),
+              color: AppTheme.surfaceTranslucent,
               borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              border: Border.all(color: const Color(0x1AFFFFFF)),
             ),
             padding: EdgeInsets.all(
               Responsive.scale(context, 16).clamp(12.0, 24.0),
@@ -453,541 +831,87 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
       ),
     );
   }
+}
+
+// Extracted Recent Activity Section (ConsumerWidget)
+class RecentActivitySection extends ConsumerWidget {
+  final String userId;
+
+  const RecentActivitySection({
+    super.key,
+    required this.userId,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final activityAsync = ref.watch(operatorRecentActivityProvider(userId));
+    return activityAsync.when(
+      data: (activities) {
+        if (activities.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Text(
+                'No recent jobs found.',
+                style: TextStyle(color: Colors.white38),
+              ),
+            ),
+          );
+        }
+        return ListView.builder(
+          shrinkWrap: true,
+          padding: EdgeInsets.zero,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: activities.length,
+          itemBuilder: (context, index) {
+            return LiveActivityTile(act: activities[index]);
+          },
+        );
+      },
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 20),
+          child: CircularProgressIndicator(color: Colors.amber),
+        ),
+      ),
+      error: (err, _) => Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Text(
+            'Error loading activities: $err',
+            style: const TextStyle(color: Colors.redAccent),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Live Activity Tile Widget (StatelessWidget with const constructor)
+class LiveActivityTile extends StatelessWidget {
+  final dynamic act;
+
+  const LiveActivityTile({super.key, required this.act});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final userAsync = ref.watch(currentUserProvider);
-    final screenWidth = MediaQuery.of(context).size.width;
-    final useSidebar = screenWidth > 900;
-    final userId = userAsync.asData?.value?.id;
-
-    // TASK 2: High-reliability listener for forced modals
-    if (userId != null && !widget.isViewer) {
-      ref.listen<AsyncValue<QuotationModel?>>(
-        firstPendingQuotationProvider(userId),
-        (previous, next) {
-          if (!_hasShownPendingAlert) {
-            next.whenData((quotation) {
-              if (quotation != null) {
-                _hasShownPendingAlert = true;
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _showForcedResolutionDialog(quotation);
-                });
-              }
-            });
-          }
-        },
-      );
-
-      // Task: Move notifications to listener to improve performance
-      ref.listen<AsyncValue<List<PendingItem>>>(
-        np.pendingWorkProvider(userId),
-        (previous, next) {
-          next.whenData((items) {
-            if (items.isNotEmpty) {
-              LocalNotificationService.scheduleMidnightCheck(
-                items.first.clientName,
-              );
-              if (DateTime.now().hour >= 0 && DateTime.now().hour < 6) {
-                LocalNotificationService.showHighPriorityAlert(
-                  items.first.clientName,
-                );
-              }
-            }
-          });
-        },
-      );
-    }
-
-    return PremiumScaffold(
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      drawer: useSidebar
-          ? null
-          : CustomDrawer(activeRoute: 'Dashboard', isViewer: widget.isViewer),
-      floatingActionButton: userAsync.when(
-        data: (user) {
-          if (user == null || widget.isViewer) return null;
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              FloatingActionButton.extended(
-                heroTag: 'direct_work',
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (_) => const DirectWorkModal(),
-                  );
-                },
-                icon: const Icon(
-                  Icons.flash_on_rounded,
-                  size: 20,
-                  color: Colors.black,
-                ),
-                label: const Text(
-                  'Direct Work',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                ),
-                backgroundColor: Colors.amber,
-                foregroundColor: Colors.black,
-              ),
-              const SizedBox(width: 16),
-              FloatingActionButton.extended(
-                heroTag: 'quotation',
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AddQuotationPage()),
-                  );
-                },
-                icon: const Icon(Icons.add_box, size: 20, color: Colors.black),
-                label: const Text(
-                  'Generate Q',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                ),
-                backgroundColor: Colors.amber,
-                foregroundColor: Colors.black,
-              ),
-            ],
-          );
-        },
-        loading: () => null,
-        error: (_, _) => null,
-      ),
-      body: userAsync.when(
-        data: (user) {
-          if (user == null) {
-            return const Center(child: Text('User session ended.'));
-          }
-          final statsAsync = ref.watch(operatorStatsProvider(user.id));
-          final activityAsync = ref.watch(
-            operatorRecentActivityProvider(user.id),
-          );
-          final pendingAsync = ref.watch(np.pendingWorkProvider(user.id));
-
-          return pendingAsync.when(
-            data: (pendingItems) {
-              _currentPendingItems = pendingItems;
-              final hasPending = !widget.isViewer && pendingItems.isNotEmpty;
-
-              return SafeArea(
-                child: Stack(
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      height: double.infinity,
-                      decoration: const BoxDecoration(
-                        gradient: AppTheme.lavenderBlueGradient,
-                      ),
-                    ),
-
-                    if (hasPending)
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.red.withValues(alpha: 0.9),
-                            boxShadow: const [
-                              BoxShadow(color: Colors.black45, blurRadius: 10),
-                            ],
-                          ),
-                          child: SafeArea(
-                            bottom: false,
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.warning_amber_rounded,
-                                  color: Colors.white,
-                                  size: 22,
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        '⚠️ PENDING: ${pendingItems.first.clientName} @ ${pendingItems.first.location} (${pendingItems.first.type.toUpperCase()})',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w900,
-                                          fontSize: 11,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Amount: AED ${pendingItems.first.totalPrice.toStringAsFixed(2)}',
-                                        style: const TextStyle(
-                                          color: Colors.white70,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            const PendingTasksPage(),
-                                      ),
-                                    );
-                                  },
-                                  style: TextButton.styleFrom(
-                                    backgroundColor: Colors.black26,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 4,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'MANAGE',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-
-                    Padding(
-                      padding: EdgeInsets.only(top: hasPending ? 50 : 0),
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          final isTablet = constraints.maxWidth > 600;
-                          return Center(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 1200),
-                              child: CustomScrollView(
-                                physics: const BouncingScrollPhysics(),
-                                slivers: [
-                                  _buildDashboardAppBar(theme, user.fullName),
-
-                                  statsAsync.when(
-                                    data: (stats) => _buildStatsGrid(
-                                      context,
-                                      stats,
-                                      isTablet,
-                                    ),
-                                    loading: () => const SliverToBoxAdapter(
-                                      child: Center(
-                                        child: CircularProgressIndicator(
-                                          color: Colors.amber,
-                                        ),
-                                      ),
-                                    ),
-                                    error: (err, _) => SliverToBoxAdapter(
-                                      child: Center(
-                                        child: Text(
-                                          'Error loading stats: $err',
-                                          style: const TextStyle(
-                                            color: Colors.redAccent,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  SliverPadding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                      vertical: 0,
-                                    ),
-                                    sliver: SliverList(
-                                      delegate: SliverChildListDelegate([
-                                        if (hasPending)
-                                          FadeTransition(
-                                            opacity: Tween<double>(
-                                              begin: 0.6,
-                                              end: 1.0,
-                                            ).animate(_pulseController),
-                                            child: FloatingActionButton.extended(
-                                              onPressed: () {
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        PendingTasksPage(),
-                                                  ),
-                                                );
-                                              },
-                                              backgroundColor: Colors.redAccent,
-                                              icon: const Icon(
-                                                Icons.assignment_late,
-                                                color: Colors.white,
-                                              ),
-                                              label: Text(
-                                                '${pendingItems.length} PENDING',
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-
-                                        const SizedBox(height: 10),
-                                        Text(
-                                          'Recent Activity',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w800,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        activityAsync.when(
-                                          data: (activities) {
-                                            if (activities.isEmpty) {
-                                              return const Center(
-                                                child: Text(
-                                                  'No recent jobs found.',
-                                                  style: TextStyle(
-                                                    color: Colors.white38,
-                                                  ),
-                                                ),
-                                              );
-                                            }
-                                            return Column(
-                                              children: activities
-                                                  .map(
-                                                    (act) =>
-                                                        _buildLiveActivityTile(
-                                                          context,
-                                                          act,
-                                                        ),
-                                                  )
-                                                  .toList(),
-                                            );
-                                          },
-                                          loading: () => const Center(
-                                            child: CircularProgressIndicator(
-                                              color: Colors.amber,
-                                            ),
-                                          ),
-                                          error: (err, _) => Center(
-                                            child: Text(
-                                              'Error loading activities',
-                                              style: const TextStyle(
-                                                color: Colors.redAccent,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ]),
-                                    ),
-                                  ),
-                                  const SliverToBoxAdapter(
-                                    child: SizedBox(height: 100),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-            loading: () => const Center(
-              child: CircularProgressIndicator(color: Colors.white),
-            ),
-            error: (err, stack) {
-              // TASK 3: Print firestore error to identify missing indices
-              debugPrint('Firestore Pending Stream Error: $err');
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(
-                    'Error loading pending work: $err',
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              );
-            },
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) {
-          debugPrint('Auth Stream Error: $err');
-          return Center(
-            child: Text(
-              'Auth error: $err',
-              style: const TextStyle(color: Colors.white),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  // Widget _buildPendingBanner(BuildContext context) {
-  //   return Positioned(
-  //     top: 0,
-  //     left: 0,
-  //     right: 0,
-  //     child: Container(
-  //       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-  //       decoration: BoxDecoration(
-  //         color: Colors.red.withValues(alpha: 0.8),
-  //         boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 10, offset: Offset(0, 2))],
-  //       ),
-  //       child: SafeArea(
-  //         bottom: false,
-  //         child: Row(
-  //           children: [
-  //             const Icon(Icons.warning_rounded, color: Colors.white, size: 25),
-  //             const SizedBox(width: 12),
-  //             const Expanded(
-  //               child: Text(
-  //                 'Pending Mid-Night Updates. Please update status now!',
-  //                 style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-  //               ),
-  //             ),
-  //             ElevatedButton(
-  //               onPressed: () {},
-  //               style: ElevatedButton.styleFrom(
-  //                 backgroundColor: Colors.black.withValues(alpha: 0.2),
-  //                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-  //                 elevation: 0,
-  //               ),
-  //               child: const Text('Update Now', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-  //             ),
-  //           ],
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  Widget _buildDashboardAppBar(ThemeData theme, String? name) {
-    return SliverAppBar(
-      floating: true,
-      pinned: false,
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      title: Text(
-        'Welcome ${name ?? 'Operator'} 👋',
-        style: theme.textTheme.titleMedium?.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 18,
-        ),
-      ),
-      actions: [
-        IconButton(
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const NotificationScreen()),
-          ),
-          icon: const Icon(
-            Icons.notifications_active_outlined,
-            color: Colors.white,
-          ),
-        ),
-        IconButton(
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => SettingsPage()),
-          ),
-          icon: const Icon(Icons.person_outline, color: Colors.white),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatsGrid(
-    BuildContext context,
-    OperatorStats stats,
-    bool isTablet,
-  ) {
-    return SliverPadding(
-      padding: const EdgeInsets.all(16),
-      sliver: SliverGrid(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: isTablet ? 4 : 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 1.0,
-        ),
-        delegate: SliverChildListDelegate([
-          _buildSummaryCard(
-            context,
-            'Total Quotes',
-            '${stats.totalQuotes}',
-            Icons.request_quote,
-            Colors.blue,
-            const QuotationHistoryPage(),
-          ),
-          _buildSummaryCard(
-            context,
-            'Pending Jobs',
-            '${stats.pendingJob}',
-            Icons.engineering,
-            Colors.orange,
-            const PendingTasksPage(),
-          ),
-          _buildSummaryCard(
-            context,
-            'Maintenance',
-            '${stats.maintenanceCount}',
-            Icons.build,
-            Colors.redAccent,
-            const MaintenanceHistoryPage(),
-          ),
-          _buildSummaryCard(
-            context,
-            'Earnings',
-            'AED ${stats.totalEarnings.toStringAsFixed(0)}',
-            Icons.monetization_on,
-            Colors.green,
-            const EarningsReportPage(),
-          ),
-        ]),
-      ),
-    );
-  }
-
-  Widget _buildLiveActivityTile(BuildContext context, dynamic act) {
     final isJob = act['type'] == 'job';
     final dateStr = DateFormat('dd MMM, hh:mm a').format(act['date']);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       elevation: 0,
-      color: Colors.black.withValues(alpha: 0.5),
+      color: const Color(0x80000000),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.5)),
+        side: const BorderSide(color: Color(0x80FFFFFF)),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 10),
         leading: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
-            color: (isJob ? Colors.green : Colors.amber).withValues(alpha: 0.1),
+            color: isJob ? const Color(0x1A4CAF50) : const Color(0x1AFFC107),
             shape: BoxShape.circle,
           ),
           child: Icon(
@@ -997,7 +921,7 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
           ),
         ),
         title: Text(
-          act['description'],
+          act['description'] ?? '',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(
@@ -1007,7 +931,7 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
           ),
         ),
         subtitle: Text(
-          dateStr.toString(),
+          dateStr,
           style: const TextStyle(color: Colors.white70, fontSize: 11),
         ),
         trailing: Text(

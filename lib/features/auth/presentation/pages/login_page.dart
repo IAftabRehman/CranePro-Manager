@@ -82,6 +82,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     child: Image.asset(
                       'assets/images/logo.png',
                       height: 100,
+                      cacheHeight: 300,
                       fit: BoxFit.contain,
                     ),
                   ),
@@ -143,10 +144,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   
                   const SizedBox(height: 32),
                   
-                  CraneButton(
-                    text: 'Login',
-                    onPressed: _handleLogin,
-                    isLoading: ref.watch(loginProvider).isLoading,
+                  Consumer(
+                    builder: (context, ref, child) {
+                      return CraneButton(
+                        text: 'Login',
+                        onPressed: _handleLogin,
+                        isLoading: ref.watch(loginProvider.select((s) => s.isLoading)),
+                      );
+                    },
                   ),
                   
                   const SizedBox(height: 24),

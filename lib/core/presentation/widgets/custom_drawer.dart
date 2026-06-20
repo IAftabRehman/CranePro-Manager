@@ -33,48 +33,128 @@ class CustomDrawer extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-            // Drawer Header
-            _buildHeader(theme, context),
+              // Drawer Header
+              DrawerHeaderWidget(theme: theme),
 
-            // Navigation Links
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                children: isViewer
-                  ? [
-                      _buildNavItem(context, Icons.dashboard_outlined, 'Dashboard', theme),
-                      _buildNavItem(context, Icons.bar_chart_outlined, 'Work Reports', theme),
-                      _buildNavItem(context, Icons.build_circle_outlined, 'Maintenance', theme),
-                      _buildNavItem(context, Icons.person_outline, 'Profile', theme),
-                    ]
-                  : [
-                      _buildNavItem(context, Icons.dashboard_outlined, 'Dashboard', theme),
-                      _buildNavItem(context, Icons.file_copy_outlined, 'Generate Quotation', theme),
-                      _buildNavItem(context, Icons.build_circle_outlined, 'Maintenance & Expenses', theme),
-                      _buildNavItem(context, Icons.analytics_outlined, 'My Analytics', theme),
-                      _buildNavItem(context, Icons.bar_chart_outlined, 'Reports & Analytics', theme),
-                      // _buildNavItem(context, Icons.admin_panel_settings, 'Admin', theme, isAdminOnly: true),
-                      _buildNavItem(context, Icons.person, 'Profile', theme),
-                    ],
+              // Navigation Links
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  children: isViewer
+                    ? [
+                        _NavItem(icon: Icons.dashboard_outlined, title: 'Dashboard', theme: theme, activeRoute: activeRoute, isViewer: isViewer),
+                        _NavItem(icon: Icons.bar_chart_outlined, title: 'Work Reports', theme: theme, activeRoute: activeRoute, isViewer: isViewer),
+                        _NavItem(icon: Icons.build_circle_outlined, title: 'Maintenance', theme: theme, activeRoute: activeRoute, isViewer: isViewer),
+                        _NavItem(icon: Icons.person_outline, title: 'Profile', theme: theme, activeRoute: activeRoute, isViewer: isViewer),
+                      ]
+                    : [
+                        _NavItem(icon: Icons.dashboard_outlined, title: 'Dashboard', theme: theme, activeRoute: activeRoute, isViewer: isViewer),
+                        _NavItem(icon: Icons.file_copy_outlined, title: 'Generate Quotation', theme: theme, activeRoute: activeRoute, isViewer: isViewer),
+                        _NavItem(icon: Icons.build_circle_outlined, title: 'Maintenance & Expenses', theme: theme, activeRoute: activeRoute, isViewer: isViewer),
+                        _NavItem(icon: Icons.analytics_outlined, title: 'My Analytics', theme: theme, activeRoute: activeRoute, isViewer: isViewer),
+                        _NavItem(icon: Icons.bar_chart_outlined, title: 'Reports & Analytics', theme: theme, activeRoute: activeRoute, isViewer: isViewer),
+                        _NavItem(icon: Icons.person, title: 'Profile', theme: theme, activeRoute: activeRoute, isViewer: isViewer),
+                      ],
+                ),
               ),
-            ),
 
-            // Bottom Logout
-            const Divider(),
-            _buildLogoutItem(context, theme),
-          ],
+              // Bottom Logout
+              const Divider(),
+              DrawerLogoutItem(theme: theme),
+            ],
+          ),
         ),
       ),
-    ));
+    );
   }
+}
 
-  Widget _buildHeader(ThemeData theme, BuildContext context) {
+class _NavItem extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final ThemeData theme;
+  final String activeRoute;
+  final bool isViewer;
+
+  const _NavItem({
+    required this.icon,
+    required this.title,
+    required this.theme,
+    required this.activeRoute,
+    required this.isViewer,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = activeRoute == title;
+    return DrawerNavItem(
+      icon: icon,
+      title: title,
+      theme: theme,
+      isSelected: isSelected,
+      onTap: () {
+        Navigator.pop(context); // Close drawer first
+        if (isSelected) return;
+
+        Widget destination;
+        switch (title) {
+          case 'Dashboard':
+            destination = isViewer ? const ViewerDashboard() : const MainDashboard();
+            break;
+          case 'Work Reports':
+            destination = const WorkHistoryViewerPage();
+            break;
+          case 'Maintenance':
+            destination = const MaintenanceLogViewerPage();
+            break;
+          case 'Reports & Analytics':
+            destination = const EarningsReportPage();
+            break;
+          case 'Maintenance & Expenses':
+            destination = const MaintenanceHistoryPage();
+            break;
+          case 'Generate Quotation':
+            destination = const AddQuotationPage();
+            break;
+          case 'Profile':
+            destination = SettingsPage(isViewer: isViewer);
+            break;
+          case 'My Analytics':
+            destination = const OperatorStatsPage();
+            break;
+          default:
+            return;
+        }
+
+        if (title == 'Dashboard') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => destination),
+          );
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => destination),
+          );
+        }
+      },
+    );
+  }
+}
+
+class DrawerHeaderWidget extends StatelessWidget {
+  final ThemeData theme;
+
+  const DrawerHeaderWidget({super.key, required this.theme});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.yellow.withValues(alpha: 0.15),
-        border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+      decoration: const BoxDecoration(
+        color: Color(0x26FFEB3B),
+        border: Border(bottom: BorderSide(color: Color(0x1AFFFFFF))),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,59 +177,30 @@ class CustomDrawer extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildNavItem(BuildContext context, IconData icon, String title, ThemeData theme) {
-    final isSelected = activeRoute == title;
-    
+class DrawerNavItem extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final ThemeData theme;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const DrawerNavItem({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.theme,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: ListTile(
-        onTap: () {
-          Navigator.pop(context); // Close drawer first
-          if (isSelected) return;
-
-          Widget destination;
-          switch (title) {
-            case 'Dashboard':
-              destination = isViewer ? const ViewerDashboard() : const MainDashboard();
-              break;
-            case 'Work Reports':
-              destination = const WorkHistoryViewerPage();
-              break;
-            case 'Maintenance':
-              destination = const MaintenanceLogViewerPage();
-              break;
-            case 'Reports & Analytics':
-              destination = const EarningsReportPage();
-              break;
-            case 'Maintenance & Expenses':
-              destination = const MaintenanceHistoryPage();
-              break;
-            case 'Generate Quotation':
-              destination = const AddQuotationPage();
-              break;
-            case 'Profile':
-              destination = SettingsPage(isViewer: isViewer);
-              break;
-            case 'My Analytics':
-              destination = const OperatorStatsPage();
-              break;
-            default:
-              return;
-          }
-
-          if (title == 'Dashboard') {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => destination),
-            );
-          } else {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => destination),
-            );
-          }
-        },
+        onTap: onTap,
         leading: Icon(
           icon,
           color: isSelected ? theme.colorScheme.secondary : Colors.white70,
@@ -168,8 +219,15 @@ class CustomDrawer extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildLogoutItem(BuildContext context, ThemeData theme) {
+class DrawerLogoutItem extends StatelessWidget {
+  final ThemeData theme;
+
+  const DrawerLogoutItem({super.key, required this.theme});
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: ListTile(

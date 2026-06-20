@@ -103,13 +103,13 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              const Color(0xFF0F0F0F),
-              const Color(0xFF1A237E).withValues(alpha: 0.2), // Subtle Navy hint
+              Color(0xFF0F0F0F),
+              Color(0x331A237E), // Subtle Navy hint
             ],
           ),
         ),
@@ -128,9 +128,9 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                       Container(
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color: Colors.amber.withValues(alpha: 0.05),
+                          color: const Color(0x0DFFC107),
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.amber.withValues(alpha: 0.2), width: 2),
+                          border: Border.all(color: const Color(0x33FFC107), width: 2),
                         ),
                         child: const Icon(Icons.lock_person_rounded, size: 70, color: Colors.amber),
                       ),
@@ -146,10 +146,10 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Text(
+                      const Text(
                         'RESTRICTED TERMINAL - AUTHORIZED ONLY',
                         style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.5),
+                          color: Color(0x80FFFFFF),
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 1.0,
@@ -186,10 +186,10 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                       
                       TextButton(
                         onPressed: () => Navigator.pop(context),
-                        child: Text(
+                        child: const Text(
                           'Return To Public Area',
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.3),
+                            color: Color(0x4DFFFFFF),
                             fontSize: 12,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 1.2,

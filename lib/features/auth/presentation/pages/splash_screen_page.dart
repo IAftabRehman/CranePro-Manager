@@ -14,26 +14,34 @@ class SplashScreenPage extends StatefulWidget {
 }
 
 class _SplashScreenPageState extends State<SplashScreenPage> {
-  bool _isLoading = false;
-
   Future<void> _handleProceed() async {
-    setState(() {
-      _isLoading = true;
-    });
+    // Start permissions and token update in the background (not awaited)
+    _updateTokenInBackground();
 
+    // Navigate immediately to the authentication wrapper
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const AuthWrapper(),
+        ),
+      );
+    }
+  }
+
+  void _updateTokenInBackground() async {
     try {
-      // 1. Request notification permission
+      // 1. Request notification permission with timeout
       NotificationSettings settings = await FirebaseMessaging.instance.requestPermission(
         alert: true,
         badge: true,
         sound: true,
-      );
+      ).timeout(const Duration(seconds: 2));
 
-      // 2. Fetch fresh fcmToken
+      // 2. Fetch fresh fcmToken with timeout
       String? token;
       if (settings.authorizationStatus == AuthorizationStatus.authorized ||
           settings.authorizationStatus == AuthorizationStatus.provisional) {
-        token = await FirebaseMessaging.instance.getToken();
+        token = await FirebaseMessaging.instance.getToken().timeout(const Duration(seconds: 2));
       }
 
       // 3. Update fcmToken in Firestore if user is logged in
@@ -45,21 +53,10 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
             .update({
           'fcmToken': token,
           'lastLogin': FieldValue.serverTimestamp(),
-        }).timeout(const Duration(seconds: 4));
+        }).timeout(const Duration(seconds: 2));
       }
     } catch (e) {
-      debugPrint("Error updating fcmToken on Splash Screen: $e");
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const AuthWrapper(),
-          ),
-        );
-      }
+      debugPrint("Background FCM update error: $e");
     }
   }
 
@@ -86,6 +83,7 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
                     child: Image.asset(
                       'assets/images/logo.png',
                       height: Responsive.scale(context, 120).clamp(100.0, 180.0),
+                      cacheHeight: 540,
                       fit: BoxFit.contain,
                     ),
                   ),
@@ -117,7 +115,7 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
                   ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 320),
                     child: ElevatedButton(
-                      onPressed: _isLoading ? null : _handleProceed,
+                      onPressed: _handleProceed,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.amber,
                         foregroundColor: Colors.black,
@@ -128,32 +126,19 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
                         elevation: 8,
                         shadowColor: Colors.black45,
                       ),
-                      child: Row(
+                      child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          if (_isLoading) ...[
-                            const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                          ],
                           Text(
-                            _isLoading ? 'UPDATING SESSION...' : 'PROCEED',
-                            style: const TextStyle(
+                            'PROCEED',
+                            style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w900,
                               letterSpacing: 1.2,
                             ),
                           ),
-                          if (!_isLoading) ...[
-                            const SizedBox(width: 8),
-                            const Icon(Icons.arrow_forward_rounded, size: 18),
-                          ],
+                          SizedBox(width: 8),
+                          Icon(Icons.arrow_forward_rounded, size: 18),
                         ],
                       ),
                     ),

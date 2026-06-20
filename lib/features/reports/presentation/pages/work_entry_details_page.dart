@@ -51,47 +51,88 @@ class WorkEntryDetailsPage extends StatelessWidget {
                   child: Column(
                     children: [
                       // Header Card
-                      _buildHeaderCard(),
+                      EntryHeaderCard(client: client, isOwnCrane: isOwnCrane),
                       const SizedBox(height: 24),
 
                       // Section 1: Work Identity
-                      _buildDetailSection(
-                        'Work Identity',
-                        [
-                          _buildDetailRow(Icons.precision_manufacturing_rounded, 'Service Type', isOwnCrane ? 'Own 25T Crane' : 'Commission/Outsourced'),
-                          _buildDetailRow(Icons.calendar_month_rounded, 'Work Date', 'March 29, 2026'),
+                      EntryDetailSection(
+                        title: 'Work Identity',
+                        children: [
+                          EntryDetailRow(
+                            icon: Icons.precision_manufacturing_rounded,
+                            label: 'Service Type',
+                            value: isOwnCrane ? 'Own 25T Crane' : 'Commission/Outsourced',
+                          ),
+                          const EntryDetailRow(
+                            icon: Icons.calendar_month_rounded,
+                            label: 'Work Date',
+                            value: 'March 29, 2026',
+                          ),
                         ],
                       ),
 
                       // Section 2: Location Details
-                      _buildDetailSection(
-                        'Location Details',
-                        [
-                          _buildDetailRow(Icons.location_on_rounded, 'Worksite', location),
-                          _buildDetailRow(Icons.map_rounded, 'Region', 'Dubai, UAE'),
+                      EntryDetailSection(
+                        title: 'Location Details',
+                        children: [
+                          EntryDetailRow(
+                            icon: Icons.location_on_rounded,
+                            label: 'Worksite',
+                            value: location,
+                          ),
+                          const EntryDetailRow(
+                            icon: Icons.map_rounded,
+                            label: 'Region',
+                            value: 'Dubai, UAE',
+                          ),
                         ],
                       ),
 
                       // Section 3: Financial Breakdown
-                      _buildDetailSection(
-                        'Financial Breakdown',
-                        [
-                          _buildFinancialRow('Total Received', total, AppTheme.deepNavyBlue),
-                          _buildFinancialRow(deductionLabel, deduction, Colors.red.shade900, isDeduction: true),
+                      EntryDetailSection(
+                        title: 'Financial Breakdown',
+                        children: [
+                          EntryFinancialRow(
+                            label: 'Total Received',
+                            amount: total,
+                            color: AppTheme.deepNavyBlue,
+                          ),
+                          EntryFinancialRow(
+                            label: deductionLabel,
+                            amount: deduction,
+                            color: Colors.red.shade900,
+                            isDeduction: true,
+                          ),
                           const Padding(
                             padding: EdgeInsets.symmetric(vertical: 8),
                             child: Divider(color: Colors.white38, thickness: 1),
                           ),
-                          _buildFinancialRow('Profit Commission', net, Colors.green.shade900, isNet: true),
+                          EntryFinancialRow(
+                            label: 'Profit Commission',
+                            amount: net,
+                            color: Colors.green.shade900,
+                            isNet: true,
+                          ),
                         ],
                       ),
 
                       // Section 4: Status History
-                      _buildDetailSection(
-                        'Status History',
-                        [
-                          _buildStatusHistoryRow('Quotation Generated', '09:30 AM', Icons.description_rounded, completed: true),
-                          _buildStatusHistoryRow('Marked as Completed', '04:45 PM', Icons.check_circle_rounded, completed: true, isLast: true),
+                      const EntryDetailSection(
+                        title: 'Status History',
+                        children: [
+                          EntryStatusHistoryRow(
+                            status: 'Quotation Generated',
+                            time: '09:30 AM',
+                            icon: Icons.description_rounded,
+                            completed: true,
+                          ),
+                          EntryStatusHistoryRow(
+                            status: 'Marked as Completed',
+                            time: '04:45 PM',
+                            icon: Icons.check_circle_rounded,
+                            completed: true,
+                            isLast: true,
+                          ),
                         ],
                       ),
                       
@@ -106,14 +147,26 @@ class WorkEntryDetailsPage extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildHeaderCard() {
+class EntryHeaderCard extends StatelessWidget {
+  final String client;
+  final bool isOwnCrane;
+
+  const EntryHeaderCard({
+    super.key,
+    required this.client,
+    required this.isOwnCrane,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10,horizontal: 20),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.35),
+        color: const Color(0x59FFFFFF),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
+        border: Border.all(color: const Color(0x80FFFFFF)),
       ),
       child: Column(
         children: [
@@ -132,7 +185,7 @@ class WorkEntryDetailsPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             decoration: BoxDecoration(
-              color: AppTheme.deepNavyBlue.withValues(alpha: 0.1),
+              color: const Color(0x1A0A1931),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -149,16 +202,28 @@ class WorkEntryDetailsPage extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildDetailSection(String title, List<Widget> children) {
+class EntryDetailSection extends StatelessWidget {
+  final String title;
+  final List<Widget> children;
+
+  const EntryDetailSection({
+    super.key,
+    required this.title,
+    required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.2),
+        color: const Color(0x33FFFFFF),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+        border: Border.all(color: const Color(0x40FFFFFF)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -178,13 +243,27 @@ class WorkEntryDetailsPage extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildDetailRow(IconData icon, String label, String value) {
+class EntryDetailRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const EntryDetailRow({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
         children: [
-          Icon(icon, color: AppTheme.deepNavyBlue.withValues(alpha: 0.6), size: 22),
+          Icon(icon, color: const Color(0x990A1931), size: 22),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -193,7 +272,7 @@ class WorkEntryDetailsPage extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    color: AppTheme.deepNavyBlue.withValues(alpha: 0.5),
+                    color: const Color(0x800A1931),
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                   ),
@@ -203,7 +282,7 @@ class WorkEntryDetailsPage extends StatelessWidget {
                   style: const TextStyle(
                     color: AppTheme.deepNavyBlue,
                     fontSize: 16,
-                    fontWeight: FontWeight.w900, // AS REQUESTED: Bold (w900)
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
               ],
@@ -213,8 +292,26 @@ class WorkEntryDetailsPage extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildFinancialRow(String label, double amount, Color color, {bool isDeduction = false, bool isNet = false}) {
+class EntryFinancialRow extends StatelessWidget {
+  final String label;
+  final double amount;
+  final Color color;
+  final bool isDeduction;
+  final bool isNet;
+
+  const EntryFinancialRow({
+    super.key,
+    required this.label,
+    required this.amount,
+    required this.color,
+    this.isDeduction = false,
+    this.isNet = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -223,7 +320,7 @@ class WorkEntryDetailsPage extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              color: AppTheme.deepNavyBlue.withValues(alpha: 0.7),
+              color: const Color(0xB20A1931),
               fontSize: 12,
               fontWeight: FontWeight.w800,
             ),
@@ -240,8 +337,26 @@ class WorkEntryDetailsPage extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildStatusHistoryRow(String status, String time, IconData icon, {bool completed = false, bool isLast = false}) {
+class EntryStatusHistoryRow extends StatelessWidget {
+  final String status;
+  final String time;
+  final IconData icon;
+  final bool completed;
+  final bool isLast;
+
+  const EntryStatusHistoryRow({
+    super.key,
+    required this.status,
+    required this.time,
+    required this.icon,
+    this.completed = false,
+    this.isLast = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return IntrinsicHeight(
       child: Row(
         children: [
@@ -282,7 +397,7 @@ class WorkEntryDetailsPage extends StatelessWidget {
                   Text(
                     time,
                     style: TextStyle(
-                      color: AppTheme.deepNavyBlue.withValues(alpha: 0.5),
+                      color: const Color(0x800A1931),
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),

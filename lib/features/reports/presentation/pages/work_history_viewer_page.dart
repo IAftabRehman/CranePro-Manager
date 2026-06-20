@@ -94,45 +94,61 @@ class _WorkHistoryViewerPageState extends ConsumerState<WorkHistoryViewerPage> {
 
               final currencyFormatter = NumberFormat.currency(symbol: 'AED ', decimalDigits: 0);
 
-              return Column(
-                children: [
-                  Expanded(
-                    child: ListView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                      children: [
-                        ViewerReportHeader(
-                          title: 'Work History',
-                          summaryLabel: 'Total Profit for',
-                          summaryValue: currencyFormatter.format(totalProfit),
-                          fromDate: _fromDate,
-                          toDate: _toDate,
-                          onSelectDateRange: _selectDateRange,
-                        ),
-                        const SizedBox(height: 20),
-                        const Text(
-                          'Detailed Transactions',
-                          style: TextStyle(
-                            color: AppTheme.deepNavyBlue,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.0,
+              return CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                    sliver: SliverToBoxAdapter(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ViewerReportHeader(
+                            title: 'Work History',
+                            summaryLabel: 'Total Profit for',
+                            summaryValue: currencyFormatter.format(totalProfit),
+                            fromDate: _fromDate,
+                            toDate: _toDate,
+                            onSelectDateRange: _selectDateRange,
+                          ),
+                          const SizedBox(height: 20),
+                          const Text(
+                            'Detailed Transactions',
+                            style: TextStyle(
+                              color: AppTheme.deepNavyBlue,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (completedQuotations.isEmpty)
+                    const SliverPadding(
+                      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+                      sliver: SliverToBoxAdapter(
+                        child: Center(
+                          child: Text(
+                            'No completed jobs found for this period',
+                            style: TextStyle(
+                              color: AppTheme.deepNavyBlue,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        
-                        if (completedQuotations.isEmpty)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 40),
-                            child: Center(
-                              child: Text(
-                                'No completed jobs found for this period',
-                                style: TextStyle(color: AppTheme.deepNavyBlue, fontSize: 14, fontWeight: FontWeight.w500),
-                              ),
-                            ),
-                          )
-                        else
-                          ...completedQuotations.map((q) {
+                      ),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            final q = completedQuotations[index];
                             final isOwnCrane = !q.serviceType.toLowerCase().contains('commission') &&
                                 !q.serviceType.toLowerCase().contains('outsourced') &&
                                 !q.serviceType.toLowerCase().contains('partner');
@@ -141,8 +157,7 @@ class _WorkHistoryViewerPageState extends ConsumerState<WorkHistoryViewerPage> {
                                 : (isOwnCrane ? q.totalAmount * 0.10 : q.totalAmount * 0.85);
                             final deductionLabel = isOwnCrane ? 'Fuel Cost' : 'Outsourced Cost';
 
-                            return _buildHistoryCard(
-                              context,
+                            return HistoryCard(
                               isOwnCrane: isOwnCrane,
                               client: q.clientName,
                               location: q.siteLocation,
@@ -150,11 +165,13 @@ class _WorkHistoryViewerPageState extends ConsumerState<WorkHistoryViewerPage> {
                               deduction: deduction,
                               deductionLabel: deductionLabel,
                             );
-                          }),
-                        
-                        const SizedBox(height: 40),
-                      ],
+                          },
+                          childCount: completedQuotations.length,
+                        ),
+                      ),
                     ),
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: 40),
                   ),
                 ],
               );
@@ -166,24 +183,36 @@ class _WorkHistoryViewerPageState extends ConsumerState<WorkHistoryViewerPage> {
       ),
     );
   }
+}
 
-  Widget _buildHistoryCard(
-    BuildContext context, {
-    required bool isOwnCrane,
-    required String client,
-    required String location,
-    required double total,
-    required double deduction,
-    required String deductionLabel,
-  }) {
+class HistoryCard extends StatelessWidget {
+  final bool isOwnCrane;
+  final String client;
+  final String location;
+  final double total;
+  final double deduction;
+  final String deductionLabel;
+
+  const HistoryCard({
+    super.key,
+    required this.isOwnCrane,
+    required this.client,
+    required this.location,
+    required this.total,
+    required this.deduction,
+    required this.deductionLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final net = total - deduction;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.35),
+        color: const Color(0x59FFFFFF),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
+        border: Border.all(color: const Color(0x66FFFFFF)),
       ),
       child: Material(
         color: Colors.transparent,
@@ -212,8 +241,8 @@ class _WorkHistoryViewerPageState extends ConsumerState<WorkHistoryViewerPage> {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppTheme.deepNavyBlue.withValues(alpha: 0.1),
+                      decoration: const BoxDecoration(
+                        color: Color(0x1A0A1931),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -238,7 +267,7 @@ class _WorkHistoryViewerPageState extends ConsumerState<WorkHistoryViewerPage> {
                           Text(
                             location,
                             style: TextStyle(
-                              color: AppTheme.deepNavyBlue.withValues(alpha: 0.7),
+                              color: const Color(0xB20A1931),
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
                             ),
@@ -249,12 +278,10 @@ class _WorkHistoryViewerPageState extends ConsumerState<WorkHistoryViewerPage> {
                     const Icon(Icons.chevron_right_rounded, color: AppTheme.deepNavyBlue),
                   ],
                 ),
-
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 8),
                   child: Divider(color: Colors.white, thickness: 1),
                 ),
-
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -262,19 +289,28 @@ class _WorkHistoryViewerPageState extends ConsumerState<WorkHistoryViewerPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _buildCalculationCol(isOwnCrane ? 'Gross Total' : 'Total Quotation', 'AED ${total.toStringAsFixed(0)}'),
-                        _buildCalculationCol(deductionLabel, '(-) AED ${deduction.toStringAsFixed(0)}', isDeduction: true),
+                        CalculationCol(
+                          label: isOwnCrane ? 'Gross Total' : 'Total Quotation',
+                          value: 'AED ${total.toStringAsFixed(0)}',
+                        ),
+                        CalculationCol(
+                          label: deductionLabel,
+                          value: '(-) AED ${deduction.toStringAsFixed(0)}',
+                          isDeduction: true,
+                        ),
                       ],
                     ),
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 5),
                       child: Divider(color: Colors.yellow, thickness: 0.5),
                     ),
-
-                    _buildCalculationCol(isOwnCrane ? 'Total PROFIT' : 'Total COMMISSION', 'AED ${net.toStringAsFixed(0)}', isNet: true),
+                    CalculationCol(
+                      label: isOwnCrane ? 'Total PROFIT' : 'Total COMMISSION',
+                      value: 'AED ${net.toStringAsFixed(0)}',
+                      isNet: true,
+                    ),
                   ],
                 )
-
               ],
             ),
           ),
@@ -282,19 +318,35 @@ class _WorkHistoryViewerPageState extends ConsumerState<WorkHistoryViewerPage> {
       ),
     );
   }
+}
 
-  Widget _buildCalculationCol(String label, String value, {bool isDeduction = false, bool isNet = false}) {
+class CalculationCol extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool isDeduction;
+  final bool isNet;
+
+  const CalculationCol({
+    super.key,
+    required this.label,
+    required this.value,
+    this.isDeduction = false,
+    this.isNet = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     Color valColor = AppTheme.deepNavyBlue;
     if (isDeduction) valColor = Colors.orange.shade900;
     if (isNet) valColor = Colors.green.shade900;
-    
+
     return Column(
       crossAxisAlignment: isNet ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       children: [
         Text(
           label.toUpperCase(),
           style: TextStyle(
-            color: AppTheme.deepNavyBlue.withValues(alpha: 0.6),
+            color: const Color(0x990A1931),
             fontSize: 9,
             fontWeight: FontWeight.w900,
             letterSpacing: 0.5,

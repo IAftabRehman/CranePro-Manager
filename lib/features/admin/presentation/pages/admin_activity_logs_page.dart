@@ -14,17 +14,12 @@ class AdminActivityLogsPage extends ConsumerWidget {
       backgroundColor: Colors.transparent,
       body: activitiesAsync.when(
         data: (activities) {
-          return RefreshIndicator(
-            onRefresh: () => ref.refresh(activityLogsProvider.future),
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(
-                parent: BouncingScrollPhysics(),
-              ),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 800),
-                  child: ActivityTrackerWidget(activities: activities),
-                ),
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 800),
+              child: RefreshIndicator(
+                onRefresh: () => ref.refresh(activityLogsProvider.future),
+                child: ActivityTrackerWidget(activities: activities),
               ),
             ),
           );

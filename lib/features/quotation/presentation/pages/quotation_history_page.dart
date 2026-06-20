@@ -84,7 +84,7 @@ class QuotationHistoryPage extends ConsumerWidget {
                                 Icon(
                                   Icons.description_outlined,
                                   size: 80,
-                                  color: Colors.white.withValues(alpha: 0.5),
+                                  color: const Color(0x80FFFFFF),
                                 ),
                                 const SizedBox(height: 16),
                                 const Text(
@@ -104,126 +104,7 @@ class QuotationHistoryPage extends ConsumerWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           itemCount: quotations.length,
                           itemBuilder: (context, index) {
-                            final q = quotations[index];
-                            final statusColor = q.status == 'completed'
-                                ? Colors.green
-                                : (q.status == 'cancelled' ? Colors.red : Colors.orange);
-                            final dateStr = DateFormat('MMM dd, yyyy').format(q.workDate);
-
-                            return Card(
-                              margin: const EdgeInsets.only(bottom: 16),
-                              elevation: 4,
-                              color: Colors.black26,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-                              ),
-                              child: InkWell(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => QuotationDetailPage(quotation: q),
-                                    ),
-                                  );
-                                },
-                                borderRadius: BorderRadius.circular(16),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              q.clientName.isEmpty ? 'Quotation' : q.clientName,
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 10,
-                                              vertical: 4,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: statusColor.withValues(alpha: 0.2),
-                                              borderRadius: BorderRadius.circular(20),
-                                              border: Border.all(color: statusColor, width: 0.5),
-                                            ),
-                                            child: Text(
-                                              q.status.toUpperCase(),
-                                              style: TextStyle(
-                                                color: statusColor,
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.calendar_today,
-                                            size: 14,
-                                            color: Colors.blueAccent,
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            dateStr,
-                                            style: const TextStyle(color: Colors.white70, fontSize: 13),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.location_on,
-                                            size: 14,
-                                            color: Colors.blueAccent,
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Expanded(
-                                            child: Text(
-                                              q.siteLocation.isEmpty ? 'N/A' : q.siteLocation,
-                                              style: const TextStyle(color: Colors.white70, fontSize: 13),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const Divider(height: 24, color: Colors.white24),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          const Text(
-                                            'Total Value',
-                                            style: TextStyle(color: Colors.white54, fontSize: 13),
-                                          ),
-                                          Text(
-                                            'AED ${q.totalAmount.toStringAsFixed(0)}',
-                                            style: const TextStyle(
-                                              color: Colors.greenAccent,
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w900,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
+                            return QuotationHistoryCard(q: quotations[index]);
                           },
                         );
                       },
@@ -239,6 +120,135 @@ class QuotationHistoryPage extends ConsumerWidget {
                     ),
                   ),
                 ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class QuotationHistoryCard extends StatelessWidget {
+  final QuotationModel q;
+
+  const QuotationHistoryCard({super.key, required this.q});
+
+  @override
+  Widget build(BuildContext context) {
+    final statusColor = q.status == 'completed'
+        ? Colors.green
+        : (q.status == 'cancelled' ? Colors.red : Colors.orange);
+    final dateStr = DateFormat('MMM dd, yyyy').format(q.workDate);
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      elevation: 4,
+      color: Colors.black26,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: Color(0x1AFFFFFF)),
+      ),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => QuotationDetailPage(quotation: q),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      q.clientName.isEmpty ? 'Quotation' : q.clientName,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: statusColor.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: statusColor, width: 0.5),
+                    ),
+                    child: Text(
+                      q.status.toUpperCase(),
+                      style: TextStyle(
+                        color: statusColor,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.calendar_today,
+                    size: 14,
+                    color: Colors.blueAccent,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    dateStr,
+                    style: const TextStyle(color: Colors.white70, fontSize: 13),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.location_on,
+                    size: 14,
+                    color: Colors.blueAccent,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      q.siteLocation.isEmpty ? 'N/A' : q.siteLocation,
+                      style: const TextStyle(color: Colors.white70, fontSize: 13),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const Divider(height: 24, color: Colors.white24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Total Value',
+                    style: TextStyle(color: Colors.white54, fontSize: 13),
+                  ),
+                  Text(
+                    'AED ${q.totalAmount.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      color: Colors.greenAccent,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

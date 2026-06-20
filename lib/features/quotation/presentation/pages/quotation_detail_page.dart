@@ -57,13 +57,17 @@ class QuotationDetailPage extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeader(statusColor),
+                // Component Extraction: Extracted QuotationHeader widget
+                QuotationHeader(quotation: quotation, statusColor: statusColor),
                 const SizedBox(height: 24),
-                _buildInfoSection(),
+                // Component Extraction: Extracted QuotationInfoSection widget
+                QuotationInfoSection(quotation: quotation),
                 const SizedBox(height: 24),
-                _buildEntriesTable(),
+                // Component Extraction & List Optimization: Extracted QuotationEntriesList
+                QuotationEntriesList(quotation: quotation),
                 const SizedBox(height: 24),
-                _buildFinancialSummary(),
+                // Component Extraction: Extracted QuotationFinancialSummary widget
+                QuotationFinancialSummary(quotation: quotation),
                 const SizedBox(height: 40),
                 _buildActionButtons(context),
               ],
@@ -74,13 +78,44 @@ class QuotationDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(Color statusColor) {
+  Widget _buildActionButtons(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: () => _handleShare(context),
+            icon: const Icon(Icons.share),
+            label: const Text('SHARE INVOICE'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// Extracted Header Widget with const constructor
+class QuotationHeader extends StatelessWidget {
+  final QuotationModel quotation;
+  final Color statusColor;
+
+  const QuotationHeader({
+    super.key,
+    required this.quotation,
+    required this.statusColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
+        color: const Color(0x1AFFFFFF),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+        border: Border.all(color: const Color(0x33FFFFFF)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -95,7 +130,7 @@ class QuotationDetailPage extends ConsumerWidget {
                 ),
                 Text(
                   'ID: ${quotation.id.toUpperCase()}',
-                  style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.6)),
+                  style: const TextStyle(fontSize: 12, color: Color(0x99FFFFFF)),
                 ),
               ],
             ),
@@ -116,27 +151,50 @@ class QuotationDetailPage extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _buildInfoSection() {
+// Extracted Info Section Widget with const constructor
+class QuotationInfoSection extends StatelessWidget {
+  final QuotationModel quotation;
+
+  const QuotationInfoSection({super.key, required this.quotation});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
+        color: const Color(0x1AFFFFFF),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         children: [
-          _buildInfoRow(Icons.location_on_outlined, 'Site Location', quotation.siteLocation),
+          InfoRowWidget(icon: Icons.location_on_outlined, label: 'Site Location', value: quotation.siteLocation),
           const Divider(height: 24, color: Colors.white24),
-          _buildInfoRow(Icons.calendar_today_outlined, 'Work Date', DateFormat('dd MMM yyyy').format(quotation.workDate)),
+          InfoRowWidget(icon: Icons.calendar_today_outlined, label: 'Work Date', value: DateFormat('dd MMM yyyy').format(quotation.workDate)),
           const Divider(height: 24, color: Colors.white24),
-          _buildInfoRow(Icons.construction_outlined, 'Service Type', quotation.serviceType),
+          InfoRowWidget(icon: Icons.construction_outlined, label: 'Service Type', value: quotation.serviceType),
         ],
       ),
     );
   }
+}
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
+// Extracted InfoRow component with const constructor
+class InfoRowWidget extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const InfoRowWidget({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       children: [
         Icon(icon, color: AppTheme.lavenderPrimary, size: 20),
@@ -144,15 +202,23 @@ class QuotationDetailPage extends ConsumerWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: TextStyle(fontSize: 10, color: Colors.white.withValues(alpha: 0.6))),
+            Text(label, style: const TextStyle(fontSize: 10, color: Color(0x99FFFFFF))),
             Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white)),
           ],
         ),
       ],
     );
   }
+}
 
-  Widget _buildEntriesTable() {
+// Extracted and virtualized QuotationEntriesList widget
+class QuotationEntriesList extends StatelessWidget {
+  final QuotationModel quotation;
+
+  const QuotationEntriesList({super.key, required this.quotation});
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -162,6 +228,7 @@ class QuotationDetailPage extends ConsumerWidget {
         ),
         ListView.builder(
           shrinkWrap: true,
+          padding: EdgeInsets.zero,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: quotation.entries.length,
           itemBuilder: (context, index) {
@@ -170,7 +237,7 @@ class QuotationDetailPage extends ConsumerWidget {
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.05),
+                color: const Color(0x0DFFFFFF),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -196,27 +263,52 @@ class QuotationDetailPage extends ConsumerWidget {
       ],
     );
   }
+}
 
-  Widget _buildFinancialSummary() {
+// Extracted Financial Summary component with const constructor
+class QuotationFinancialSummary extends StatelessWidget {
+  final QuotationModel quotation;
+
+  const QuotationFinancialSummary({super.key, required this.quotation});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
+        color: const Color(0x1AFFFFFF),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         children: [
-          _buildSummaryRow('Total Amount', 'AED ${quotation.totalAmount.toStringAsFixed(0)}'),
+          SummaryRowWidget(label: 'Total Amount', value: 'AED ${quotation.totalAmount.toStringAsFixed(0)}'),
           const SizedBox(height: 12),
-          _buildSummaryRow('Advance Paid', '- AED ${quotation.advancePaid.toStringAsFixed(0)}', isNegative: true),
+          SummaryRowWidget(label: 'Advance Paid', value: '- AED ${quotation.advancePaid.toStringAsFixed(0)}', isNegative: true),
           const Divider(height: 32, color: Colors.white24),
-          _buildSummaryRow('Balance Due', 'AED ${quotation.balanceAmount.toStringAsFixed(0)}', isTotal: true),
+          SummaryRowWidget(label: 'Balance Due', value: 'AED ${quotation.balanceAmount.toStringAsFixed(0)}', isTotal: true),
         ],
       ),
     );
   }
+}
 
-  Widget _buildSummaryRow(String label, String value, {bool isNegative = false, bool isTotal = false}) {
+// Extracted SummaryRow component with const constructor
+class SummaryRowWidget extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool isNegative;
+  final bool isTotal;
+
+  const SummaryRowWidget({
+    super.key,
+    required this.label,
+    required this.value,
+    this.isNegative = false,
+    this.isTotal = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -233,24 +325,6 @@ class QuotationDetailPage extends ConsumerWidget {
             fontSize: isTotal ? 18 : 14,
             fontWeight: FontWeight.bold,
             color: isNegative ? Colors.redAccent : (isTotal ? AppTheme.lavenderPrimary : Colors.white),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionButtons(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: () => _handleShare(context),
-            icon: const Icon(Icons.share),
-            label: const Text('SHARE INVOICE'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
           ),
         ),
       ],

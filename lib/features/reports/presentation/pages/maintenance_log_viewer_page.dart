@@ -81,56 +81,74 @@ class _MaintenanceLogViewerPageState extends ConsumerState<MaintenanceLogViewerP
               final totalMaintenance = maintenanceExpenses.fold<double>(0.0, (sum, item) => sum + item.amount);
               final currencyFormatter = NumberFormat.currency(symbol: 'AED ', decimalDigits: 0);
 
-              return Column(
-                children: [
-                  Expanded(
-                    child: ListView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                      children: [
-                        ViewerReportHeader(
-                          title: 'Maintenance Log',
-                          summaryLabel: 'Total Maintenance',
-                          summaryValue: currencyFormatter.format(totalMaintenance),
-                          fromDate: _fromDate,
-                          toDate: _toDate,
-                          onSelectDateRange: _selectDateRange,
-                        ),
-                        const SizedBox(height: 20),
-                        const Text(
-                          'Repair & Service History',
-                          style: TextStyle(
-                            color: AppTheme.deepNavyBlue,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.0,
+              return CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                    sliver: SliverToBoxAdapter(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ViewerReportHeader(
+                            title: 'Maintenance Log',
+                            summaryLabel: 'Total Maintenance',
+                            summaryValue: currencyFormatter.format(totalMaintenance),
+                            fromDate: _fromDate,
+                            toDate: _toDate,
+                            onSelectDateRange: _selectDateRange,
+                          ),
+                          const SizedBox(height: 20),
+                          const Text(
+                            'Repair & Service History',
+                            style: TextStyle(
+                              color: AppTheme.deepNavyBlue,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (maintenanceExpenses.isEmpty)
+                    const SliverPadding(
+                      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+                      sliver: SliverToBoxAdapter(
+                        child: Center(
+                          child: Text(
+                            'No maintenance logs found for this period',
+                            style: TextStyle(
+                              color: AppTheme.deepNavyBlue,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        
-                        if (maintenanceExpenses.isEmpty)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 40),
-                            child: Center(
-                              child: Text(
-                                'No maintenance logs found for this period',
-                                style: TextStyle(color: AppTheme.deepNavyBlue, fontSize: 14, fontWeight: FontWeight.w500),
-                              ),
-                            ),
-                          )
-                        else
-                          ...maintenanceExpenses.map((e) {
+                      ),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            final e = maintenanceExpenses[index];
                             final formattedDate = DateFormat('dd MMM yyyy').format(e.date);
-                            return _buildMaintenanceTile(
-                              e.description.isNotEmpty ? e.description : e.category,
-                              formattedDate,
-                              e.amount,
+                            return MaintenanceTile(
+                              description: e.description.isNotEmpty ? e.description : e.category,
+                              date: formattedDate,
+                              amount: e.amount,
                             );
-                          }),
-                        
-                        const SizedBox(height: 40),
-                      ],
+                          },
+                          childCount: maintenanceExpenses.length,
+                        ),
+                      ),
                     ),
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: 40),
                   ),
                 ],
               );
@@ -142,23 +160,37 @@ class _MaintenanceLogViewerPageState extends ConsumerState<MaintenanceLogViewerP
       ),
     );
   }
+}
 
-  Widget _buildMaintenanceTile(String description, String date, double amount) {
+class MaintenanceTile extends StatelessWidget {
+  final String description;
+  final String date;
+  final double amount;
+
+  const MaintenanceTile({
+    super.key,
+    required this.description,
+    required this.date,
+    required this.amount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.4),
+        color: const Color(0x66FFFFFF),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+        border: Border.all(color: const Color(0x4DFFFFFF)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             padding: const EdgeInsets.all(5),
-            decoration: BoxDecoration(
-              color: Colors.orange.withValues(alpha: 0.15),
+            decoration: const BoxDecoration(
+              color: Color(0x26FF9800),
               shape: BoxShape.circle,
             ),
             child: Icon(Icons.build_circle_rounded, color: Colors.orange.shade900, size: 24),
@@ -179,7 +211,7 @@ class _MaintenanceLogViewerPageState extends ConsumerState<MaintenanceLogViewerP
                 Text(
                   date,
                   style: TextStyle(
-                    color: AppTheme.deepNavyBlue.withValues(alpha: 0.6),
+                    color: const Color(0x990A1931),
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
                   ),
@@ -191,7 +223,7 @@ class _MaintenanceLogViewerPageState extends ConsumerState<MaintenanceLogViewerP
             'AED ${amount.toStringAsFixed(0)}',
             style: const TextStyle(
               color: AppTheme.deepNavyBlue,
-              fontSize: 15, // TASK 4: Big Font Size
+              fontSize: 15,
               fontWeight: FontWeight.w900,
             ),
           ),

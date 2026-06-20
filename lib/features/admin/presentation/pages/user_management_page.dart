@@ -15,7 +15,8 @@ class UserManagementPage extends ConsumerStatefulWidget {
 
 class _UserManagementPageState extends ConsumerState<UserManagementPage>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+  late final TabController _tabController;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -28,8 +29,6 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
     _tabController.dispose();
     super.dispose();
   }
-
-  bool _isSaving = false;
 
   void _saveChanges(
     BuildContext sheetContext,
@@ -86,140 +85,6 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
   }
 
   void _showEditUserSheet(UserModel user) {
-    String currentRole = user.role;
-    bool isApproved = user.isAdminApproved;
-    bool isBlocked = user.isBlocked;
-    final reasonController = TextEditingController(text: user.rejectionReason ?? '');
-
-    Widget buildSheetContent(BuildContext ctx, StateSetter setModalState, VoidCallback onSave) {
-      return Container(
-        padding: const EdgeInsets.all(24),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'EDIT USER ACCESS',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white54),
-                    onPressed: () => Navigator.pop(ctx),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              _buildDetailRow(Icons.person, 'Full Name', user.fullName),
-              _buildDetailRow(Icons.email, 'Email', user.email),
-              _buildDetailRow(Icons.phone, 'Phone', user.phoneNumber ?? 'Not provided'),
-              const Divider(color: Colors.white24, height: 32),
-              
-              const Text(
-                'ASSIGN ROLE',
-                style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
-              ),
-              DropdownButton<String>(
-                value: currentRole,
-                dropdownColor: AppTheme.deepNavyBlue,
-                isExpanded: true,
-                underline: Container(height: 2, color: Colors.amber),
-                items: ['operator', 'viewer'].map((role) {
-                  return DropdownMenuItem(
-                    value: role,
-                    child: Text(
-                      role.toUpperCase(),
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  );
-                }).toList(),
-                onChanged: (val) => setModalState(() => currentRole = val!),
-              ),
-              
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'ADMIN APPROVAL',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                  Switch(
-                    value: isApproved,
-                    activeThumbColor: Colors.green,
-                    onChanged: (val) => setModalState(() => isApproved = val),
-                  ),
-                ],
-              ),
-              
-              if (!isApproved) ...[
-                const SizedBox(height: 16),
-                const Text(
-                  'REJECTION REASON (OPTIONAL)',
-                  style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: reasonController,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.white.withValues(alpha: 0.05),
-                    hintText: 'Enter reason for rejection...',
-                    hintStyle: const TextStyle(color: Colors.white24),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                ),
-              ],
-              
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'BLOCK ACCOUNT',
-                    style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
-                  ),
-                  Switch(
-                    value: isBlocked,
-                    activeThumbColor: Colors.redAccent,
-                    onChanged: (val) => setModalState(() => isBlocked = val),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 55,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amber,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  onPressed: _isSaving ? null : onSave,
-                  child: _isSaving 
-                    ? const CircularProgressIndicator(color: AppTheme.deepNavyBlue)
-                    : const Text(
-                        'SAVE ALL CHANGES',
-                        style: TextStyle(color: AppTheme.deepNavyBlue, fontWeight: FontWeight.w900),
-                      ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
     final isWide = MediaQuery.of(context).size.width >= 900;
 
     if (isWide) {
@@ -234,19 +99,20 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
               borderRadius: BorderRadius.circular(24),
               border: Border.all(color: Colors.white24),
             ),
-            child: StatefulBuilder(
-              builder: (dialogContext, setModalState) => buildSheetContent(
-                dialogContext,
-                setModalState,
-                () => _saveChanges(
+            child: _EditUserSheetContent(
+              user: user,
+              isSaving: _isSaving,
+              onSave: (role, approved, blocked, rejectionReason) {
+                final reasonController = TextEditingController(text: rejectionReason);
+                _saveChanges(
                   dialogContext,
                   user,
-                  currentRole,
-                  isApproved,
-                  isBlocked,
+                  role,
+                  approved,
+                  blocked,
                   reasonController,
-                ),
-              ),
+                );
+              },
             ),
           ),
         ),
@@ -264,42 +130,24 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
           ),
-          child: StatefulBuilder(
-            builder: (sheetContext, setModalState) => buildSheetContent(
-              sheetContext,
-              setModalState,
-              () => _saveChanges(
+          child: _EditUserSheetContent(
+            user: user,
+            isSaving: _isSaving,
+            onSave: (role, approved, blocked, rejectionReason) {
+              final reasonController = TextEditingController(text: rejectionReason);
+              _saveChanges(
                 sheetContext,
                 user,
-                currentRole,
-                isApproved,
-                isBlocked,
+                role,
+                approved,
+                blocked,
                 reasonController,
-              ),
-            ),
+              );
+            },
           ),
         ),
       );
     }
-  }
-
-  Widget _buildDetailRow(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.amber, size: 20),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: const TextStyle(color: Colors.white54, fontSize: 10)),
-              Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            ],
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -345,15 +193,21 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
                   return TabBarView(
                     controller: _tabController,
                     children: [
-                      _buildUserList(users.where((u) => !u.isAdminApproved).toList()),
-                      _buildUserList(users.where((u) => u.isAdminApproved).toList()),
+                      _UserList(
+                        users: users.where((u) => !u.isAdminApproved).toList(),
+                        onEdit: _showEditUserSheet,
+                      ),
+                      _UserList(
+                        users: users.where((u) => u.isAdminApproved).toList(),
+                        onEdit: _showEditUserSheet,
+                      ),
                     ],
                   );
                 },
                 loading: () => const Center(
                   child: CircularProgressIndicator(color: AppTheme.deepNavyBlue),
                 ),
-                error: (err, _) => Center(
+                error: (err, stack) => Center(
                   child: Text(
                     'Error loading users: $err',
                     style: const TextStyle(color: Colors.white),
@@ -373,8 +227,17 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
       ),
     );
   }
+}
 
-  Widget _buildUserList(List<UserModel> users) {
+// Extracted UserList to prevent entire screen updates on state toggles
+class _UserList extends StatelessWidget {
+  final List<UserModel> users;
+  final Function(UserModel) onEdit;
+
+  const _UserList({required this.users, required this.onEdit});
+
+  @override
+  Widget build(BuildContext context) {
     if (users.isEmpty) {
       return const Center(
         child: Text(
@@ -401,8 +264,7 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
                 ),
                 itemCount: users.length,
                 itemBuilder: (context, index) {
-                  final user = users[index];
-                  return _buildUserCard(user);
+                  return UserCard(user: users[index], onEdit: onEdit);
                 },
               ),
             ),
@@ -412,16 +274,28 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
             padding: const EdgeInsets.all(16),
             itemCount: users.length,
             itemBuilder: (context, index) {
-              final user = users[index];
-              return _buildUserCard(user);
+              return UserCard(user: users[index], onEdit: onEdit);
             },
           );
         }
       }
     );
   }
+}
 
-  Widget _buildUserCard(UserModel user) {
+// Extracted UserCard component with const constructor
+class UserCard extends StatelessWidget {
+  final UserModel user;
+  final Function(UserModel) onEdit;
+
+  const UserCard({
+    super.key,
+    required this.user,
+    required this.onEdit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final String formattedDate = user.createdAt != null 
         ? DateFormat('MMM dd, yyyy').format(user.createdAt!) 
         : 'Unknown';
@@ -432,7 +306,7 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
       color: Colors.black26,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.white),
+        side: const BorderSide(color: Colors.white24),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -455,24 +329,32 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
               style: const TextStyle(color: Colors.white70, fontSize: 12),
             ),
             const SizedBox(height: 8),
-            _buildStatusChip(user.isAdminApproved),
+            StatusChip(isApproved: user.isAdminApproved),
           ],
         ),
         trailing: IconButton(
           icon: const Icon(Icons.settings_suggest_rounded, color: Colors.amber),
-          onPressed: () => _showEditUserSheet(user),
+          onPressed: () => onEdit(user),
         ),
       ),
     );
   }
+}
 
-  Widget _buildStatusChip(bool isApproved) {
+// Extracted StatusChip component with const constructor
+class StatusChip extends StatelessWidget {
+  final bool isApproved;
+
+  const StatusChip({super.key, required this.isApproved});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: isApproved 
-            ? Colors.green.withValues(alpha: 0.2) 
-            : Colors.amber.withValues(alpha: 0.2),
+            ? const Color(0x334CAF50) 
+            : const Color(0x33FFC107),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isApproved ? Colors.green : Colors.amber,
@@ -492,3 +374,221 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
   }
 }
 
+// Extracted DetailRow component with const constructor
+class DetailRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const DetailRow({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.amber, size: 20),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: const TextStyle(color: Colors.white54, fontSize: 10)),
+              Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EditUserSheetContent extends StatefulWidget {
+  final UserModel user;
+  final bool isSaving;
+  final Function(
+    String currentRole,
+    bool isApproved,
+    bool isBlocked,
+    String rejectionReason,
+  ) onSave;
+
+  const _EditUserSheetContent({
+    required this.user,
+    required this.isSaving,
+    required this.onSave,
+  });
+
+  @override
+  State<_EditUserSheetContent> createState() => _EditUserSheetContentState();
+}
+
+class _EditUserSheetContentState extends State<_EditUserSheetContent> {
+  late String _currentRole;
+  late bool _isApproved;
+  late bool _isBlocked;
+  late final TextEditingController _reasonController;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentRole = widget.user.role;
+    _isApproved = widget.user.isAdminApproved;
+    _isBlocked = widget.user.isBlocked;
+    _reasonController = TextEditingController(text: widget.user.rejectionReason ?? '');
+  }
+
+  @override
+  void dispose() {
+    _reasonController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'EDIT USER ACCESS',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white54),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            DetailRow(icon: Icons.person, label: 'Full Name', value: widget.user.fullName),
+            DetailRow(icon: Icons.email, label: 'Email', value: widget.user.email),
+            DetailRow(icon: Icons.phone, label: 'Phone', value: widget.user.phoneNumber ?? 'Not provided'),
+            const Divider(color: Colors.white24, height: 32),
+            
+            const Text(
+              'ASSIGN ROLE',
+              style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+            ),
+            DropdownButton<String>(
+              value: _currentRole,
+              dropdownColor: AppTheme.deepNavyBlue,
+              isExpanded: true,
+              underline: Container(height: 2, color: Colors.amber),
+              items: ['operator', 'viewer'].map((role) {
+                return DropdownMenuItem(
+                  value: role,
+                  child: Text(
+                    role.toUpperCase(),
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                );
+              }).toList(),
+              onChanged: (val) {
+                if (val != null) {
+                  setState(() => _currentRole = val);
+                }
+              },
+            ),
+            
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'ADMIN APPROVAL',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+                Switch(
+                  value: _isApproved,
+                  activeThumbColor: Colors.green,
+                  onChanged: (val) => setState(() => _isApproved = val),
+                ),
+              ],
+            ),
+            
+            if (!_isApproved) ...[
+              const SizedBox(height: 16),
+              const Text(
+                'REJECTION REASON (OPTIONAL)',
+                style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _reasonController,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: const Color(0x0DFFFFFF),
+                  hintText: 'Enter reason for rejection...',
+                  hintStyle: const TextStyle(color: Colors.white24),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ],
+            
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'BLOCK ACCOUNT',
+                  style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+                ),
+                Switch(
+                  value: _isBlocked,
+                  activeThumbColor: Colors.redAccent,
+                  onChanged: (val) => setState(() => _isBlocked = val),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              height: 55,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.amber,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: widget.isSaving
+                    ? null
+                    : () {
+                        widget.onSave(
+                          _currentRole,
+                          _isApproved,
+                          _isBlocked,
+                          _reasonController.text.trim(),
+                        );
+                      },
+                child: widget.isSaving 
+                  ? const CircularProgressIndicator(color: AppTheme.deepNavyBlue)
+                  : const Text(
+                      'SAVE ALL CHANGES',
+                      style: TextStyle(color: AppTheme.deepNavyBlue, fontWeight: FontWeight.w900),
+                    ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

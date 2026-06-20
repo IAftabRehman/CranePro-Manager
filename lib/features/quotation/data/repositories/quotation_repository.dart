@@ -33,38 +33,8 @@ class QuotationRepository {
         },
       );
 
-      // Write notification triggers for admin and viewer roles
-      try {
-        String operatorName = "Operator";
-        final opDoc = await _firestore.collection('users').doc(quotation.operatorId).get();
-        if (opDoc.exists) {
-          operatorName = opDoc.data()?['fullName'] ?? "Operator";
-        }
-
-        final title = "New Quotation Generated";
-        final body = "$operatorName generated a new pending quotation of AED ${quotation.totalAmount} for ${quotation.clientName} at ${quotation.siteLocation}.";
-        final now = DateTime.now();
-
-        await _firestore.collection('notifications').add({
-          'title': title,
-          'body': body,
-          'createdAt': Timestamp.fromDate(now),
-          'targetRole': 'admin',
-          'readBy': [],
-          'dismissedBy': [],
-        });
-
-        await _firestore.collection('notifications').add({
-          'title': title,
-          'body': body,
-          'createdAt': Timestamp.fromDate(now),
-          'targetRole': 'viewer',
-          'readBy': [],
-          'dismissedBy': [],
-        });
-      } catch (notifErr) {
-        FirebaseCrashlytics.instance.log("Failed to write creation notification: $notifErr");
-      }
+      // Fire-and-forget notification creation in the background
+      _sendCreationNotificationsInBackground(quotation);
     } catch (e, stack) {
       FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Failed to create quotation');
       rethrow;
@@ -175,45 +145,91 @@ class QuotationRepository {
         }, SetOptions(merge: true));
       }
 
-      // Trigger status update notifications
+      // Fire-and-forget status update notifications in the background
       if (oldStatus != newStatus) {
-        try {
-          String operatorName = "Operator";
-          final opDoc = await _firestore.collection('users').doc(operatorId).get();
-          if (opDoc.exists) {
-            operatorName = opDoc.data()?['fullName'] ?? "Operator";
-          }
-
-          final clientName = data['clientName'] ?? 'N/A';
-          final siteLocation = data['siteLocation'] ?? 'N/A';
-          final title = newStatus == 'completed' ? 'Project Completed' : 'Project Status Update';
-          final body = "$operatorName marked the quotation for $clientName at $siteLocation as $newStatus.";
-          final now = DateTime.now();
-
-          await _firestore.collection('notifications').add({
-            'title': title,
-            'body': body,
-            'createdAt': Timestamp.fromDate(now),
-            'targetRole': 'admin',
-            'readBy': [],
-            'dismissedBy': [],
-          });
-
-          await _firestore.collection('notifications').add({
-            'title': title,
-            'body': body,
-            'createdAt': Timestamp.fromDate(now),
-            'targetRole': 'viewer',
-            'readBy': [],
-            'dismissedBy': [],
-          });
-        } catch (notifErr) {
-          FirebaseCrashlytics.instance.log("Failed to write status notification: $notifErr");
-        }
+        _sendUpdateNotificationsInBackground(operatorId, data, newStatus);
       }
     } catch (e, stack) {
       FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Failed to update quotation status');
       rethrow;
+    }
+  }
+
+  void _sendCreationNotificationsInBackground(QuotationModel quotation) async {
+    try {
+      String operatorName = "Operator";
+      final opDoc = await _firestore
+          .collection('users')
+          .doc(quotation.operatorId)
+          .get()
+          .timeout(const Duration(seconds: 1));
+      if (opDoc.exists) {
+        operatorName = opDoc.data()?['fullName'] ?? "Operator";
+      }
+
+      final title = "New Quotation Generated";
+      final body = "$operatorName generated a new pending quotation of AED ${quotation.totalAmount} for ${quotation.clientName} at ${quotation.siteLocation}.";
+      final now = DateTime.now();
+
+      await _firestore.collection('notifications').add({
+        'title': title,
+        'body': body,
+        'createdAt': Timestamp.fromDate(now),
+        'targetRole': 'admin',
+        'readBy': [],
+        'dismissedBy': [],
+      });
+
+      await _firestore.collection('notifications').add({
+        'title': title,
+        'body': body,
+        'createdAt': Timestamp.fromDate(now),
+        'targetRole': 'viewer',
+        'readBy': [],
+        'dismissedBy': [],
+      });
+    } catch (e) {
+      FirebaseCrashlytics.instance.log("Failed to write creation notification in background: $e");
+    }
+  }
+
+  void _sendUpdateNotificationsInBackground(String operatorId, Map<String, dynamic> data, String newStatus) async {
+    try {
+      String operatorName = "Operator";
+      final opDoc = await _firestore
+          .collection('users')
+          .doc(operatorId)
+          .get()
+          .timeout(const Duration(seconds: 1));
+      if (opDoc.exists) {
+        operatorName = opDoc.data()?['fullName'] ?? "Operator";
+      }
+
+      final clientName = data['clientName'] ?? 'N/A';
+      final siteLocation = data['siteLocation'] ?? 'N/A';
+      final title = newStatus == 'completed' ? 'Project Completed' : 'Project Status Update';
+      final body = "$operatorName marked the quotation for $clientName at $siteLocation as $newStatus.";
+      final now = DateTime.now();
+
+      await _firestore.collection('notifications').add({
+        'title': title,
+        'body': body,
+        'createdAt': Timestamp.fromDate(now),
+        'targetRole': 'admin',
+        'readBy': [],
+        'dismissedBy': [],
+      });
+
+      await _firestore.collection('notifications').add({
+        'title': title,
+        'body': body,
+        'createdAt': Timestamp.fromDate(now),
+        'targetRole': 'viewer',
+        'readBy': [],
+        'dismissedBy': [],
+      });
+    } catch (e) {
+      FirebaseCrashlytics.instance.log("Failed to write status notification in background: $e");
     }
   }
 }

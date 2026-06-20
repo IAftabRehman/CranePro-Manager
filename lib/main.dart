@@ -1,29 +1,27 @@
+import 'package:extend_crane_services/features/auth/presentation/pages/splash_screen_page.dart';
+import 'package:extend_crane_services/features/ota/presentation/widgets/ota_update_gate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/themes/app_theme.dart';
-import 'package:extend_crane_services/features/auth/presentation/pages/splash_screen_page.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'dart:ui';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:flutter_native_splash/flutter_native_splash.dart';
-
 import 'core/services/local_notification_service.dart';
 import 'firebase_options.dart';
 
 void main() async {
-  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  
+  WidgetsFlutterBinding.ensureInitialized();
+
   try {
     // Initialize Firebase with persistence settings
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    
+
     FirebaseFirestore.instance.settings = const Settings(
       persistenceEnabled: true,
       cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
@@ -46,16 +44,9 @@ void main() async {
     try {
       FirebaseCrashlytics.instance.recordError(e, stack, fatal: true);
     } catch (_) {}
-  } finally {
-    // Always dismiss the splash screen to prevent the app from being stuck
-    FlutterNativeSplash.remove();
   }
 
-  runApp(
-    const ProviderScope(
-      child: CraneProManagerApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: CraneProManagerApp()));
 }
 
 class CraneProManagerApp extends StatelessWidget {
@@ -67,7 +58,9 @@ class CraneProManagerApp extends StatelessWidget {
       title: 'CranePro Manager',
       themeMode: ThemeMode.light,
       theme: AppTheme.lightTheme,
-      home: const SplashScreenPage(),
+      home: const OtaUpdateGate(
+        child: SplashScreenPage(),
+      ),
       debugShowCheckedModeBanner: false,
     );
   }

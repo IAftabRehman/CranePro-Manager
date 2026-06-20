@@ -16,10 +16,10 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
-  late TextEditingController _nameController;
-  late TextEditingController _emailController;
-  late TextEditingController _websiteController;
-  late TextEditingController _addressController;
+  late final TextEditingController _nameController;
+  late final TextEditingController _emailController;
+  late final TextEditingController _websiteController;
+  late final TextEditingController _addressController;
 
   @override
   void initState() {
@@ -41,11 +41,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   void _saveProfile() {
-
     final currentProfile = ref.read(businessProfileProvider);
-    ref
-        .read(businessProfileProvider.notifier)
-        .updateProfile(
+    ref.read(businessProfileProvider.notifier).updateProfile(
           currentProfile.copyWith(
             businessName: _nameController.text,
             email: _emailController.text,
@@ -64,7 +61,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    // Only watch businessProfileProvider specifically
     final profile = ref.watch(businessProfileProvider);
 
     return Scaffold(
@@ -77,7 +74,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         child: SafeArea(
           child: Column(
             children: [
-              _buildAppBar(context),
+              const SettingsAppBar(),
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
@@ -88,16 +85,33 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _buildBusinessCard(theme, profile),
+                      // Component Extraction: Extracted BusinessCard
+                      BusinessCardWidget(isViewer: widget.isViewer, profile: profile),
                       const SizedBox(height: 15),
-                      _buildEditableField('Business Name', _nameController, Icons.business_rounded),
-                      _buildEditableField('Email Address', _emailController, Icons.email_outlined),
-                      _buildEditableField('Official Website', _websiteController, Icons.language_rounded),
-                      _buildEditableField('Office Address', _addressController, Icons.location_on_outlined, maxLines: 2),
+                      // Component Extraction & Reusability: Extracted EditableFieldWidget
+                      EditableFieldWidget(
+                        label: 'Business Name',
+                        controller: _nameController,
+                        icon: Icons.business_rounded,
+                      ),
+                      EditableFieldWidget(
+                        label: 'Email Address',
+                        controller: _emailController,
+                        icon: Icons.email_outlined,
+                      ),
+                      EditableFieldWidget(
+                        label: 'Official Website',
+                        controller: _websiteController,
+                        icon: Icons.language_rounded,
+                      ),
+                      EditableFieldWidget(
+                        label: 'Office Address',
+                        controller: _addressController,
+                        icon: Icons.location_on_outlined,
+                        maxLines: 2,
+                      ),
                       const SizedBox(height: 15),
-
                       const SizedBox(height: 12),
-
                       ElevatedButton(
                         onPressed: _saveProfile,
                         style: ElevatedButton.styleFrom(
@@ -111,7 +125,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         ),
                         child: const Text(
                           'Update Profile',
-                          style: TextStyle(fontWeight: FontWeight.w900,),
+                          style: TextStyle(fontWeight: FontWeight.w900),
                         ),
                       ),
                     ],
@@ -124,14 +138,20 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       ),
     );
   }
+}
 
-  Widget _buildAppBar(BuildContext context) {
+// Extracted Settings App Bar component with const constructor
+class SettingsAppBar extends StatelessWidget {
+  const SettingsAppBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppTheme.deepNavyBlue, size: 15,),
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppTheme.deepNavyBlue, size: 15),
             onPressed: () => Navigator.pop(context),
           ),
           const Expanded(
@@ -151,18 +171,31 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       ),
     );
   }
+}
 
-  Widget _buildBusinessCard(ThemeData theme, BusinessProfile profile) {
+// Extracted Business Card component with const constructor
+class BusinessCardWidget extends StatelessWidget {
+  final bool isViewer;
+  final BusinessProfile profile;
+
+  const BusinessCardWidget({
+    super.key,
+    required this.isViewer,
+    required this.profile,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.35),
+        color: const Color(0x59FFFFFF),
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
-        boxShadow: [
+        border: Border.all(color: const Color(0x80FFFFFF)),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            offset: const Offset(0, 20),
+            color: Color(0x0D000000),
+            offset: Offset(0, 20),
             blurRadius: 40,
           ),
         ],
@@ -182,7 +215,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ),
           const SizedBox(height: 15),
           Text(
-            widget.isViewer ? 'Bahadar Transport & Crane Services' : profile.businessName,
+            isViewer ? 'Bahadar Transport & Crane Services' : profile.businessName,
             style: const TextStyle(
               color: AppTheme.deepNavyBlue,
               fontSize: 18,
@@ -194,19 +227,36 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       ),
     );
   }
+}
 
-  Widget _buildEditableField(String label, TextEditingController controller, IconData icon, {int maxLines = 1}) {
+// Extracted and highly reusable EditableField component with const constructor
+class EditableFieldWidget extends StatelessWidget {
+  final String label;
+  final TextEditingController controller;
+  final IconData icon;
+  final int maxLines;
+
+  const EditableFieldWidget({
+    super.key,
+    required this.label,
+    required this.controller,
+    required this.icon,
+    this.maxLines = 1,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.5),
+        color: const Color(0x80FFFFFF),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+        border: Border.all(color: const Color(0x4DFFFFFF)),
       ),
       child: Row(
         children: [
-          Icon(icon, color: AppTheme.primaryNavy.withValues(alpha: 0.7), size: 20),
+          Icon(icon, color: const Color(0xB20D1B3E), size: 20),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -214,8 +264,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               children: [
                 Text(
                   label.toUpperCase(),
-                  style: TextStyle(
-                    color: AppTheme.primaryNavy.withValues(alpha: 0.5),
+                  style: const TextStyle(
+                    color: Color(0x800D1B3E),
                     fontSize: 10,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 0.5,
