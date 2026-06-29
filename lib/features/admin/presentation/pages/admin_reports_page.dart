@@ -300,7 +300,7 @@ class _QuotationsReportList extends ConsumerWidget {
           }
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const Center(child: RepaintBoundary(child: CircularProgressIndicator())),
       error: (e, st) => Center(child: Text('Error: $e')),
     );
   }
@@ -354,7 +354,7 @@ class _ExpensesReportList extends ConsumerWidget {
           }
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const Center(child: RepaintBoundary(child: CircularProgressIndicator())),
       error: (e, st) => Center(child: Text('Error: $e')),
     );
   }

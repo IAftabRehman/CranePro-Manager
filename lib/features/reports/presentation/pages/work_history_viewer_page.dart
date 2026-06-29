@@ -4,7 +4,30 @@ import 'package:extend_crane_services/core/themes/app_theme.dart';
 import 'package:extend_crane_services/features/reports/presentation/widgets/viewer_report_header.dart';
 import 'package:extend_crane_services/features/reports/presentation/pages/work_entry_details_page.dart';
 import 'package:extend_crane_services/features/quotation/data/repositories/quotation_repository.dart';
+import 'package:extend_crane_services/features/work_order/data/repositories/work_repository.dart';
 import 'package:intl/intl.dart';
+
+class UnifiedWorkItem {
+  final DateTime date;
+  final bool isOwnCrane;
+  final String clientName;
+  final String siteLocation;
+  final double totalAmount;
+  final double deduction;
+  final String deductionLabel;
+  final double profit;
+
+  UnifiedWorkItem({
+    required this.date,
+    required this.isOwnCrane,
+    required this.clientName,
+    required this.siteLocation,
+    required this.totalAmount,
+    required this.deduction,
+    required this.deductionLabel,
+    required this.profit,
+  });
+}
 
 class WorkHistoryViewerPage extends ConsumerStatefulWidget {
   const WorkHistoryViewerPage({super.key});
@@ -48,6 +71,7 @@ class _WorkHistoryViewerPageState extends ConsumerState<WorkHistoryViewerPage> {
   @override
   Widget build(BuildContext context) {
     final quotationsAsync = ref.watch(allQuotationsProvider);
+    final workOrdersAsync = ref.watch(allWorkOrdersProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -69,113 +93,134 @@ class _WorkHistoryViewerPageState extends ConsumerState<WorkHistoryViewerPage> {
         ),
         child: SafeArea(
           child: quotationsAsync.when(
-            data: (quotations) {
-              // Filter completed quotations within date range
-              final completedQuotations = quotations.where((q) {
-                final isCompleted = q.status.toLowerCase() == 'completed';
-                final matchesDate = q.workDate.isAfter(_fromDate.subtract(const Duration(seconds: 1))) &&
-                    q.workDate.isBefore(_toDate.add(const Duration(days: 1)));
-                return isCompleted && matchesDate;
-              }).toList();
-
-              // Calculate total profit dynamically
-              double totalProfit = 0.0;
-              for (final q in completedQuotations) {
-                if (q.commission > 0.0) {
-                  totalProfit += q.commission;
-                } else {
+            data: (quotations) => workOrdersAsync.when(
+              data: (workOrders) {
+                final completedQuotations = quotations.where((q) {
+                  final isCompleted = q.status.toLowerCase() == 'completed';
+                  final matchesDate = q.workDate.isAfter(_fromDate.subtract(const Duration(seconds: 1))) &&
+                      q.workDate.isBefore(_toDate.add(const Duration(days: 1)));
+                  return isCompleted && matchesDate;
+                }).map((q) {
                   final isOwnCrane = !q.serviceType.toLowerCase().contains('commission') &&
                       !q.serviceType.toLowerCase().contains('outsourced') &&
                       !q.serviceType.toLowerCase().contains('partner');
-                  final deduction = isOwnCrane ? q.totalAmount * 0.10 : q.totalAmount * 0.85;
-                  totalProfit += (q.totalAmount - deduction);
-                }
-              }
+                  return UnifiedWorkItem(
+                    date: q.workDate,
+                    isOwnCrane: isOwnCrane,
+                    clientName: q.clientName,
+                    siteLocation: q.siteLocation,
+                    totalAmount: q.totalAmount,
+                    deduction: q.commission,
+                    deductionLabel: 'Commission',
+                    profit: q.totalAmount - q.commission,
+                  );
+                }).toList();
 
-              final currencyFormatter = NumberFormat.currency(symbol: 'AED ', decimalDigits: 0);
+                final completedWorkOrders = workOrders.where((w) {
+                  final isCompleted = w.status.toLowerCase() == 'completed';
+                  final matchesDate = w.createdAt.isAfter(_fromDate.subtract(const Duration(seconds: 1))) &&
+                      w.createdAt.isBefore(_toDate.add(const Duration(days: 1)));
+                  return isCompleted && matchesDate;
+                }).map((w) {
+                  final profit = w.netEarnings > 0 ? w.netEarnings : (w.totalPrice - w.expenseAmount);
+                  return UnifiedWorkItem(
+                    date: w.createdAt,
+                    isOwnCrane: true,
+                    clientName: w.clientName,
+                    siteLocation: w.siteLocation,
+                    totalAmount: w.totalPrice,
+                    deduction: w.expenseAmount,
+                    deductionLabel: 'Expenses',
+                    profit: profit,
+                  );
+                }).toList();
 
-              return CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                    sliver: SliverToBoxAdapter(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ViewerReportHeader(
-                            title: 'Work History',
-                            summaryLabel: 'Total Profit for',
-                            summaryValue: currencyFormatter.format(totalProfit),
-                            fromDate: _fromDate,
-                            toDate: _toDate,
-                            onSelectDateRange: _selectDateRange,
-                          ),
-                          const SizedBox(height: 20),
-                          const Text(
-                            'Detailed Transactions',
-                            style: TextStyle(
-                              color: AppTheme.deepNavyBlue,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1.0,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-                      ),
-                    ),
-                  ),
-                  if (completedQuotations.isEmpty)
-                    const SliverPadding(
-                      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-                      sliver: SliverToBoxAdapter(
-                        child: Center(
-                          child: Text(
-                            'No completed jobs found for this period',
-                            style: TextStyle(
-                              color: AppTheme.deepNavyBlue,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                    )
-                  else
+                final allItems = [...completedQuotations, ...completedWorkOrders];
+                allItems.sort((a, b) => b.date.compareTo(a.date));
+
+                double totalProfit = allItems.fold(0.0, (sum, item) => sum + item.profit);
+
+                final currencyFormatter = NumberFormat.currency(symbol: 'AED ', decimalDigits: 0);
+
+                return CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
                     SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final q = completedQuotations[index];
-                            final isOwnCrane = !q.serviceType.toLowerCase().contains('commission') &&
-                                !q.serviceType.toLowerCase().contains('outsourced') &&
-                                !q.serviceType.toLowerCase().contains('partner');
-                            final deduction = q.commission > 0.0
-                                ? (q.totalAmount - q.commission)
-                                : (isOwnCrane ? q.totalAmount * 0.10 : q.totalAmount * 0.85);
-                            final deductionLabel = isOwnCrane ? 'Fuel Cost' : 'Outsourced Cost';
-
-                            return HistoryCard(
-                              isOwnCrane: isOwnCrane,
-                              client: q.clientName,
-                              location: q.siteLocation,
-                              total: q.totalAmount,
-                              deduction: deduction,
-                              deductionLabel: deductionLabel,
-                            );
-                          },
-                          childCount: completedQuotations.length,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                      sliver: SliverToBoxAdapter(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ViewerReportHeader(
+                              title: 'Work History',
+                              summaryLabel: 'Total Profit for',
+                              summaryValue: currencyFormatter.format(totalProfit),
+                              fromDate: _fromDate,
+                              toDate: _toDate,
+                              onSelectDateRange: _selectDateRange,
+                            ),
+                            const SizedBox(height: 20),
+                            const Text(
+                              'Detailed Transactions',
+                              style: TextStyle(
+                                color: AppTheme.deepNavyBlue,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
                         ),
                       ),
                     ),
-                  const SliverToBoxAdapter(
-                    child: SizedBox(height: 40),
-                  ),
-                ],
-              );
-            },
+                    if (allItems.isEmpty)
+                      const SliverPadding(
+                        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+                        sliver: SliverToBoxAdapter(
+                          child: Center(
+                            child: Text(
+                              'No completed jobs found for this period',
+                              style: TextStyle(
+                                color: AppTheme.deepNavyBlue,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                    else
+                      SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              final item = allItems[index];
+                              return HistoryCard(
+                                isOwnCrane: item.isOwnCrane,
+                                client: item.clientName,
+                                location: item.siteLocation,
+                                total: item.totalAmount,
+                                deduction: item.deduction,
+                                deductionLabel: item.deductionLabel,
+                              );
+                            },
+                            childCount: allItems.length,
+                          ),
+                        ),
+                      ),
+                    const SliverToBoxAdapter(
+                      child: SizedBox(height: 40),
+                    ),
+                  ],
+                );
+              },
+              loading: () => const RepaintBoundary(
+                child: Center(child: CircularProgressIndicator(color: Colors.amber)),
+              ),
+              error: (err, _) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.redAccent))),
+            ),
             loading: () => const RepaintBoundary(
               child: Center(child: CircularProgressIndicator(color: Colors.amber)),
             ),

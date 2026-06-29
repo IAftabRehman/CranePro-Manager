@@ -5,6 +5,7 @@ class PendingItem {
   final double totalPrice;
   final String type; // 'quotation' or 'work_order'
   final DateTime createdAt;
+  final dynamic originalModel;
 
   PendingItem({
     required this.id,
@@ -13,5 +14,6 @@ class PendingItem {
     required this.totalPrice,
     required this.type,
     required this.createdAt,
+    required this.originalModel,
   });
 }

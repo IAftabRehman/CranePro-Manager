@@ -9,6 +9,7 @@ import 'package:extend_crane_services/features/finance/data/repositories/finance
 import 'package:extend_crane_services/features/quotation/data/repositories/quotation_repository.dart';
 import 'package:extend_crane_services/features/work_order/data/repositories/work_repository.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ViewerDashboard extends ConsumerStatefulWidget {
   const ViewerDashboard({super.key});
@@ -37,7 +38,77 @@ class _ViewerDashboardState extends ConsumerState<ViewerDashboard>
       ..addListener(() {
         _parallaxNotifier.value = _scrollController.offset * 0.3;
       });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndShowWelcomeMessage();
+    });
   }
+
+  Future<void> _checkAndShowWelcomeMessage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeenMsg = prefs.getBool('has_seen_viewer_welcome') ?? false;
+
+    if (!hasSeenMsg && mounted) {
+      _showWelcomeDialog();
+      await prefs.setBool('has_seen_viewer_welcome', true);
+    }
+  }
+
+  void _showWelcomeDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text(
+            'Welcome',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Welcome to your Viewer Dashboard!\n\n'
+                    'You can easily check and track Quotations, Work Orders, Live Activities, and Financial Reports.\n\n'
+                    'This is a read-only view, so you can safely look around without changing any data.',
+                style: TextStyle(height: 1.5, fontSize: 14, color: Colors.black87),
+              ),
+              const SizedBox(height: 16),
+              Divider(thickness: 1, color: Colors.grey.shade300),
+              const SizedBox(height: 12),
+              const Center(
+                child: Text(
+                  'Enjoy the app! ✨',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+                foregroundColor: Colors.white,
+                elevation: 2,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+              child: const Text('I Understand', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   @override
   void dispose() {
@@ -264,6 +335,7 @@ class ViewerCommandCenter extends ConsumerWidget {
                     ),
                   ],
                 ),
+                const SizedBox(height: 10,),
               ],
             );
           },
@@ -285,62 +357,14 @@ class _ViewerExecutionTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Reports',
-              style: TextStyle(
-                color: AppTheme.deepNavyBlue,
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            TextButton(
-              onPressed: () {},
-              child: const Text(
-                'View All',
-                style: TextStyle(
-                  color: Colors.green,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 13,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
-            ),
-          ],
+    return _ReportExecutionModeButton(
+      label: 'Detail Reports',
+      onPressed: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const WorkHistoryViewerPage(),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            Expanded(
-              child: _ReportExecutionModeButton(
-                label: 'Own Crane',
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const WorkHistoryViewerPage(),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 5),
-            Expanded(
-              child: _ReportExecutionModeButton(
-                label: 'Commission',
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const WorkHistoryViewerPage(),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
+      ),
     );
   }
 }
@@ -357,10 +381,11 @@ class ViewerActivityStream extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 10,),
         const Padding(
           padding: EdgeInsets.only(left: 4, bottom: 20),
           child: Text(
-            'Live Activity Stream',
+            'Live Activity',
             style: TextStyle(
               color: AppTheme.deepNavyBlue,
               fontSize: 15,
@@ -583,19 +608,25 @@ class _ReportExecutionModeButton extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.white54,
         foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 10),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         elevation: 10,
-        shadowColor: const Color(0x660A1931),
+        shadowColor: Colors.white,
       ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 14,
-          color: Colors.black,
-          fontWeight: FontWeight.w700,
-        ),
-        textAlign: TextAlign.center,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 16,
+              color: Colors.indigoAccent,
+              fontWeight: FontWeight.w700,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(width: 10),
+          Icon(Icons.ads_click, color: Colors.indigoAccent, size: 25,),
+        ],
       ),
     );
   }

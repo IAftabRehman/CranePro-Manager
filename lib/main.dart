@@ -7,10 +7,12 @@ import 'core/themes/app_theme.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'dart:ui';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'core/services/local_notification_service.dart';
+import 'core/services/notification_service.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -28,6 +30,13 @@ void main() async {
     );
 
     await LocalNotificationService.initialize();
+
+    // Initialize unified notification service (FCM & Local Notifications)
+    final notificationService = NotificationService();
+    await notificationService.initialize();
+    
+    // Register background message handler
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
     // Pass all uncaught "fatal" errors from the framework to Crashlytics
     FlutterError.onError = (errorDetails) {
@@ -55,6 +64,7 @@ class CraneProManagerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'CranePro Manager',
       themeMode: ThemeMode.light,
       theme: AppTheme.lightTheme,

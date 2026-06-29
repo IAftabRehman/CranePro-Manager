@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_button.dart';
 import 'package:extend_crane_services/shared/global_widgets/custom_text_field.dart';
@@ -83,7 +84,22 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
             return;
           }
 
-          // 3. Success Feedback
+          // 3. Update FCM token in Firestore upon successful Admin login
+          try {
+            final fcmToken = await FirebaseMessaging.instance.getToken();
+            if (fcmToken != null) {
+              await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(user.uid)
+                  .update({'fcmToken': fcmToken});
+            }
+          } catch (e) {
+            debugPrint("Error updating FCM token during admin login: $e");
+          }
+
+          if (!mounted) return;
+
+          // 4. Success Feedback
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Authentication Successful! Initiating Admin Handshake...'),
@@ -91,7 +107,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
             ),
           );
           
-          // 4. Pop until original screen to let AuthWrapper take over
+          // 5. Pop until original screen to let AuthWrapper take over
           Navigator.of(context).popUntil((route) => route.isFirst);
         }
       } on FirebaseAuthException catch (e) {

@@ -25,7 +25,7 @@ class AuthWrapper extends StatelessWidget {
 
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+            body: Center(child: RepaintBoundary(child: CircularProgressIndicator())),
           );
         }
 
@@ -49,7 +49,7 @@ class AuthWrapper extends StatelessWidget {
 
             if (userSnapshot.connectionState == ConnectionState.waiting) {
               return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
+                body: Center(child: RepaintBoundary(child: CircularProgressIndicator())),
               );
             }
 
@@ -65,7 +65,7 @@ class AuthWrapper extends StatelessWidget {
                 builder: (context, emailSnapshot) {
                   if (emailSnapshot.connectionState == ConnectionState.waiting) {
                     return const Scaffold(
-                      body: Center(child: CircularProgressIndicator()),
+                      body: Center(child: RepaintBoundary(child: CircularProgressIndicator())),
                     );
                   }
                   if (!emailSnapshot.hasData ||

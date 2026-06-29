@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -5,6 +6,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
 import 'dart:developer' as dev;
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'notification_service.dart';
+import '../../features/notifications/presentation/pages/notification_screen.dart';
 
 class LocalNotificationService {
   static final FlutterLocalNotificationsPlugin _notificationsPlugin =
@@ -33,7 +36,15 @@ class LocalNotificationService {
     await _notificationsPlugin.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
-        // Handle notification tap
+        // Handle notification tap by navigating to NotificationScreen
+        final context = navigatorKey.currentContext;
+        if (context != null) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const NotificationScreen(),
+            ),
+          );
+        }
       },
     );
 

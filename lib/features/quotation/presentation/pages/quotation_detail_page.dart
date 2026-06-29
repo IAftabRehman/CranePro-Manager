@@ -242,6 +242,33 @@ class QuotationEntriesList extends StatelessWidget {
           padding: EdgeInsets.zero,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: quotation.entries.length,
+          prototypeItem: quotation.entries.isNotEmpty
+            ? Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0x0DFFFFFF),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(quotation.entries.first.serviceName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Text('Duration: ${quotation.entries.first.duration}', style: const TextStyle(fontSize: 12, color: Colors.white70)),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      'AED ${quotation.entries.first.price.toStringAsFixed(0)}',
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.lavenderPrimary),
+                    ),
+                  ],
+                ),
+              )
+            : const SizedBox.shrink(),
           itemBuilder: (context, index) {
             final entry = quotation.entries[index];
             return Container(

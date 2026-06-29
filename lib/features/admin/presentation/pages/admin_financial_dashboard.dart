@@ -72,7 +72,7 @@ class AdminFinancialDashboard extends ConsumerWidget {
         ),
       ),
       loading: () => const Center(
-        child: CircularProgressIndicator(color: AppTheme.accentGold),
+        child: RepaintBoundary(child: CircularProgressIndicator(color: AppTheme.accentGold)),
       ),
       error: (err, stack) => Center(
         child: Text(
@@ -516,7 +516,7 @@ class RecentTransactionsSection extends ConsumerWidget {
           loading: () => const Center(
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: 20),
-              child: CircularProgressIndicator(color: AppTheme.accentGold),
+              child: RepaintBoundary(child: CircularProgressIndicator(color: AppTheme.accentGold)),
             ),
           ),
           error: (err, _) => Padding(

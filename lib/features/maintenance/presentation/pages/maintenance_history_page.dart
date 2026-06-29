@@ -133,6 +133,7 @@ class MaintenanceHistoryPage extends ConsumerWidget {
                   return ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 18),
                     itemCount: entries.length,
+                    prototypeItem: MaintenanceHistoryTile(entry: entries.first),
                     itemBuilder: (context, index) {
                       final entry = entries[index];
                       return MaintenanceHistoryTile(entry: entry);

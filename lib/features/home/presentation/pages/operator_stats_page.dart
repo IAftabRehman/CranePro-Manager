@@ -315,6 +315,63 @@ class OperatorActivityListSection extends ConsumerWidget {
           padding: EdgeInsets.zero,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: activities.length,
+          prototypeItem: Builder(
+            builder: (context) {
+              if (activities.isEmpty) return const SizedBox.shrink();
+              final activity = activities.first;
+              final isJob = activity['type'] == 'job';
+              final dateStr = DateFormat('dd MMM, hh:mm a').format(activity['date']);
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0x0DFFFFFF),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: isJob ? const Color(0x1A4CAF50) : const Color(0x1AFF5252),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isJob ? Icons.work_outline : Icons.receipt_long_outlined,
+                        color: isJob ? Colors.green : Colors.redAccent,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            activity['description'] ?? '',
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            dateStr,
+                            style: const TextStyle(color: Colors.white38, fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      '${isJob ? '+' : '-'} AED ${activity['amount'].toStringAsFixed(0)}',
+                      style: TextStyle(
+                        color: isJob ? Colors.green : Colors.redAccent,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+          ),
           itemBuilder: (context, index) {
             final activity = activities[index];
             final isJob = activity['type'] == 'job';

@@ -23,12 +23,27 @@ class WorkRepository {
         clientName: workOrder.clientName,
         siteLocation: workOrder.siteLocation,
         status: workOrder.status,
+        totalPrice: workOrder.totalPrice,
+        expenseAmount: workOrder.expenseAmount,
+        netEarnings: workOrder.netEarnings,
         createdAt: workOrder.createdAt,
       );
 
       await docRef.set(updatedWorkOrder.toMap());
     } catch (e, stack) {
       FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Work Order Creation Failed');
+      rethrow;
+    }
+  }
+
+  /// Updates an existing work order.
+  Future<void> updateWorkOrder(WorkOrderModel workOrder) async {
+    try {
+      final workOrderMap = workOrder.toMap();
+      workOrderMap['updatedAt'] = FieldValue.serverTimestamp();
+      await _firestore.collection('work_orders').doc(workOrder.id).update(workOrderMap);
+    } catch (e, stack) {
+      FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Failed to update work order');
       rethrow;
     }
   }

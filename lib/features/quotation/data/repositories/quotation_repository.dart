@@ -41,6 +41,18 @@ class QuotationRepository {
     }
   }
 
+  /// Updates an existing quotation.
+  Future<void> updateQuotation(QuotationModel quotation) async {
+    try {
+      final quotationMap = quotation.toMap();
+      quotationMap['updatedAt'] = FieldValue.serverTimestamp();
+      await _firestore.collection('quotations').doc(quotation.id).update(quotationMap);
+    } catch (e, stack) {
+      FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Failed to update quotation');
+      rethrow;
+    }
+  }
+
   /// Fetches all quotations for a specific operator.
   /// Ordered by createdAt descending.
   Stream<List<QuotationModel>> getOperatorQuotations(String uid) {

@@ -24,7 +24,7 @@ class AdminActivityLogsPage extends ConsumerWidget {
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(child: RepaintBoundary(child: CircularProgressIndicator())),
         error: (err, stack) => Center(
           child: Padding(
             padding: const EdgeInsets.all(24.0),

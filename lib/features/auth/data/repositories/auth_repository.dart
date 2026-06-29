@@ -4,6 +4,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../models/user_model.dart';
 import 'user_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:developer';
 
 class AuthRepository {
@@ -44,6 +45,9 @@ class AuthRepository {
             .collection('users')
             .doc(finalUser.id)
             .set(finalUser.toMap());
+            
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('has_seen_viewer_welcome', false);
         
         log("User profile initialized for UID: ${credential.user!.uid}");
       }
@@ -78,6 +82,10 @@ class AuthRepository {
         if (userModel == null) {
           throw Exception("User profile not found in database.");
         }
+        
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('has_seen_viewer_welcome', false);
+        
         return userModel;
       } else {
         throw Exception("Authentication failed.");

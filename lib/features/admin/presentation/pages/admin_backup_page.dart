@@ -114,7 +114,7 @@ class _AdminBackupPageState extends State<AdminBackupPage> {
                     content: const Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        CircularProgressIndicator(color: AppTheme.deepNavyBlue),
+                        RepaintBoundary(child: CircularProgressIndicator(color: AppTheme.deepNavyBlue)),
                         SizedBox(height: 24),
                         Text(
                           'SYSTEM RESTORE IN PROGRESS',

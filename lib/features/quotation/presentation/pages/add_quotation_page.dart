@@ -10,7 +10,8 @@ import '../../data/repositories/quotation_repository.dart';
 import 'package:extend_crane_services/core/themes/app_theme.dart';
 
 class AddQuotationPage extends ConsumerStatefulWidget {
-  const AddQuotationPage({super.key});
+  final QuotationModel? initialData;
+  const AddQuotationPage({super.key, this.initialData});
 
   @override
   ConsumerState<AddQuotationPage> createState() => _AddQuotationPageState();
@@ -20,15 +21,35 @@ class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
   final _clientController = TextEditingController();
   final _advancePaidController = TextEditingController();
   final _commissionController = TextEditingController();
-  final List<String> _terms = ['Diesel will be provided by client', '10-12 Hours shift duty'];
-  final List<QuotationServiceEntry> _entries = [
-    QuotationServiceEntry(
-      serviceName: '',
-      duration: '',
-      location: '',
-      price: 0.0,
-    )
-  ];
+  final List<String> _terms = [];
+  final List<QuotationServiceEntry> _entries = [];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialData != null) {
+      final data = widget.initialData!;
+      _clientController.text = data.clientName;
+      _advancePaidController.text = data.advancePaid.toString();
+      _commissionController.text = data.commission.toString();
+      _terms.addAll(data.terms);
+      _entries.addAll(data.entries.map((e) => QuotationServiceEntry(
+            serviceName: e.serviceName,
+            duration: e.duration,
+            location: e.location,
+            price: e.price,
+            startDate: e.startDate,
+          )));
+    } else {
+      _terms.addAll(['Diesel will be provided by client', '10-12 Hours shift duty']);
+      _entries.add(QuotationServiceEntry(
+        serviceName: '',
+        duration: '',
+        location: '',
+        price: 0.0,
+      ));
+    }
+  }
 
   bool _isSaving = false;
 
@@ -120,8 +141,8 @@ class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
       final advance = _advancePaid;
 
       final data = QuotationModel(
-        id: '', // Firestore will assign
-        operatorId: user.uid,
+        id: widget.initialData?.id ?? '', // Firestore will assign if empty
+        operatorId: widget.initialData?.operatorId ?? user.uid,
         clientName: _clientController.text,
         siteLocation: _entries.isNotEmpty ? _entries.first.location : '',
         serviceType: _entries.isNotEmpty ? _entries.first.serviceName : '',
@@ -129,15 +150,20 @@ class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
         advancePaid: advance,
         balanceAmount: total - advance,
         commission: double.tryParse(_commissionController.text) ?? 0.0,
-        createdAt: DateTime.now(),
+        createdAt: widget.initialData?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
         workDate: _entries.isNotEmpty ? _entries.first.startDate : DateTime.now(),
         entries: _entries,
         terms: _terms.where((t) => t.isNotEmpty).toList(),
+        status: widget.initialData?.status ?? 'pending',
       );
 
       // Save to Firestore
-      await ref.read(quotationRepositoryProvider).createQuotation(data);
+      if (widget.initialData != null) {
+        await ref.read(quotationRepositoryProvider).updateQuotation(data);
+      } else {
+        await ref.read(quotationRepositoryProvider).createQuotation(data);
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -182,7 +208,7 @@ class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
 
     return PremiumScaffold(
       appBar: AppBar(
-        title: const Text("Quotation Generator", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),),
+        title: Text(widget.initialData != null ? "Edit Quotation" : "Quotation Generator", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),),
         centerTitle: true,
         backgroundColor: Colors.blue.withAlpha(41),
         elevation: 10,
@@ -215,6 +241,13 @@ class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: _entries.length,
+                            prototypeItem: _ServiceCard(
+                              index: 0,
+                              entry: QuotationServiceEntry(serviceName: '', duration: '', location: '', price: 0.0),
+                              onRemove: () {},
+                              onDateTap: () {},
+                              onPriceChanged: (_) {},
+                            ),
                             itemBuilder: (context, index) {
                               return _ServiceCard(
                                 index: index,
@@ -223,7 +256,7 @@ class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
                                 onDateTap: () => _selectDate(index),
                                 onPriceChanged: (val) {
                                   setState(() {
-                                    _entries[index].price = double.tryParse(val) ?? 0.0;
+                                    _entries[index].price = double.tryParse(val.replaceAll(',', '')) ?? 0.0;
                                   });
                                 },
                               );
@@ -410,6 +443,7 @@ class _ServiceCard extends StatelessWidget {
           const _FieldLabel('Service Type'),
           CraneInput(
             hintText: 'e.g., 50 Ton Crane Hire',
+            initialValue: entry.serviceName.isNotEmpty ? entry.serviceName : null,
             onChanged: (val) => entry.serviceName = val,
           ),
           
@@ -417,6 +451,7 @@ class _ServiceCard extends StatelessWidget {
           const _FieldLabel('Duration'),
           CraneInput(
             hintText: 'e.g., 3 Days',
+            initialValue: entry.duration.isNotEmpty ? entry.duration : null,
             onChanged: (val) => entry.duration = val,
           ),
           
@@ -426,6 +461,7 @@ class _ServiceCard extends StatelessWidget {
             hintText: 'AED 0.00',
             prefixText: 'AED ',
             keyboardType: TextInputType.number,
+            initialValue: entry.price > 0 ? entry.price.toStringAsFixed(0) : null,
             onChanged: onPriceChanged,
           ),
           
@@ -433,6 +469,7 @@ class _ServiceCard extends StatelessWidget {
           const _FieldLabel('Location'),
           CraneInput(
             hintText: 'Worksite location',
+            initialValue: entry.location.isNotEmpty ? entry.location : null,
             onChanged: (val) => entry.location = val,
           ),
           

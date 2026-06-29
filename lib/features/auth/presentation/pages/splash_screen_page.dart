@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:extend_crane_services/core/themes/app_theme.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
 import '../widgets/auth_wrapper.dart';
@@ -14,50 +11,22 @@ class SplashScreenPage extends StatefulWidget {
 }
 
 class _SplashScreenPageState extends State<SplashScreenPage> {
-  Future<void> _handleProceed() async {
-    // Start permissions and token update in the background (not awaited)
-    _updateTokenInBackground();
-
-    // Navigate immediately to the authentication wrapper
-    if (mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => const AuthWrapper(),
-        ),
-      );
-    }
+  @override
+  void initState() {
+    super.initState();
+    _startNavigationTimer();
   }
 
-  void _updateTokenInBackground() async {
-    try {
-      // 1. Request notification permission with timeout
-      NotificationSettings settings = await FirebaseMessaging.instance.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      ).timeout(const Duration(seconds: 2));
-
-      // 2. Fetch fresh fcmToken with timeout
-      String? token;
-      if (settings.authorizationStatus == AuthorizationStatus.authorized ||
-          settings.authorizationStatus == AuthorizationStatus.provisional) {
-        token = await FirebaseMessaging.instance.getToken().timeout(const Duration(seconds: 2));
+  void _startNavigationTimer() {
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const AuthWrapper(),
+          ),
+        );
       }
-
-      // 3. Update fcmToken in Firestore if user is logged in
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null && token != null) {
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(currentUser.uid)
-            .update({
-          'fcmToken': token,
-          'lastLogin': FieldValue.serverTimestamp(),
-        }).timeout(const Duration(seconds: 2));
-      }
-    } catch (e) {
-      debugPrint("Background FCM update error: $e");
-    }
+    });
   }
 
   @override
@@ -111,37 +80,9 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
                   ),
                   const SizedBox(height: 80),
                   
-                  // Proceed Button
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 320),
-                    child: ElevatedButton(
-                      onPressed: _handleProceed,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.amber,
-                        foregroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 18),
-                        elevation: 8,
-                        shadowColor: Colors.black45,
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'PROCEED',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          Icon(Icons.arrow_forward_rounded, size: 18),
-                        ],
-                      ),
-                    ),
+                  // Optimized Spinner to visualise background activity / initialization
+                  const RepaintBoundary(
+                    child: CircularProgressIndicator(color: Colors.amber),
                   ),
                   const SizedBox(height: 40),
                 ],

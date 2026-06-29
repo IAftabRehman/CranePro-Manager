@@ -161,15 +161,6 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage>
           Scaffold(
             appBar: AppBar(
               backgroundColor: AppTheme.deepNavyBlue,
-              title: const Text(
-                'USER MANAGEMENT',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.5,
-                  color: Colors.white,
-                ),
-              ),
               bottom: TabBar(
                 controller: _tabController,
                 isScrollable: true,
@@ -560,9 +551,7 @@ class _EditUserSheetContentState extends State<_EditUserSheetContent> {
             ),
 
             const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              height: 55,
+            Center(
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.amber,
@@ -578,10 +567,10 @@ class _EditUserSheetContentState extends State<_EditUserSheetContent> {
                           _reasonController.text.trim(),
                         );
                       },
-                child: widget.isSaving 
+                child: widget.isSaving
                   ? const CircularProgressIndicator(color: AppTheme.deepNavyBlue)
                   : const Text(
-                      'SAVE ALL CHANGES',
+                      'Save All Changes',
                       style: TextStyle(color: AppTheme.deepNavyBlue, fontWeight: FontWeight.w900),
                     ),
               ),

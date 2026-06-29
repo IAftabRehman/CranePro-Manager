@@ -370,7 +370,7 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
                                     child: CustomScrollView(
                                       physics: const BouncingScrollPhysics(),
                                       slivers: [
-                                        _buildDashboardAppBar(theme, userName),
+                                        DashboardAppBar(theme: theme, name: userName),
                                         // Component Extraction & Riverpod Optimization:
                                         // Extracted StatsGridSection watches its own provider, preventing rebuilds of the entire screen when stats update
                                         StatsGridSection(userId: userId, isTablet: isTablet),
@@ -468,7 +468,20 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
     );
   }
 
-  Widget _buildDashboardAppBar(ThemeData theme, String? name) {
+}
+
+class DashboardAppBar extends StatelessWidget {
+  final ThemeData theme;
+  final String? name;
+
+  const DashboardAppBar({
+    super.key,
+    required this.theme,
+    this.name,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return SliverAppBar(
       floating: true,
       pinned: false,

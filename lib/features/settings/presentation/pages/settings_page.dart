@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
 import 'package:extend_crane_services/core/themes/app_theme.dart';
 import '../providers/business_profile_provider.dart';
-import '../../data/models/business_profile.dart';
 import 'dart:ui';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -42,7 +41,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   void _saveProfile() {
     final currentProfile = ref.read(businessProfileProvider);
-    ref.read(businessProfileProvider.notifier).updateProfile(
+    ref
+        .read(businessProfileProvider.notifier)
+        .updateProfile(
           currentProfile.copyWith(
             businessName: _nameController.text,
             email: _emailController.text,
@@ -61,8 +62,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Only watch businessProfileProvider specifically
-    final profile = ref.watch(businessProfileProvider);
+    // Only watch businessName specifically to prevent rebuilds on other profile field updates
+    final businessName = ref.watch(
+      businessProfileProvider.select((p) => p.businessName),
+    );
 
     return Scaffold(
       body: Container(
@@ -86,7 +89,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // Component Extraction: Extracted BusinessCard
-                      BusinessCardWidget(isViewer: widget.isViewer, profile: profile),
+                      BusinessCardWidget(
+                        isViewer: widget.isViewer,
+                        businessName: businessName,
+                      ),
                       const SizedBox(height: 15),
                       // Component Extraction & Reusability: Extracted EditableFieldWidget
                       EditableFieldWidget(
@@ -151,7 +157,11 @@ class SettingsAppBar extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppTheme.deepNavyBlue, size: 15),
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: AppTheme.deepNavyBlue,
+              size: 15,
+            ),
             onPressed: () => Navigator.pop(context),
           ),
           const Expanded(
@@ -176,12 +186,12 @@ class SettingsAppBar extends StatelessWidget {
 // Extracted Business Card component with const constructor
 class BusinessCardWidget extends StatelessWidget {
   final bool isViewer;
-  final BusinessProfile profile;
+  final String businessName;
 
   const BusinessCardWidget({
     super.key,
     required this.isViewer,
-    required this.profile,
+    required this.businessName,
   });
 
   @override
@@ -218,7 +228,7 @@ class BusinessCardWidget extends StatelessWidget {
           ),
           const SizedBox(height: 15),
           Text(
-            isViewer ? 'Bahadar Transport & Crane Services' : profile.businessName,
+            isViewer ? 'Bahadar Transport & Crane Services' : businessName,
             style: const TextStyle(
               color: AppTheme.deepNavyBlue,
               fontSize: 18,
@@ -284,13 +294,15 @@ class EditableFieldWidget extends StatelessWidget {
                   maxLines: maxLines,
                   style: const TextStyle(
                     color: AppTheme.deepNavyBlue,
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
                   decoration: const InputDecoration(
-                    isDense: true,
-                    contentPadding: EdgeInsets.symmetric(vertical: 4),
-                    border: InputBorder.none,
+                    fillColor: Colors.white54,
+                    contentPadding: EdgeInsets.symmetric(
+                      vertical: 2,
+                      horizontal: 2,
+                    ),
                   ),
                 ),
               ],

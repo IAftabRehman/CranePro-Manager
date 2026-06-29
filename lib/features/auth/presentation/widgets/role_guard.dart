@@ -16,11 +16,14 @@ class RoleGuard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userProfile = ref.watch(currentUserProvider);
+    // Optimization: Select only the role from the AsyncValue to prevent unnecessary rebuilds
+    final userRoleAsync = ref.watch(
+      currentUserProvider.select((userAsync) => userAsync.whenData((p) => p?.role)),
+    );
 
-    return userProfile.when(
-      data: (profile) {
-        if (profile != null && allowedRoles.contains(profile.role)) {
+    return userRoleAsync.when(
+      data: (role) {
+        if (role != null && allowedRoles.contains(role)) {
           return child;
         }
         

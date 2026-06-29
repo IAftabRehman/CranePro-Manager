@@ -104,6 +104,7 @@ class QuotationHistoryPage extends ConsumerWidget {
                           return ListView.builder(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             itemCount: quotations.length,
+                            prototypeItem: QuotationHistoryCard(q: quotations.first),
                             itemBuilder: (context, index) {
                               return QuotationHistoryCard(q: quotations[index]);
                             },

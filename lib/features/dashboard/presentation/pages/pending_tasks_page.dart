@@ -7,6 +7,10 @@ import '../../../notifications/data/models/pending_item.dart';
 import '../../../notifications/presentation/providers/notification_providers.dart';
 import '../../../quotation/data/repositories/quotation_repository.dart';
 import '../../../work_order/data/repositories/work_repository.dart';
+import '../../../quotation/presentation/pages/add_quotation_page.dart';
+import '../../../operations/presentation/widgets/direct_work_modal.dart';
+import '../../../quotation/data/models/quotation_model.dart';
+import '../../../work_order/data/models/work_order_model.dart';
 
 class PendingTasksPage extends ConsumerWidget {
   const PendingTasksPage({super.key});
@@ -149,7 +153,9 @@ class _TaskCard extends ConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    "Quotation for ${task.clientName}",
+                    task.type == 'quotation'
+                        ? "Quotation for ${task.clientName}"
+                        : "Direct Work for ${task.clientName}",
                     style: const TextStyle(
                       color: Colors.blue,
                       fontSize: 18,
@@ -182,6 +188,31 @@ class _TaskCard extends ConsumerWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    if (task.type == 'quotation') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AddQuotationPage(
+                            initialData: task.originalModel as QuotationModel,
+                          ),
+                        ),
+                      );
+                    } else {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (_) => DirectWorkModal(
+                          initialData: task.originalModel as WorkOrderModel,
+                        ),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.edit, color: Colors.white70, size: 20),
+                  tooltip: 'Edit Task',
                 ),
               ],
             ),

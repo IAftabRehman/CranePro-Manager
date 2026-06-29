@@ -3,6 +3,7 @@ import 'package:rxdart/rxdart.dart';
 import '../models/pending_item.dart';
 import '../models/notification_model.dart';
 import '../../../quotation/data/models/quotation_model.dart';
+import '../../../work_order/data/models/work_order_model.dart';
 
 class NotificationRepository {
   final FirebaseFirestore _firestore;
@@ -84,16 +85,15 @@ class NotificationRepository {
           for (var doc in snapshot.docs) {
             final data = doc.data();
             final q = QuotationModel.fromMap(data, docId: doc.id);
-            if (q.shouldShowAlert) {
-              items.add(PendingItem(
-                id: doc.id,
-                clientName: q.clientName,
-                location: q.siteLocation,
-                totalPrice: q.totalAmount,
-                type: 'quotation',
-                createdAt: q.createdAt,
-              ));
-            }
+            items.add(PendingItem(
+              id: doc.id,
+              clientName: q.clientName,
+              location: q.siteLocation,
+              totalPrice: q.totalAmount - q.commission,
+              type: 'quotation',
+              createdAt: q.createdAt,
+              originalModel: q,
+            ));
           }
           return items;
         });
@@ -102,19 +102,21 @@ class NotificationRepository {
     final workOrderStream = _firestore
         .collection('work_orders')
         .where('operatorId', isEqualTo: uid)
-        .where('status', isEqualTo: 'pending')
+        .where('status', isEqualTo: 'pending_approval')
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) {
               final data = doc.data();
+              final model = WorkOrderModel.fromMap(data, docId: doc.id);
               return PendingItem(
                 id: doc.id,
                 clientName: data['clientName'] ?? 'N/A',
                 location: data['siteLocation'] ?? 'N/A',
-                totalPrice: (data['totalPrice'] as num?)?.toDouble() ?? 0.0,
+                totalPrice: (data['netEarnings'] as num?)?.toDouble() ?? (data['totalPrice'] as num?)?.toDouble() ?? 0.0,
                 type: 'work_order',
                 createdAt: (data['createdAt'] is Timestamp) 
                     ? (data['createdAt'] as Timestamp).toDate() 
                     : DateTime.now(),
+                originalModel: model,
               );
             }).toList());
 
