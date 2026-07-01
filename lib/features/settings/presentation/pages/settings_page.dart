@@ -6,9 +6,7 @@ import '../providers/business_profile_provider.dart';
 import 'dart:ui';
 
 class SettingsPage extends ConsumerStatefulWidget {
-  final bool isViewer;
-
-  const SettingsPage({super.key, this.isViewer = false});
+  const SettingsPage({super.key});
 
   @override
   ConsumerState<SettingsPage> createState() => _SettingsPageState();
@@ -90,7 +88,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     children: [
                       // Component Extraction: Extracted BusinessCard
                       BusinessCardWidget(
-                        isViewer: widget.isViewer,
                         businessName: businessName,
                       ),
                       const SizedBox(height: 15),
@@ -185,12 +182,10 @@ class SettingsAppBar extends StatelessWidget {
 
 // Extracted Business Card component with const constructor
 class BusinessCardWidget extends StatelessWidget {
-  final bool isViewer;
   final String businessName;
 
   const BusinessCardWidget({
     super.key,
-    required this.isViewer,
     required this.businessName,
   });
 
@@ -228,7 +223,7 @@ class BusinessCardWidget extends StatelessWidget {
           ),
           const SizedBox(height: 15),
           Text(
-            isViewer ? 'Bahadar Transport & Crane Services' : businessName,
+            businessName,
             style: const TextStyle(
               color: AppTheme.deepNavyBlue,
               fontSize: 18,

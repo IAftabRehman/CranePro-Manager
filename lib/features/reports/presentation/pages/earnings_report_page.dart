@@ -212,14 +212,14 @@ class EarningsPieChartCard extends StatelessWidget {
               value: netPercent,
               title: '${netPercent.toStringAsFixed(0)}%',
               radius: 50,
-              color: theme.colorScheme.primary,
+              color: Colors.green,
               titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
             ),
             PieChartSectionData(
               value: commissionPercent,
               title: '${commissionPercent.toStringAsFixed(0)}%',
               radius: 50,
-              color: theme.colorScheme.secondary,
+              color: Colors.purple,
               titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
             ),
           ],
@@ -231,9 +231,9 @@ class EarningsPieChartCard extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _LegendItem(label: 'Net Profit', color: theme.colorScheme.primary),
+        _LegendItem(label: 'Net Profit', color: Colors.green),
         const SizedBox(height: 12),
-        _LegendItem(label: 'Commission Paid', color: theme.colorScheme.secondary),
+        _LegendItem(label: 'Commission Paid', color: Colors.purple),
       ],
     );
 
@@ -403,7 +403,7 @@ class EarningsBarChartCard extends StatelessWidget {
                       barRods: [
                         BarChartRodData(
                           toY: entry.value.amount,
-                          color: theme.colorScheme.primary,
+                          color: Colors.green,
                           width: 16,
                           borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(6),

@@ -134,15 +134,14 @@ class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
   void _handleSave() async {
     setState(() => _isSaving = true);
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) throw Exception("User not authenticated");
+      const String operatorId = 'operator';
 
       final total = _totalPrice;
       final advance = _advancePaid;
 
       final data = QuotationModel(
         id: widget.initialData?.id ?? '', // Firestore will assign if empty
-        operatorId: widget.initialData?.operatorId ?? user.uid,
+        operatorId: widget.initialData?.operatorId ?? operatorId,
         clientName: _clientController.text,
         siteLocation: _entries.isNotEmpty ? _entries.first.location : '',
         serviceType: _entries.isNotEmpty ? _entries.first.serviceName : '',

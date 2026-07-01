@@ -1,22 +1,16 @@
-import 'package:extend_crane_services/features/quotation/presentation/pages/add_quotation_page.dart';
-import 'package:extend_crane_services/features/reports/presentation/pages/maintenance_log_viewer_page.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:extend_crane_services/features/auth/presentation/widgets/auth_wrapper.dart';
-import 'package:extend_crane_services/features/reports/presentation/pages/work_history_viewer_page.dart';
 import 'package:extend_crane_services/features/settings/presentation/pages/settings_page.dart';
-import 'package:extend_crane_services/features/home/presentation/pages/operator_stats_page.dart';
 import 'package:flutter/material.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
 import 'package:extend_crane_services/core/themes/app_theme.dart';
 import 'package:extend_crane_services/features/dashboard/presentation/pages/main_dashboard.dart';
 import 'package:extend_crane_services/features/maintenance/presentation/pages/maintenance_history_page.dart';
 import 'package:extend_crane_services/features/reports/presentation/pages/earnings_report_page.dart';
-import '../../../features/dashboard/presentation/pages/viewer_dashboard.dart';
+import '../../../features/reports/presentation/pages/all_work_history_page.dart';
+
 
 class CustomDrawer extends StatelessWidget {
   final String activeRoute;
-  final bool isViewer;
-  const CustomDrawer({super.key, this.activeRoute = 'Dashboard', this.isViewer = false});
+  const CustomDrawer({super.key, this.activeRoute = 'Dashboard'});
 
   @override
   Widget build(BuildContext context) {
@@ -40,27 +34,16 @@ class CustomDrawer extends StatelessWidget {
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  children: isViewer
-                    ? [
-                        _NavItem(icon: Icons.dashboard_outlined, title: 'Dashboard', theme: theme, activeRoute: activeRoute, isViewer: isViewer),
-                        _NavItem(icon: Icons.bar_chart_outlined, title: 'Work Reports', theme: theme, activeRoute: activeRoute, isViewer: isViewer),
-                        _NavItem(icon: Icons.build_circle_outlined, title: 'Maintenance', theme: theme, activeRoute: activeRoute, isViewer: isViewer),
-                        _NavItem(icon: Icons.person_outline, title: 'Profile', theme: theme, activeRoute: activeRoute, isViewer: isViewer),
-                      ]
-                    : [
-                        _NavItem(icon: Icons.dashboard_outlined, title: 'Dashboard', theme: theme, activeRoute: activeRoute, isViewer: isViewer),
-                        _NavItem(icon: Icons.file_copy_outlined, title: 'Generate Quotation', theme: theme, activeRoute: activeRoute, isViewer: isViewer),
-                        _NavItem(icon: Icons.build_circle_outlined, title: 'Maintenance & Expenses', theme: theme, activeRoute: activeRoute, isViewer: isViewer),
-                        _NavItem(icon: Icons.analytics_outlined, title: 'My Analytics', theme: theme, activeRoute: activeRoute, isViewer: isViewer),
-                        _NavItem(icon: Icons.bar_chart_outlined, title: 'Reports & Analytics', theme: theme, activeRoute: activeRoute, isViewer: isViewer),
-                        _NavItem(icon: Icons.person, title: 'Profile', theme: theme, activeRoute: activeRoute, isViewer: isViewer),
+                  children: [
+                        _NavItem(icon: Icons.dashboard_outlined, title: 'Dashboard', theme: theme, activeRoute: activeRoute),
+                        _NavItem(icon: Icons.history_edu_outlined, title: 'Total Work History', theme: theme, activeRoute: activeRoute),
+                        _NavItem(icon: Icons.build_circle_outlined, title: 'Maintenance & Expenses', theme: theme, activeRoute: activeRoute),
+                        _NavItem(icon: Icons.bar_chart_outlined, title: 'Reports & Analytics', theme: theme, activeRoute: activeRoute),
+                        _NavItem(icon: Icons.person, title: 'Profile', theme: theme, activeRoute: activeRoute),
                       ],
                 ),
               ),
 
-              // Bottom Logout
-              const Divider(),
-              DrawerLogoutItem(theme: theme),
             ],
           ),
         ),
@@ -74,14 +57,12 @@ class _NavItem extends StatelessWidget {
   final String title;
   final ThemeData theme;
   final String activeRoute;
-  final bool isViewer;
 
   const _NavItem({
     required this.icon,
     required this.title,
     required this.theme,
     required this.activeRoute,
-    required this.isViewer,
   });
 
   @override
@@ -99,13 +80,10 @@ class _NavItem extends StatelessWidget {
         Widget destination;
         switch (title) {
           case 'Dashboard':
-            destination = isViewer ? const ViewerDashboard() : const MainDashboard();
+            destination = const MainDashboard();
             break;
-          case 'Work Reports':
-            destination = const WorkHistoryViewerPage();
-            break;
-          case 'Maintenance':
-            destination = const MaintenanceLogViewerPage();
+          case 'Total Work History':
+            destination = const AllWorkHistoryPage();
             break;
           case 'Reports & Analytics':
             destination = const EarningsReportPage();
@@ -113,14 +91,8 @@ class _NavItem extends StatelessWidget {
           case 'Maintenance & Expenses':
             destination = const MaintenanceHistoryPage();
             break;
-          case 'Generate Quotation':
-            destination = const AddQuotationPage();
-            break;
           case 'Profile':
-            destination = SettingsPage(isViewer: isViewer);
-            break;
-          case 'My Analytics':
-            destination = const OperatorStatsPage();
+            destination = const SettingsPage();
             break;
           default:
             return;
@@ -151,7 +123,7 @@ class DrawerHeaderWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(10),
       decoration: const BoxDecoration(
         color: Color(0x26FFEB3B),
         border: Border(bottom: BorderSide(color: Color(0x1AFFFFFF))),
@@ -159,18 +131,12 @@ class DrawerHeaderWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-            child: Icon(Icons.architecture, color: theme.colorScheme.primary, size: 32),
-          ),
-          const SizedBox(height: 16),
           Text(
             'Aftab Ur Rehman',
             style: theme.textTheme.displayLarge?.copyWith(color: Colors.white, fontSize: 18),
           ),
           Text(
-            'Admin • Al-Fajr Cranes',
+            'Admin • 0332 3220916',
             style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70, fontSize: 13),
           ),
         ],
@@ -198,7 +164,7 @@ class DrawerNavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: ListTile(
         onTap: onTap,
         leading: Icon(
@@ -221,33 +187,3 @@ class DrawerNavItem extends StatelessWidget {
   }
 }
 
-class DrawerLogoutItem extends StatelessWidget {
-  final ThemeData theme;
-
-  const DrawerLogoutItem({super.key, required this.theme});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: ListTile(
-        onTap: () async {
-          await FirebaseAuth.instance.signOut();
-          if (context.mounted) {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => const AuthWrapper()),
-              (route) => false,
-            );
-          }
-        },
-        leading: const Icon(Icons.logout, color: Colors.redAccent),
-        title: const Text(
-          'Logout',
-          style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-  }
-}

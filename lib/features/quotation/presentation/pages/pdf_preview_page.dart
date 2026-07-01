@@ -9,10 +9,6 @@ import 'package:extend_crane_services/core/utils/responsive.dart';
 import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
 import 'package:extend_crane_services/features/quotation/data/models/quotation_model.dart';
 import 'package:extend_crane_services/features/settings/presentation/providers/business_profile_provider.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:path_provider/path_provider.dart';
-import 'dart:io' show File;
-import 'package:extend_crane_services/core/utils/file_saver.dart' as fs;
 
 class PdfPreviewPage extends ConsumerStatefulWidget {
   final QuotationModel data;
@@ -350,50 +346,7 @@ class _PdfPreviewPageState extends ConsumerState<PdfPreviewPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              PdfActionButton(
-                icon: Icons.download,
-                label: 'Save',
-                theme: theme,
-                onTap: () async {
-                  final messenger = ScaffoldMessenger.of(context);
-                  try {
-                    final pdfBytes = await _generatePdf(PdfPageFormat.a4);
-                    final filename = 'Quotation_${widget.data.clientName.replaceAll(" ", "_")}.pdf';
-                    if (kIsWeb) {
-                      await fs.saveFileWeb(pdfBytes, filename);
-                      if (mounted) {
-                        messenger.showSnackBar(
-                          const SnackBar(
-                            content: Text('Download started successfully!'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                      }
-                    } else {
-                      final directory = await getApplicationDocumentsDirectory();
-                      final file = File('${directory.path}/$filename');
-                      await file.writeAsBytes(pdfBytes);
-                      if (mounted) {
-                        messenger.showSnackBar(
-                          SnackBar(
-                            content: Text('Saved to Documents: ${file.path}'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                      }
-                    }
-                  } catch (e) {
-                    if (mounted) {
-                      messenger.showSnackBar(
-                        SnackBar(
-                          content: Text('Error saving PDF: $e'),
-                          backgroundColor: Colors.redAccent,
-                        ),
-                      );
-                    }
-                  }
-                },
-              ),
+
               PdfActionButton(
                 icon: Icons.share,
                 label: 'Share',

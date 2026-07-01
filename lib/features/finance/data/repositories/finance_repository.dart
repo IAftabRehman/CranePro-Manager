@@ -416,7 +416,8 @@ class FinanceRepository {
 
     final workStream = _firestore
         .collection('work_orders')
-
+        .orderBy('createdAt', descending: true)
+        .limit(5)
         .snapshots();
 
     final expenseStream = _firestore

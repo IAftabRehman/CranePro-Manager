@@ -33,8 +33,6 @@ class QuotationRepository {
         },
       );
 
-      // Fire-and-forget notification creation in the background
-      _sendCreationNotificationsInBackground(quotation);
     } catch (e, stack) {
       FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Failed to create quotation');
       rethrow;
@@ -60,6 +58,7 @@ class QuotationRepository {
         .collection('quotations')
 
         .orderBy('createdAt', descending: true)
+        .limit(100)
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {
@@ -80,6 +79,7 @@ class QuotationRepository {
     return _firestore
         .collection('quotations')
         .orderBy('createdAt', descending: true)
+        .limit(100)
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {
@@ -139,7 +139,6 @@ class QuotationRepository {
       final data = doc.data()!;
       final oldStatus = (data['status'] ?? 'pending').toString().toLowerCase();
       final commission = (data['commission'] as num?)?.toDouble() ?? (data['totalAmount'] as num?)?.toDouble() ?? 0.0;
-      final operatorId = data['operatorId'] ?? '';
 
       await _firestore.collection('quotations').doc(docId).update({
         'status': status,
@@ -157,93 +156,12 @@ class QuotationRepository {
         }, SetOptions(merge: true));
       }
 
-      // Fire-and-forget status update notifications in the background
-      if (oldStatus != newStatus) {
-        _sendUpdateNotificationsInBackground(operatorId, data, newStatus);
-      }
     } catch (e, stack) {
       FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Failed to update quotation status');
       rethrow;
     }
   }
 
-  void _sendCreationNotificationsInBackground(QuotationModel quotation) async {
-    try {
-      String operatorName = "Operator";
-      final opDoc = await _firestore
-          .collection('users')
-          .doc(quotation.operatorId)
-          .get()
-          .timeout(const Duration(seconds: 1));
-      if (opDoc.exists) {
-        operatorName = opDoc.data()?['fullName'] ?? "Operator";
-      }
-
-      final title = "New Quotation Generated";
-      final body = "$operatorName generated a new pending quotation of AED ${quotation.totalAmount} for ${quotation.clientName} at ${quotation.siteLocation}.";
-      final now = DateTime.now();
-
-      await _firestore.collection('notifications').add({
-        'title': title,
-        'body': body,
-        'createdAt': Timestamp.fromDate(now),
-        'targetRole': 'admin',
-        'readBy': [],
-        'dismissedBy': [],
-      });
-
-      await _firestore.collection('notifications').add({
-        'title': title,
-        'body': body,
-        'createdAt': Timestamp.fromDate(now),
-        'targetRole': 'viewer',
-        'readBy': [],
-        'dismissedBy': [],
-      });
-    } catch (e) {
-      FirebaseCrashlytics.instance.log("Failed to write creation notification in background: $e");
-    }
-  }
-
-  void _sendUpdateNotificationsInBackground(String operatorId, Map<String, dynamic> data, String newStatus) async {
-    try {
-      String operatorName = "Operator";
-      final opDoc = await _firestore
-          .collection('users')
-          .doc(operatorId)
-          .get()
-          .timeout(const Duration(seconds: 1));
-      if (opDoc.exists) {
-        operatorName = opDoc.data()?['fullName'] ?? "Operator";
-      }
-
-      final clientName = data['clientName'] ?? 'N/A';
-      final siteLocation = data['siteLocation'] ?? 'N/A';
-      final title = newStatus == 'completed' ? 'Project Completed' : 'Project Status Update';
-      final body = "$operatorName marked the quotation for $clientName at $siteLocation as $newStatus.";
-      final now = DateTime.now();
-
-      await _firestore.collection('notifications').add({
-        'title': title,
-        'body': body,
-        'createdAt': Timestamp.fromDate(now),
-        'targetRole': 'admin',
-        'readBy': [],
-        'dismissedBy': [],
-      });
-
-      await _firestore.collection('notifications').add({
-        'title': title,
-        'body': body,
-        'createdAt': Timestamp.fromDate(now),
-        'targetRole': 'viewer',
-        'readBy': [],
-        'dismissedBy': [],
-      });
-    } catch (e) {
-      FirebaseCrashlytics.instance.log("Failed to write status notification in background: $e");
-    }
-  }
 }
 
 final quotationRepositoryProvider = Provider((ref) => QuotationRepository());

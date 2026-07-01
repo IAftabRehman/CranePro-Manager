@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'pending_tasks_page.dart';
 import 'package:extend_crane_services/features/operations/presentation/widgets/direct_work_modal.dart';
 import '../../../../core/themes/app_theme.dart';
 import '../../../quotation/data/models/quotation_model.dart';
 import 'package:extend_crane_services/features/quotation/presentation/pages/add_quotation_page.dart';
-import 'package:extend_crane_services/features/quotation/presentation/pages/quotation_history_page.dart';
 import 'package:extend_crane_services/features/maintenance/presentation/pages/maintenance_history_page.dart';
 import 'package:extend_crane_services/features/reports/presentation/pages/earnings_report_page.dart';
-import 'package:extend_crane_services/features/notifications/presentation/pages/notification_screen.dart';
+import 'package:extend_crane_services/features/reports/presentation/pages/all_work_history_page.dart';
 import 'package:extend_crane_services/features/settings/presentation/pages/settings_page.dart';
 import 'package:extend_crane_services/core/presentation/widgets/custom_drawer.dart';
 import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
@@ -16,15 +14,8 @@ import 'package:intl/intl.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../features/finance/data/repositories/finance_repository.dart';
 import '../../../../features/quotation/data/repositories/quotation_repository.dart';
-import '../../../notifications/presentation/providers/notification_providers.dart'
-    as np;
-import '../../../notifications/data/models/pending_item.dart';
-import '../../../../core/services/local_notification_service.dart';
-
 class MainDashboard extends ConsumerStatefulWidget {
-  final bool isViewer;
-
-  const MainDashboard({super.key, this.isViewer = false});
+  const MainDashboard({super.key});
 
   @override
   ConsumerState<MainDashboard> createState() => _MainDashboardState();
@@ -33,7 +24,6 @@ class MainDashboard extends ConsumerStatefulWidget {
 class _MainDashboardState extends ConsumerState<MainDashboard>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final AnimationController _pulseController;
-  List<PendingItem> _currentPendingItems = [];
   bool _hasShownPendingAlert = false;
 
   @override
@@ -51,76 +41,7 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      _checkAndShowPendingPopup();
-    }
-  }
-
-  void _checkAndShowPendingPopup() {
-    if (_currentPendingItems.isNotEmpty) {
-      final item = _currentPendingItems.first;
-      showDialog(
-        context: context,
-        barrierDismissible: true,
-        builder: (context) => AlertDialog(
-          backgroundColor: const Color(0xFF1A1A2E),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: Colors.amberAccent, width: 2),
-          ),
-          title: const Text(
-            'Pending Task Resume',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Client: ${item.clientName}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                'Location: ${item.location}',
-                style: const TextStyle(color: Colors.white70),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Amount: AED ${item.totalPrice.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  color: Colors.greenAccent,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text(
-                'LATER',
-                style: TextStyle(color: Colors.white30),
-              ),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.amber),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text(
-                'ACCEPT / PROCESS',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
+      // Logic removed
     }
   }
 
@@ -279,7 +200,7 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
     final useSidebar = screenWidth > 900;
 
     // TASK 2: High-reliability listener for forced modals
-    if (!widget.isViewer) {
+    if (true) {
       ref.listen<AsyncValue<QuotationModel?>>(
         firstPendingQuotationProvider(userId),
         (previous, next) {
@@ -296,162 +217,77 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
         },
       );
 
-      // Task: Move notifications to listener to improve performance
-      ref.listen<AsyncValue<List<PendingItem>>>(
-        np.pendingWorkProvider(userId),
-        (previous, next) {
-          next.whenData((items) {
-            if (items.isNotEmpty) {
-              LocalNotificationService.scheduleMidnightCheck(
-                items.first.clientName,
-              );
-              if (DateTime.now().hour >= 0 && DateTime.now().hour < 6) {
-                LocalNotificationService.showHighPriorityAlert(
-                  items.first.clientName,
-                );
-              }
-            }
-          });
-        },
-      );
     }
 
     return PremiumScaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       drawer: useSidebar
           ? null
-          : CustomDrawer(activeRoute: 'Dashboard', isViewer: widget.isViewer),
-      floatingActionButton: widget.isViewer
-          ? null
-          : const _DashboardFabRow(),
-      body: Consumer(
-              builder: (context, ref, child) {
-                final pendingAsync = widget.isViewer
-                    ? const AsyncData<List<PendingItem>>([])
-                    : ref.watch(np.pendingWorkProvider(userId));
-                return pendingAsync.when(
-                  data: (pendingItems) {
-                    _currentPendingItems = pendingItems;
-                    final hasPending = !widget.isViewer && pendingItems.isNotEmpty;
-
-                    return SafeArea(
-                      child: Stack(
-                        children: [
-                          Container(
-                            width: double.infinity,
-                            height: double.infinity,
-                            decoration: const BoxDecoration(
-                              gradient: AppTheme.lavenderBlueGradient,
-                            ),
+          : const CustomDrawer(activeRoute: 'Dashboard'),
+      floatingActionButton: const _DashboardFabRow(),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Container(
+              width: double.infinity,
+              height: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: AppTheme.lavenderBlueGradient,
+              ),
+            ),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isTablet = constraints.maxWidth > 600;
+                return Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1200),
+                    child: CustomScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      slivers: [
+                        DashboardAppBar(theme: theme, name: userName),
+                        StatsGridSection(userId: userId, isTablet: isTablet),
+                        SliverPadding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 15,
+                            vertical: 0,
                           ),
-                          if (hasPending)
-                            _PendingWarningBanner(pendingItem: pendingItems.first),
-                          Padding(
-                            padding: EdgeInsets.only(top: hasPending ? 50 : 0),
-                            child: LayoutBuilder(
-                              builder: (context, constraints) {
-                                final isTablet = constraints.maxWidth > 600;
-                                return Center(
-                                  child: ConstrainedBox(
-                                    constraints: const BoxConstraints(maxWidth: 1200),
-                                    child: CustomScrollView(
-                                      physics: const BouncingScrollPhysics(),
-                                      slivers: [
-                                        DashboardAppBar(theme: theme, name: userName),
-                                        // Component Extraction & Riverpod Optimization:
-                                        // Extracted StatsGridSection watches its own provider, preventing rebuilds of the entire screen when stats update
-                                        StatsGridSection(userId: userId, isTablet: isTablet),
-                                        SliverPadding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 24,
-                                            vertical: 0,
-                                          ),
-                                          sliver: SliverList(
-                                            delegate: SliverChildListDelegate([
-                                              if (hasPending)
-                                                Padding(
-                                                  padding: const EdgeInsets.symmetric(vertical: 8),
-                                                  child: FadeTransition(
-                                                    opacity: Tween<double>(
-                                                      begin: 0.6,
-                                                      end: 1.0,
-                                                    ).animate(_pulseController),
-                                                    child: FloatingActionButton.extended(
-                                                      onPressed: () {
-                                                        Navigator.push(
-                                                          context,
-                                                          MaterialPageRoute(
-                                                            builder: (context) =>
-                                                                const PendingTasksPage(),
-                                                          ),
-                                                        );
-                                                      },
-                                                      backgroundColor: Colors.redAccent,
-                                                      icon: const Icon(
-                                                        Icons.assignment_late,
-                                                        color: Colors.white,
-                                                      ),
-                                                      label: Text(
-                                                        '${pendingItems.length} PENDING',
-                                                        style: const TextStyle(
-                                                          fontWeight: FontWeight.bold,
-                                                          color: Colors.white,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              const SizedBox(height: 10),
-                                              const Text(
-                                                'Recent Activity',
-                                                style: TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w800,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 16),
-                                              // Component Extraction & List Optimization:
-                                              // Extracted RecentActivitySection watches its own provider and uses a ListView.builder for performance
-                                              RecentActivitySection(userId: userId),
-                                            ]),
-                                          ),
-                                        ),
-                                        const SliverToBoxAdapter(
-                                          child: SizedBox(height: 100),
-                                        ),
-                                      ],
+                          sliver: SliverList(
+                            delegate: SliverChildListDelegate([
+                              const SizedBox(height: 10),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Recent Activity',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white,
                                     ),
                                   ),
-                                );
-                              },
-                            ),
+                                  TextButton(onPressed: () {
+                                    Navigator.push(context, MaterialPageRoute(builder: (context) => AllWorkHistoryPage()));
+                                  }, child: const Text("View All", style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold, decoration: TextDecoration.underline, decorationColor: Colors.white)),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              RecentActivitySection(userId: userId),
+                            ])
                           ),
-                        ],
-                      ),
-                    );
-                  },
-                  loading: () => const RepaintBoundary(
-                    child: Center(
-                      child: CircularProgressIndicator(color: Colors.white),
+                        ),
+                        const SliverToBoxAdapter(
+                          child: SizedBox(height: 100),
+                        ),
+                      ],
                     ),
                   ),
-                  error: (err, stack) {
-                    debugPrint('Firestore Pending Stream Error: $err');
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Text(
-                          'Error loading pending work: $err',
-                          style: const TextStyle(color: Colors.white, fontSize: 12),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    );
-                  },
                 );
               },
             ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -483,16 +319,7 @@ class DashboardAppBar extends StatelessWidget {
         ),
       ),
       actions: [
-        IconButton(
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const NotificationScreen()),
-          ),
-          icon: const Icon(
-            Icons.notifications_active_outlined,
-            color: Colors.white,
-          ),
-        ),
+
         IconButton(
           onPressed: () => Navigator.push(
             context,
@@ -559,98 +386,6 @@ class _DashboardFabRow extends StatelessWidget {
   }
 }
 
-// Standalone Pending Warning Banner to prevent unnecessary builds
-class _PendingWarningBanner extends StatelessWidget {
-  final PendingItem pendingItem;
-
-  const _PendingWarningBanner({required this.pendingItem});
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      top: 0,
-      left: 0,
-      right: 0,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 10,
-        ),
-        decoration: const BoxDecoration(
-          color: Color(0xE6F44336),
-          boxShadow: [
-            BoxShadow(color: Colors.black45, blurRadius: 10),
-          ],
-        ),
-        child: SafeArea(
-          bottom: false,
-          child: Row(
-            children: [
-              const Icon(
-                Icons.warning_amber_rounded,
-                color: Colors.white,
-                size: 22,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '⚠️ PENDING: ${pendingItem.clientName} @ ${pendingItem.location} (${pendingItem.type.toUpperCase()})',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 11,
-                      ),
-                    ),
-                    Text(
-                      'Amount: AED ${pendingItem.totalPrice.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const PendingTasksPage(),
-                    ),
-                  );
-                },
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.black26,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'MANAGE',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 // Extracted Stats Grid Section (ConsumerWidget)
 class StatsGridSection extends ConsumerWidget {
@@ -717,18 +452,18 @@ class StatsGrid extends StatelessWidget {
         ),
         delegate: SliverChildListDelegate([
           SummaryCard(
-            title: 'Total Quotes',
+            title: 'Total Work',
             value: '${stats.totalQuotes}',
-            icon: Icons.request_quote,
+            icon: Icons.history,
             color: Colors.blue,
-            destination: const QuotationHistoryPage(),
+            destination: const AllWorkHistoryPage(),
           ),
           SummaryCard(
             title: 'Pending Jobs',
             value: '${stats.pendingJob}',
             icon: Icons.engineering,
             color: Colors.orange,
-            destination: const PendingTasksPage(),
+            destination: const AllWorkHistoryPage(), // Fallback destination
           ),
           SummaryCard(
             title: 'Maintenance',

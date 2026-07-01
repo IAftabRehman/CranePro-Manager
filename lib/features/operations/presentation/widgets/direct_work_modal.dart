@@ -20,8 +20,7 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
   final _earningsController = TextEditingController();
   final _expenseController = TextEditingController(); // Fuel or Partner Payment
   
-  bool _isOwnCrane = true; // Mode selection
-  double _commission = 0.0;
+  double _netEarnings = 0.0;
   bool _isSaving = false;
 
   @override
@@ -33,8 +32,7 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
       _locationController.text = data.siteLocation;
       _earningsController.text = data.totalPrice.toString();
       _expenseController.text = data.expenseAmount > 0 ? data.expenseAmount.toString() : '';
-      // Assume "Own Crane" by default for edited tasks unless we have specific expense data.
-      _isOwnCrane = true;
+
     }
     // Logic for real-time commission calculation
     _earningsController.addListener(_calculateCommission);
@@ -42,13 +40,11 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
   }
 
   void _calculateCommission() {
-    if (!_isOwnCrane) {
-      final total = double.tryParse(_earningsController.text) ?? 0.0;
-      final paid = double.tryParse(_expenseController.text) ?? 0.0;
-      setState(() {
-        _commission = (total - paid).clamp(0, double.infinity);
-      });
-    }
+    final total = double.tryParse(_earningsController.text) ?? 0.0;
+    final paid = double.tryParse(_expenseController.text) ?? 0.0;
+    setState(() {
+      _netEarnings = (total - paid).clamp(0, double.infinity);
+    });
   }
 
   @override
@@ -149,31 +145,11 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
               ),
             ),
             const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: DirectModeToggle(
-                    text: 'Own Crane',
-                    icon: Icons.engineering, 
-                    isActive: _isOwnCrane, 
-                    onTap: () => setState(() => _isOwnCrane = true)
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DirectModeToggle(
-                    text: 'Another Person',
-                    icon: Icons.handshake_outlined, 
-                    isActive: !_isOwnCrane, 
-                    onTap: () => setState(() {
-                      _isOwnCrane = false;
-                      _calculateCommission();
-                    })
-                  ),
-                ),
-              ],
+            const Text(
+              'Without Quotation Work',
+              style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 18),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 20),
             
             const DirectInputLabel(text: 'Client Name (Optional)'),
             CraneInput(
@@ -223,7 +199,7 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      DirectInputLabel(text: _isOwnCrane ? 'Fuel Expense (AED)' : 'Paid To Partner (AED)'),
+                      const DirectInputLabel(text: 'Expense / Commission (AED)'),
                       CraneInput(
                         controller: _expenseController,
                         hintText: '0',
@@ -239,24 +215,22 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
               ],
             ),
 
-            if (!_isOwnCrane) ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0x1A4CAF50),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0x1A4CAF50)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('My Commission:', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 12)),
-                    Text('AED ${_commission.toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 15)),
-                  ],
-                ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0x1A4CAF50),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0x1A4CAF50)),
               ),
-            ],
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Net Earnings / Commission:', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 12)),
+                  Text('AED ${_netEarnings.toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 15)),
+                ],
+              ),
+            ),
             
             const SizedBox(height: 20),
             
@@ -281,49 +255,6 @@ class _DirectWorkModalState extends ConsumerState<DirectWorkModal> {
   }
 }
 
-class DirectModeToggle extends StatelessWidget {
-  final String text;
-  final IconData icon;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const DirectModeToggle({
-    super.key,
-    required this.text,
-    required this.icon,
-    required this.isActive,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: isActive ? const Color(0x33FFC107) : const Color(0x0DFFFFFF),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: isActive ? Colors.amber : Colors.white12),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: isActive ? Colors.amber : Colors.white38, size: 24),
-            const SizedBox(height: 4),
-            Text(
-              text,
-              style: TextStyle(
-                color: isActive ? Colors.white : Colors.white38,
-                fontSize: 12,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class DirectInputLabel extends StatelessWidget {
   final String text;

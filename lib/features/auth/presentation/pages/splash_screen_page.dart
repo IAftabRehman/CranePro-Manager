@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:extend_crane_services/core/themes/app_theme.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
-import '../widgets/auth_wrapper.dart';
+import '../../../dashboard/presentation/pages/main_dashboard.dart';
 
 class SplashScreenPage extends StatefulWidget {
   const SplashScreenPage({super.key});
@@ -22,7 +22,7 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => const AuthWrapper(),
+            builder: (context) => const MainDashboard(),
           ),
         );
       }

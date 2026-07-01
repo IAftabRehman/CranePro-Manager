@@ -53,6 +53,7 @@ class WorkRepository {
     return _firestore
         .collection('work_orders')
         .orderBy('createdAt', descending: true)
+        .limit(100)
         .snapshots()
         .map((snapshot) {
           return snapshot.docs
