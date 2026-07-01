@@ -19,7 +19,7 @@ class WorkRepository {
   Stream<List<QuotationModel>> getOperatorWork(String uid) {
     return _firestore
         .collection(_collection)
-        .where('operatorId', isEqualTo: uid)
+
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {

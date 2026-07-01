@@ -77,7 +77,7 @@ class NotificationRepository {
     // 1. Quotations Stream
     final quotationStream = _firestore
         .collection('quotations')
-        .where('operatorId', isEqualTo: uid)
+
         .where('status', isEqualTo: 'pending')
         .snapshots()
         .map((snapshot) {
@@ -101,7 +101,7 @@ class NotificationRepository {
     // 2. Work Orders Stream
     final workOrderStream = _firestore
         .collection('work_orders')
-        .where('operatorId', isEqualTo: uid)
+
         .where('status', isEqualTo: 'pending_approval')
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) {

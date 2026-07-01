@@ -273,7 +273,7 @@ class FinanceRepository {
   Stream<List<ExpenseModel>> getMyExpenses(String uid) {
     return _firestore
         .collection('expenses')
-        .where('operatorId', isEqualTo: uid)
+
         .orderBy('date', descending: true)
         .snapshots()
         .map(
@@ -312,17 +312,17 @@ class FinanceRepository {
   Stream<OperatorStats> getOperatorStatsStream(String uid) {
     final revenueStream = _firestore
         .collection('quotations')
-        .where('operatorId', isEqualTo: uid)
+
         .snapshots();
 
     final workStream = _firestore
         .collection('work_orders')
-        .where('operatorId', isEqualTo: uid)
+
         .snapshots();
 
     final expenseStream = _firestore
         .collection('expenses')
-        .where('operatorId', isEqualTo: uid)
+
         .snapshots();
 
     return Rx.combineLatest3<
@@ -409,19 +409,19 @@ class FinanceRepository {
   Stream<List<dynamic>> getOperatorRecentActivity(String uid) {
     final quotationStream = _firestore
         .collection('quotations')
-        .where('operatorId', isEqualTo: uid)
+
         .orderBy('createdAt', descending: true)
         .limit(5)
         .snapshots();
 
     final workStream = _firestore
         .collection('work_orders')
-        .where('operatorId', isEqualTo: uid)
+
         .snapshots();
 
     final expenseStream = _firestore
         .collection('expenses')
-        .where('operatorId', isEqualTo: uid)
+
         .orderBy('date', descending: true)
         .limit(5)
         .snapshots();
@@ -521,7 +521,7 @@ class FinanceRepository {
   Stream<List<ExpenseModel>> getOperatorExpensesStream(String uid) {
     return _firestore
         .collection('expenses')
-        .where('operatorId', isEqualTo: uid)
+
         .orderBy('date', descending: true)
         .snapshots()
         .map(
@@ -554,7 +554,7 @@ class FinanceRepository {
   ) {
     final quoteStream = _firestore
         .collection('quotations')
-        .where('operatorId', isEqualTo: uid)
+
         .where('status', isEqualTo: 'completed')
         .where('updatedAt', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
         .where('updatedAt', isLessThanOrEqualTo: Timestamp.fromDate(end))
@@ -562,12 +562,12 @@ class FinanceRepository {
 
     final workStream = _firestore
         .collection('work_orders')
-        .where('operatorId', isEqualTo: uid)
+
         .snapshots();
 
     final expenseStream = _firestore
         .collection('expenses')
-        .where('operatorId', isEqualTo: uid)
+
         .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
         .where('date', isLessThanOrEqualTo: Timestamp.fromDate(end))
         .snapshots();

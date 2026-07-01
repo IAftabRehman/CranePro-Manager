@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
 import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:extend_crane_services/features/auth/presentation/controllers/login_notifier.dart';
 import 'package:extend_crane_services/features/finance/data/repositories/finance_repository.dart';
 
 class EarningsReportPage extends ConsumerStatefulWidget {
@@ -49,8 +48,8 @@ class _EarningsReportPageState extends ConsumerState<EarningsReportPage> {
   Widget build(BuildContext context) {
     final isTablet = Responsive.isTablet(context);
     final screenWidth = Responsive.screenWidth(context);
-    // Riverpod select optimization: Listen to only user ID to prevent page rebuilds on user profile updates
-    final userId = ref.watch(currentUserProvider.select((userAsync) => userAsync.asData?.value?.id));
+    // No Firebase Auth — fetch all records (single-operator private app)
+    const String userId = '';
 
     return PremiumScaffold(
       appBar: AppBar(
@@ -63,11 +62,7 @@ class _EarningsReportPageState extends ConsumerState<EarningsReportPage> {
         elevation: 0,
       ),
       body: SafeArea(
-        child: userId == null
-            ? const RepaintBoundary(
-                child: Center(child: CircularProgressIndicator(color: Colors.amber)),
-              )
-            : Consumer(
+          child: Consumer(
                 builder: (context, ref, child) {
                   final reportAsync = ref.watch(
                     operatorDetailedReportProvider((uid: userId, start: _fromDate, end: _toDate)),

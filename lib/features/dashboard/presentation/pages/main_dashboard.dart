@@ -16,7 +16,6 @@ import 'package:intl/intl.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../features/finance/data/repositories/finance_repository.dart';
 import '../../../../features/quotation/data/repositories/quotation_repository.dart';
-import '../../../auth/presentation/controllers/login_notifier.dart';
 import '../../../notifications/presentation/providers/notification_providers.dart'
     as np;
 import '../../../notifications/data/models/pending_item.dart';
@@ -272,15 +271,15 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Optimization: Listen to only the user ID to reduce unnecessary rebuilding
-    final userId = ref.watch(currentUserProvider.select((userAsync) => userAsync.asData?.value?.id));
-    final userName = ref.watch(currentUserProvider.select((userAsync) => userAsync.asData?.value?.fullName));
+    // No Firebase Auth — dashboard always renders for the selected role
+    final String userId = '';
+    final String? userName = null;
     
     final screenWidth = MediaQuery.of(context).size.width;
     final useSidebar = screenWidth > 900;
 
     // TASK 2: High-reliability listener for forced modals
-    if (userId != null && !widget.isViewer) {
+    if (!widget.isViewer) {
       ref.listen<AsyncValue<QuotationModel?>>(
         firstPendingQuotationProvider(userId),
         (previous, next) {
@@ -322,26 +321,14 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
       drawer: useSidebar
           ? null
           : CustomDrawer(activeRoute: 'Dashboard', isViewer: widget.isViewer),
-      floatingActionButton: widget.isViewer 
-          ? null 
-          : Consumer(
+      floatingActionButton: widget.isViewer
+          ? null
+          : const _DashboardFabRow(),
+      body: Consumer(
               builder: (context, ref, child) {
-                final userAsync = ref.watch(currentUserProvider);
-                return userAsync.when(
-                  data: (user) {
-                    if (user == null) return const SizedBox.shrink();
-                    return const _DashboardFabRow();
-                  },
-                  loading: () => const SizedBox.shrink(),
-                  error: (err, stack) => const SizedBox.shrink(),
-                );
-              },
-            ),
-      body: userId == null
-          ? const RepaintBoundary(child: Center(child: CircularProgressIndicator(color: Colors.amber)))
-          : Consumer(
-              builder: (context, ref, child) {
-                final pendingAsync = ref.watch(np.pendingWorkProvider(userId));
+                final pendingAsync = widget.isViewer
+                    ? const AsyncData<List<PendingItem>>([])
+                    : ref.watch(np.pendingWorkProvider(userId));
                 return pendingAsync.when(
                   data: (pendingItems) {
                     _currentPendingItems = pendingItems;

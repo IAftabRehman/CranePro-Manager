@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:extend_crane_services/shared/global_widgets/premium_background.dart';
 import 'package:timeago/timeago.dart' as timeago;
-import '../../../auth/presentation/controllers/login_notifier.dart';
 import '../providers/notification_providers.dart';
 import '../../data/models/notification_model.dart';
 
@@ -16,9 +15,9 @@ class NotificationScreen extends ConsumerStatefulWidget {
 class _NotificationScreenState extends ConsumerState<NotificationScreen> {
   @override
   Widget build(BuildContext context) {
-    // Only watch the user ID and user role to prevent screen rebuilds on other profile field changes
-    final userId = ref.watch(currentUserProvider.select((userAsync) => userAsync.asData?.value?.id));
-    final userRole = ref.watch(currentUserProvider.select((userAsync) => userAsync.asData?.value?.role));
+    // No Firebase Auth — show all notifications for operator role
+    const String userId = '';
+    const String userRole = 'operator';
 
     return PremiumScaffold(
       appBar: AppBar(
@@ -34,13 +33,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: userId == null || userRole == null
-          ? const Center(
-              child: RepaintBoundary(
-                child: CircularProgressIndicator(color: Colors.amber),
-              ),
-            )
-          : Consumer(
+      body: Consumer(
               builder: (context, ref, child) {
                 final notificationsAsync = ref.watch(
                   notificationsStreamProvider((userId, userRole)),

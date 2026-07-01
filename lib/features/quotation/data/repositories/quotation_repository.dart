@@ -58,7 +58,7 @@ class QuotationRepository {
   Stream<List<QuotationModel>> getOperatorQuotations(String uid) {
     return _firestore
         .collection('quotations')
-        .where('operatorId', isEqualTo: uid)
+
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
@@ -116,7 +116,7 @@ class QuotationRepository {
   Stream<QuotationModel?> watchFirstPendingQuotation(String uid) {
     return _firestore
         .collection('quotations')
-        .where('operatorId', isEqualTo: uid)
+
         .where('status', isEqualTo: 'pending')
         .snapshots()
         .map((snapshot) {

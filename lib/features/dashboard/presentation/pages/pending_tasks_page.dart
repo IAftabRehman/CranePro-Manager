@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/themes/app_theme.dart';
-import '../../../auth/presentation/controllers/login_notifier.dart';
 import '../../../notifications/data/models/pending_item.dart';
 import '../../../notifications/presentation/providers/notification_providers.dart';
 import '../../../quotation/data/repositories/quotation_repository.dart';
@@ -17,22 +16,8 @@ class PendingTasksPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Level 1 (Riverpod Precision): Watch only the user ID to prevent page
-    // rebuilds triggered by other user profile field changes.
-    final userId = ref.watch(
-      currentUserProvider.select((u) => u.asData?.value?.id),
-    );
-
-    if (userId == null) {
-      return Scaffold(
-        body: Container(
-          decoration: const BoxDecoration(gradient: AppTheme.lavenderBlueGradient),
-          child: const RepaintBoundary(
-            child: Center(child: CircularProgressIndicator(color: Colors.amber)),
-          ),
-        ),
-      );
-    }
+    // No Firebase Auth — fetch all pending tasks (single-operator private app)
+    const String userId = '';
 
     final pendingTasksAsync = ref.watch(pendingWorkProvider(userId));
 

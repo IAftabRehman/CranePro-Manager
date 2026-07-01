@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/themes/app_theme.dart';
-import '../../../auth/presentation/controllers/login_notifier.dart';
 import '../../data/models/quotation_model.dart';
 import '../../data/repositories/quotation_repository.dart';
 import 'quotation_detail_page.dart';
@@ -12,11 +11,8 @@ class QuotationHistoryPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Level 1 (Riverpod Precision): Watch only userId to avoid rebuilding the
-    // entire page when other user profile fields change.
-    final userId = ref.watch(
-      currentUserProvider.select((u) => u.asData?.value?.id),
-    );
+    // No Firebase Auth — fetch all quotations (single-operator private app)
+    const String? userId = null;
 
     return Scaffold(
       body: SafeArea(

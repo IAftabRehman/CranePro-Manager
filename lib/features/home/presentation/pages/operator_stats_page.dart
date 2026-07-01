@@ -6,17 +6,16 @@ import 'package:printing/printing.dart';
 import '../../../../core/themes/app_theme.dart';
 import '../../../../core/services/pdf_service.dart';
 import '../../../../shared/global_widgets/premium_background.dart';
-import '../../../auth/presentation/controllers/login_notifier.dart';
-import '../../../../features/finance/data/repositories/finance_repository.dart';
+import 'package:extend_crane_services/features/finance/data/repositories/finance_repository.dart';
 
 class OperatorStatsPage extends ConsumerWidget {
   const OperatorStatsPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Only watch the user ID to prevent rebuilds on other user profile updates
-    final userId = ref.watch(currentUserProvider.select((userAsync) => userAsync.asData?.value?.id));
-    final user = ref.watch(currentUserProvider.select((userAsync) => userAsync.asData?.value));
+    // No Firebase Auth — fetch all records (single-operator private app)
+    const String userId = '';
+    const user = null;
 
     return PremiumScaffold(
       appBar: AppBar(
@@ -32,9 +31,7 @@ class OperatorStatsPage extends ConsumerWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: userId == null
-          ? const Center(child: CircularProgressIndicator(color: Colors.amber))
-          : SingleChildScrollView(
+      body: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.all(20),
               child: Column(
