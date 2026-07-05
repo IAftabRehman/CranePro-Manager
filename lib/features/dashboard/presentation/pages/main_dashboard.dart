@@ -14,6 +14,8 @@ import 'package:intl/intl.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../features/finance/data/repositories/finance_repository.dart';
 import '../../../../features/quotation/data/repositories/quotation_repository.dart';
+import '../../../../features/work_order/data/repositories/work_repository.dart';
+
 class MainDashboard extends ConsumerStatefulWidget {
   const MainDashboard({super.key});
 
@@ -24,7 +26,7 @@ class MainDashboard extends ConsumerStatefulWidget {
 class _MainDashboardState extends ConsumerState<MainDashboard>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final AnimationController _pulseController;
-  bool _hasShownPendingAlert = false;
+  String? _lastShownQuotationId; // Removed to stop tracking popups
 
   @override
   void initState() {
@@ -45,143 +47,6 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
     }
   }
 
-  void _showForcedResolutionDialog(QuotationModel quotation) {
-    debugPrint(
-      'DEBUG: Calling _showForcedResolutionDialog for quote ID: ${quotation.id}',
-    );
-    showDialog(
-      context: context,
-      barrierDismissible: false, // Force User Action
-      builder: (context) => PopScope(
-        canPop: false, // Disable back button
-        child: AlertDialog(
-          backgroundColor: const Color(0xFF1A1A2E),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-            side: const BorderSide(color: Colors.redAccent, width: 2),
-          ),
-          title: const Text(
-            'Action Required',
-            style: TextStyle(
-              color: Colors.redAccent,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'You must resolve your oldest pending quotation before proceeding:',
-                style: TextStyle(color: Colors.white70, fontSize: 13),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Client: ${quotation.clientName}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                'Location: ${quotation.siteLocation}',
-                style: const TextStyle(color: Colors.blueAccent),
-              ),
-              Text(
-                'Amount: AED ${quotation.totalAmount}',
-                style: const TextStyle(
-                  color: Colors.greenAccent,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              childAspectRatio: 2.2, // Perfect rectangle ratio text visibility ke liye
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              children: [
-                // Button 1: Pending
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange.shade700,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    padding: const EdgeInsets.symmetric(horizontal: 4), // Text ko side margins se bachaega
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text(
-                    'Pending',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: 0.5),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-
-                // Button 2: Cancel
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red.shade700,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                  ),
-                  onPressed: () async {
-                    await ref.read(quotationRepositoryProvider).updateQuotationStatus(quotation.id, 'cancelled');
-                    if (context.mounted) Navigator.pop(context);
-                  },
-                  child: const Text(
-                    'Cancel',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: 0.5),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-
-                // Button 3: Completed
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green.shade700,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                  ),
-                  onPressed: () async {
-                    await ref.read(quotationRepositoryProvider).updateQuotationStatus(quotation.id, 'completed');
-                    if (context.mounted) Navigator.pop(context);
-                  },
-                  child: const Text(
-                    'Completed',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: 0.5),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-
-                // Button 4: Back to Screen
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueGrey.shade600,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text(
-                    'Back to Screen',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: 0.2), // Chota size taake word break na ho
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
@@ -195,35 +60,15 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
     // No Firebase Auth — dashboard always renders for the selected role
     final String userId = '';
     final String? userName = null;
-    
+
     final screenWidth = MediaQuery.of(context).size.width;
     final useSidebar = screenWidth > 900;
 
-    // TASK 2: High-reliability listener for forced modals
-    if (true) {
-      ref.listen<AsyncValue<QuotationModel?>>(
-        firstPendingQuotationProvider(userId),
-        (previous, next) {
-          if (!_hasShownPendingAlert) {
-            next.whenData((quotation) {
-              if (quotation != null) {
-                _hasShownPendingAlert = true;
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _showForcedResolutionDialog(quotation);
-                });
-              }
-            });
-          }
-        },
-      );
-
-    }
+    // The pulsing banner will continue to function automatically.
 
     return PremiumScaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      drawer: useSidebar
-          ? null
-          : const CustomDrawer(activeRoute: 'Dashboard'),
+      drawer: useSidebar ? null : const CustomDrawer(activeRoute: 'Dashboard'),
       floatingActionButton: const _DashboardFabRow(),
       body: SafeArea(
         child: Stack(
@@ -245,6 +90,7 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
                       physics: const BouncingScrollPhysics(),
                       slivers: [
                         DashboardAppBar(theme: theme, name: userName),
+                        _PendingJobBanner(userId: userId, animation: _pulseController),
                         StatsGridSection(userId: userId, isTablet: isTablet),
                         SliverPadding(
                           padding: const EdgeInsets.symmetric(
@@ -255,7 +101,8 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
                             delegate: SliverChildListDelegate([
                               const SizedBox(height: 10),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   const Text(
                                     'Recent Activity',
@@ -265,20 +112,35 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
                                       color: Colors.white,
                                     ),
                                   ),
-                                  TextButton(onPressed: () {
-                                    Navigator.push(context, MaterialPageRoute(builder: (context) => AllWorkHistoryPage()));
-                                  }, child: const Text("View All", style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold, decoration: TextDecoration.underline, decorationColor: Colors.white)),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              AllWorkHistoryPage(),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text(
+                                      "View All",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        decoration: TextDecoration.underline,
+                                        decorationColor: Colors.white,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
                               const SizedBox(height: 10),
                               RecentActivitySection(userId: userId),
-                            ])
+                            ]),
                           ),
                         ),
-                        const SliverToBoxAdapter(
-                          child: SizedBox(height: 100),
-                        ),
+                        const SliverToBoxAdapter(child: SizedBox(height: 100)),
                       ],
                     ),
                   ),
@@ -290,18 +152,13 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
       ),
     );
   }
-
 }
 
 class DashboardAppBar extends StatelessWidget {
   final ThemeData theme;
   final String? name;
 
-  const DashboardAppBar({
-    super.key,
-    required this.theme,
-    this.name,
-  });
+  const DashboardAppBar({super.key, required this.theme, this.name});
 
   @override
   Widget build(BuildContext context) {
@@ -311,7 +168,7 @@ class DashboardAppBar extends StatelessWidget {
       backgroundColor: Colors.transparent,
       elevation: 0,
       title: Text(
-        'Welcome ${name ?? 'Operator'} 👋',
+        'Welcome',
         style: theme.textTheme.titleMedium?.copyWith(
           color: Colors.white,
           fontWeight: FontWeight.bold,
@@ -319,7 +176,6 @@ class DashboardAppBar extends StatelessWidget {
         ),
       ),
       actions: [
-
         IconButton(
           onPressed: () => Navigator.push(
             context,
@@ -386,7 +242,6 @@ class _DashboardFabRow extends StatelessWidget {
   }
 }
 
-
 // Extracted Stats Grid Section (ConsumerWidget)
 class StatsGridSection extends ConsumerWidget {
   final String userId;
@@ -433,11 +288,7 @@ class StatsGrid extends StatelessWidget {
   final OperatorStats stats;
   final bool isTablet;
 
-  const StatsGrid({
-    super.key,
-    required this.stats,
-    required this.isTablet,
-  });
+  const StatsGrid({super.key, required this.stats, required this.isTablet});
 
   @override
   Widget build(BuildContext context) {
@@ -463,7 +314,7 @@ class StatsGrid extends StatelessWidget {
             value: '${stats.pendingJob}',
             icon: Icons.engineering,
             color: Colors.orange,
-            destination: const AllWorkHistoryPage(), // Fallback destination
+            destination: const AllWorkHistoryPage(isPendingScreen: true),
           ),
           SummaryCard(
             title: 'Maintenance',
@@ -511,9 +362,9 @@ class SummaryCard extends StatelessWidget {
       child: InkWell(
         onTap: destination != null
             ? () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => destination!),
-                )
+                context,
+                MaterialPageRoute(builder: (_) => destination!),
+              )
             : null,
         borderRadius: BorderRadius.circular(16),
         child: AspectRatio(
@@ -576,10 +427,7 @@ class SummaryCard extends StatelessWidget {
 class RecentActivitySection extends ConsumerWidget {
   final String userId;
 
-  const RecentActivitySection({
-    super.key,
-    required this.userId,
-  });
+  const RecentActivitySection({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -682,6 +530,67 @@ class LiveActivityTile extends StatelessWidget {
             fontWeight: FontWeight.w900,
             fontSize: 14,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PendingJobBanner extends ConsumerWidget {
+  final String userId;
+  final Animation<double> animation;
+
+  const _PendingJobBanner({required this.userId, required this.animation});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pendingTask = ref.watch(firstPendingTaskProvider);
+
+    if (pendingTask == null) return const SliverToBoxAdapter(child: SizedBox.shrink());
+
+    final locationText = pendingTask.siteLocation.isNotEmpty ? pendingTask.siteLocation : 'SYSTEM';
+
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: AnimatedBuilder(
+          animation: animation,
+          builder: (context, child) {
+            // Opacity from 0.5 to 1.0 for the pulsing effect
+            final opacity = 0.5 + (0.5 * animation.value);
+            return Opacity(
+              opacity: opacity,
+              child: InkWell(
+                onTap: () {
+                   Navigator.push(context, MaterialPageRoute(builder: (context) => const AllWorkHistoryPage(isPendingScreen: true)));
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD84315), // Deep Orange/Red
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.flash_on, color: Colors.white),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          '${locationText.toUpperCase()} UPDATE: New Site Activity: ${pendingTask.clientName} @ $locationText',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );

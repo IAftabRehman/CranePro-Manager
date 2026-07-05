@@ -74,6 +74,29 @@ class WorkRepository {
       rethrow;
     }
   }
+
+  /// NEW: Deletes a work order and deducts its value from financials if it was completed.
+  Future<void> deleteWorkOrder(String docId) async {
+    try {
+      final doc = await _firestore.collection('work_orders').doc(docId).get();
+      if (!doc.exists) return;
+      final data = doc.data()!;
+      final status = (data['status'] ?? 'pending_approval').toString().toLowerCase();
+      final amount = (data['netEarnings'] as num?)?.toDouble() ?? (data['totalPrice'] as num?)?.toDouble() ?? 0.0;
+
+      // Deduct from financials if completed
+      if (status == 'completed') {
+        await _firestore.collection('metadata').doc('financials').set({
+          'totalRevenue': FieldValue.increment(-amount),
+        }, SetOptions(merge: true));
+      }
+
+      await _firestore.collection('work_orders').doc(docId).delete();
+    } catch (e, stack) {
+      FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Failed to delete work order');
+      rethrow;
+    }
+  }
 }
 
 final workRepositoryProvider = Provider((ref) => WorkRepository());
