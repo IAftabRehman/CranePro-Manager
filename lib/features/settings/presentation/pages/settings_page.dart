@@ -236,8 +236,6 @@ class BusinessCardWidget extends StatelessWidget {
     );
   }
 }
-
-// Extracted and highly reusable EditableField component with const constructor
 class EditableFieldWidget extends StatelessWidget {
   final String label;
   final TextEditingController controller;
