@@ -8,38 +8,48 @@ import '../../../dashboard/presentation/pages/main_dashboard.dart';
 import 'package:extend_crane_services/features/finance/data/models/expense_model.dart';
 
 
+import 'package:extend_crane_services/features/auth/data/repositories/user_repository.dart';
+
 class MaintenanceHistoryPage extends ConsumerWidget {
-  const MaintenanceHistoryPage({super.key});
+  final bool isEmbedded;
+  const MaintenanceHistoryPage({super.key, this.isEmbedded = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final maintenanceAsync = ref.watch(operatorMaintenanceProvider);
     final monthlyTotal = ref.watch(operatorMonthlyMaintenanceTotalProvider);
+    final roleAsync = ref.watch(userRoleProvider);
+    final role = roleAsync.value ?? 'operator';
+    final isViewer = role == 'viewer';
 
     return PremiumScaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 15,),
-          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MainDashboard()))
-        ),
-        title: const Text(
-          'Maintenance History',
-          style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const AddMaintenancePage()),
-        ),
-        label: const Text('Add Maintenance', style: TextStyle(fontWeight: FontWeight.bold)),
-        icon: const Icon(Icons.add_circle_outline),
-        backgroundColor: Colors.amber,
-        foregroundColor: Colors.black,
-      ),
+      appBar: isEmbedded
+          ? null
+          : AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 15,),
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MainDashboard()))
+              ),
+              title: const Text(
+                'Maintenance History',
+                style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              centerTitle: true,
+            ),
+      floatingActionButton: isViewer
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AddMaintenancePage()),
+              ),
+              label: const Text('Add Maintenance', style: TextStyle(fontWeight: FontWeight.bold)),
+              icon: const Icon(Icons.add_circle_outline),
+              backgroundColor: Colors.amber,
+              foregroundColor: Colors.black,
+            ),
       body: SafeArea(
         child: Column(
           children: [
@@ -133,10 +143,10 @@ class MaintenanceHistoryPage extends ConsumerWidget {
                   return ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 18),
                     itemCount: entries.length,
-                    prototypeItem: MaintenanceHistoryTile(entry: entries.first),
+                    prototypeItem: MaintenanceHistoryTile(entry: entries.first, isViewer: isViewer),
                     itemBuilder: (context, index) {
                       final entry = entries[index];
-                      return MaintenanceHistoryTile(entry: entry);
+                      return MaintenanceHistoryTile(entry: entry, isViewer: isViewer);
                     },
                   );
                 },
@@ -155,8 +165,9 @@ class MaintenanceHistoryPage extends ConsumerWidget {
 
 class MaintenanceHistoryTile extends StatelessWidget {
   final ExpenseModel entry;
+  final bool isViewer;
 
-  const MaintenanceHistoryTile({super.key, required this.entry});
+  const MaintenanceHistoryTile({super.key, required this.entry, this.isViewer = false});
 
   @override
   Widget build(BuildContext context) {
@@ -199,6 +210,22 @@ class MaintenanceHistoryTile extends StatelessWidget {
                     fontSize: 16,
                   ),
                 ),
+                if (!isViewer) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    icon: const Icon(Icons.edit, color: Colors.amber, size: 20),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AddMaintenancePage(expenseToEdit: entry),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ],
             ),
           ],

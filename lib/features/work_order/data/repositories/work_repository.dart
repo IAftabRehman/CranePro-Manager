@@ -24,7 +24,7 @@ class WorkRepository {
         siteLocation: workOrder.siteLocation,
         status: workOrder.status,
         totalPrice: workOrder.totalPrice,
-        expenseAmount: workOrder.expenseAmount,
+        workCommission: workOrder.workCommission,
         netEarnings: workOrder.netEarnings,
         createdAt: workOrder.createdAt,
       );
@@ -71,6 +71,33 @@ class WorkRepository {
       });
     } catch (e, stack) {
       FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Failed to update work order status');
+      rethrow;
+    }
+  }
+
+  /// NEW: Complete a work order and set the paymentStatus ('received' or 'pending').
+  Future<void> completeWithPayment(String docId, String paymentStatus) async {
+    try {
+      await _firestore.collection('work_orders').doc(docId).update({
+        'status': 'completed',
+        'paymentStatus': paymentStatus, // 'received' or 'pending'
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e, stack) {
+      FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Failed to complete work order with payment');
+      rethrow;
+    }
+  }
+
+  /// NEW: Update only the paymentStatus field of a work order.
+  Future<void> updatePaymentStatus(String docId, String paymentStatus) async {
+    try {
+      await _firestore.collection('work_orders').doc(docId).update({
+        'paymentStatus': paymentStatus,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e, stack) {
+      FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Failed to update payment status');
       rethrow;
     }
   }

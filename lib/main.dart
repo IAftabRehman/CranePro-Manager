@@ -15,7 +15,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
-    // Initialize Firebase with persistence settings
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );

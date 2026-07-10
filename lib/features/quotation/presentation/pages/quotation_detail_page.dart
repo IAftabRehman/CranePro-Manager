@@ -320,8 +320,7 @@ class QuotationFinancialSummary extends StatelessWidget {
       child: Column(
         children: [
           SummaryRowWidget(label: 'Total Amount', value: 'AED ${quotation.totalAmount.toStringAsFixed(0)}'),
-          const SizedBox(height: 12),
-          SummaryRowWidget(label: 'Advance Paid', value: '- AED ${quotation.advancePaid.toStringAsFixed(0)}', isNegative: true),
+
           const Divider(height: 32, color: Colors.white24),
           SummaryRowWidget(label: 'Balance Due', value: 'AED ${quotation.balanceAmount.toStringAsFixed(0)}', isTotal: true),
         ],

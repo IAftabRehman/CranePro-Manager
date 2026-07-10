@@ -119,7 +119,8 @@ class FinanceRepository {
     for (var doc in quotations.docs) {
       final data = doc.data();
       final status = (data['status'] ?? 'pending').toString().toLowerCase();
-      if (status == 'completed') {
+      final paymentStatus = (data['paymentStatus'] ?? '').toString().toLowerCase();
+      if (status == 'completed' && paymentStatus == 'received') {
         final comm = (data['commission'] as num?)?.toDouble() ?? 0.0;
         final total = (data['totalAmount'] as num?)?.toDouble() ?? 0.0;
         totalRevenue += (total - comm);
@@ -131,7 +132,8 @@ class FinanceRepository {
       final status = (data['status'] ?? 'pending_approval')
           .toString()
           .toLowerCase();
-      if (status == 'completed') {
+      final paymentStatus = (data['paymentStatus'] ?? '').toString().toLowerCase();
+      if (status == 'completed' && paymentStatus == 'received') {
         totalRevenue +=
             (data['netEarnings'] as num?)?.toDouble() ??
             (data['totalPrice'] as num?)?.toDouble() ??
@@ -201,6 +203,26 @@ class FinanceRepository {
         reason: 'Misc failure adding expense',
       );
       log("Misc Error adding expense: $e");
+      rethrow;
+    }
+  }
+
+  Future<void> updateExpense(ExpenseModel expense) async {
+    try {
+      if (expense.id.isEmpty) {
+        throw Exception("Expense ID is empty");
+      }
+      // Note: We are not adjusting the incremental metadata here since it's just an edit.
+      // A more robust solution would compute the difference and adjust the metadata.
+      await _firestore.collection('expenses').doc(expense.id).update(expense.toMap());
+      log("Expense updated successfully.");
+    } catch (e, stack) {
+      FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        reason: 'Misc failure updating expense',
+      );
+      log("Misc Error updating expense: $e");
       rethrow;
     }
   }
@@ -354,9 +376,10 @@ class FinanceRepository {
 
         for (var data in revenueDocs) {
           final status = (data['status'] ?? 'pending').toString().toLowerCase();
+          final paymentStatus = (data['paymentStatus'] ?? '').toString().toLowerCase();
 
-          // Earnings are counted only when the job is completed
-          if (status == 'completed') {
+          // Earnings are counted only when the job is completed AND payment is received
+          if (status == 'completed' && paymentStatus == 'received') {
             final comm = (data['commission'] as num?)?.toDouble() ?? 0.0;
             final total = (data['totalAmount'] as num?)?.toDouble() ?? 0.0;
             revenue += (total - comm);
@@ -371,8 +394,9 @@ class FinanceRepository {
           final status = (data['status'] ?? 'pending_approval')
               .toString()
               .toLowerCase();
+          final paymentStatus = (data['paymentStatus'] ?? '').toString().toLowerCase();
 
-          if (status == 'completed') {
+          if (status == 'completed' && paymentStatus == 'received') {
             revenue +=
                 (data['netEarnings'] as num?)?.toDouble() ??
                 (data['totalPrice'] as num?)?.toDouble() ??
@@ -600,21 +624,26 @@ class FinanceRepository {
         double fuel = 0.0;
         double otherExpenses = 0.0;
 
-        // Grouping for weekly chart (last 7 days of growth)
+        double partnerComm = 0.0;
+
+        // Grouping for weekly chart (last 7 days of growth - based on Net Income)
         final Map<String, double> dayTotals = {};
 
         // 1. Process Quotations
         for (var data in quoteDocs) {
+          final paymentStatus = (data['paymentStatus'] ?? '').toString().toLowerCase();
+          if (paymentStatus != 'received') continue;
+
           final comm = (data['commission'] as num?)?.toDouble() ?? 0.0;
           final total = (data['totalAmount'] as num?)?.toDouble() ?? 0.0;
-          final amount = (total - comm);
           final date =
               (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now();
 
           if (date.isAfter(start) && date.isBefore(end)) {
-            quoteIncome += amount;
+            quoteIncome += total;
+            partnerComm += comm;
             final key = DateFormat('yyyy-MM-dd').format(date);
-            dayTotals[key] = (dayTotals[key] ?? 0.0) + amount;
+            dayTotals[key] = (dayTotals[key] ?? 0.0) + (total - comm);
           }
         }
 
@@ -623,19 +652,23 @@ class FinanceRepository {
           final status = (data['status'] ?? 'pending_approval')
               .toString()
               .toLowerCase();
-          final amount =
-              (data['netEarnings'] as num?)?.toDouble() ??
-              (data['totalPrice'] as num?)?.toDouble() ??
-              0.0;
+          final paymentStatus = (data['paymentStatus'] ?? '').toString().toLowerCase();
+          
+          final gross = (data['totalPrice'] as num?)?.toDouble() ?? 0.0;
+          final comm = (data['workCommission'] as num?)?.toDouble() ?? (data['expenseAmount'] as num?)?.toDouble() ?? 0.0;
+          final net = gross - comm;
+          
           final date =
               (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now();
 
           if (status == 'completed' &&
+              paymentStatus == 'received' &&
               date.isAfter(start) &&
               date.isBefore(end)) {
-            workIncome += amount;
+            workIncome += gross;
+            partnerComm += comm;
             final key = DateFormat('yyyy-MM-dd').format(date);
-            dayTotals[key] = (dayTotals[key] ?? 0.0) + amount;
+            dayTotals[key] = (dayTotals[key] ?? 0.0) + net;
           }
         }
 
@@ -657,9 +690,6 @@ class FinanceRepository {
         }
 
         final totalIncome = quoteIncome + workIncome;
-        final partnerComm =
-            workIncome *
-            0.15; // 15% Partner Commission only on Direct Work Income
         final totalExp = maintenance + fuel + otherExpenses + partnerComm;
 
         // Build 7-day chart data

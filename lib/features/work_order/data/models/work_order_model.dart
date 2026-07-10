@@ -8,8 +8,9 @@ class WorkOrderModel {
   final String clientName;
   final String siteLocation;
   final String status;
+  final String paymentStatus; // 'received', 'pending', 'cancelled', or ''
   final double totalPrice; // Gross
-  final double expenseAmount;
+  final double workCommission;
   final double netEarnings; // Remaining
   final DateTime createdAt;
 
@@ -21,8 +22,9 @@ class WorkOrderModel {
     required this.clientName,
     required this.siteLocation,
     this.status = 'pending_approval',
+    this.paymentStatus = '',
     this.totalPrice = 0.0,
-    this.expenseAmount = 0.0,
+    this.workCommission = 0.0,
     this.netEarnings = 0.0,
     required this.createdAt,
   });
@@ -36,8 +38,9 @@ class WorkOrderModel {
       'clientName': clientName,
       'siteLocation': siteLocation,
       'status': status,
+      'paymentStatus': paymentStatus,
       'totalPrice': totalPrice,
-      'expenseAmount': expenseAmount,
+      'workCommission': workCommission,
       'netEarnings': netEarnings,
       'createdAt': Timestamp.fromDate(createdAt),
     };
@@ -52,8 +55,9 @@ class WorkOrderModel {
       clientName: map['clientName'] ?? '',
       siteLocation: map['siteLocation'] ?? '',
       status: map['status'] ?? 'pending_approval',
+      paymentStatus: map['paymentStatus'] ?? '',
       totalPrice: (map['totalPrice'] as num?)?.toDouble() ?? 0.0,
-      expenseAmount: (map['expenseAmount'] as num?)?.toDouble() ?? 0.0,
+      workCommission: (map['workCommission'] as num?)?.toDouble() ?? (map['expenseAmount'] as num?)?.toDouble() ?? 0.0,
       netEarnings: (map['netEarnings'] as num?)?.toDouble() ?? (map['totalPrice'] as num?)?.toDouble() ?? 0.0,
       createdAt: map['createdAt'] is Timestamp 
           ? (map['createdAt'] as Timestamp).toDate() 

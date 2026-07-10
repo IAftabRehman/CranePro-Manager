@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:extend_crane_services/core/themes/app_theme.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'role_selection_page.dart';
 import '../../../dashboard/presentation/pages/main_dashboard.dart';
 
 class SplashScreenPage extends StatefulWidget {
@@ -17,16 +19,41 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
     _startNavigationTimer();
   }
 
-  void _startNavigationTimer() {
-    Future.delayed(const Duration(seconds: 2), () {
+  Future<void> _startNavigationTimer() async {
+    // Wait for at least 2 seconds for splash animation
+    await Future.delayed(const Duration(seconds: 2));
+
+    if (!mounted) return;
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final isLoggedIn = prefs.getBool('is_logged_in') ?? false;
+
       if (mounted) {
+        if (isLoggedIn) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const MainDashboard(),
+            ),
+          );
+        } else {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const RoleSelectionPage(),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        // Fallback to role selection on error
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => const MainDashboard(),
+            builder: (context) => const RoleSelectionPage(),
           ),
         );
       }
-    });
+    }
   }
 
   @override

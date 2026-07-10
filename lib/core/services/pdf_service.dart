@@ -115,7 +115,6 @@ class PdfService {
                   child: pw.Column(
                     children: [
                       _buildSummaryRow('Subtotal:', quotation.totalAmount.toStringAsFixed(2)),
-                      _buildSummaryRow('Advance Paid:', '- ${quotation.advancePaid.toStringAsFixed(2)}', color: PdfColors.red900),
                       pw.Divider(),
                       _buildSummaryRow('Balance Due:', quotation.balanceAmount.toStringAsFixed(2), isTotal: true),
                     ],

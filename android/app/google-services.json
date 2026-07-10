@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "116471709607",
-    "project_id": "bahadar-crane-report-app",
-    "storage_bucket": "bahadar-crane-report-app.firebasestorage.app"
+    "project_number": "786775733802",
+    "project_id": "crane-data-management",
+    "storage_bucket": "crane-data-management.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:116471709607:android:614114417b88bc220f0082",
+        "mobilesdk_app_id": "1:786775733802:android:d17f35a6067635da7eb553",
         "android_client_info": {
           "package_name": "com.example.extend_crane_services"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBa90lgoJWy1RUIJigyd12-auVqq6yimUU"
+          "current_key": "AIzaSyDyM7v2CcKsL3rsENkI3Vwn62B7XrvCln4"
         }
       ],
       "services": {

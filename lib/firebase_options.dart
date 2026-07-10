@@ -48,29 +48,28 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDwCVXBPA0RgpgsJROPWnwmu86PmJatzug',
-    appId: '1:116471709607:web:9ab9a9e95119655c0f0082',
-    messagingSenderId: '116471709607',
-    projectId: 'bahadar-crane-report-app',
-    authDomain: 'bahadar-crane-report-app.firebaseapp.com',
-    storageBucket: 'bahadar-crane-report-app.firebasestorage.app',
-    measurementId: 'G-MN6FN43J8J',
+    apiKey: 'AIzaSyDIZWmPOdx7awJGF7A_gr4BiWepPOWVgIo',
+    appId: '1:786775733802:web:a8bb3969ca4e77a37eb553',
+    messagingSenderId: '786775733802',
+    projectId: 'crane-data-management',
+    authDomain: 'crane-data-management.firebaseapp.com',
+    storageBucket: 'crane-data-management.firebasestorage.app',
+    measurementId: 'G-N6WHM46YCG',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBa90lgoJWy1RUIJigyd12-auVqq6yimUU',
-    appId: '1:116471709607:android:614114417b88bc220f0082',
-    messagingSenderId: '116471709607',
-    projectId: 'bahadar-crane-report-app',
-    storageBucket: 'bahadar-crane-report-app.firebasestorage.app',
+    apiKey: 'AIzaSyDyM7v2CcKsL3rsENkI3Vwn62B7XrvCln4',
+    appId: '1:786775733802:android:d17f35a6067635da7eb553',
+    messagingSenderId: '786775733802',
+    projectId: 'crane-data-management',
+    storageBucket: 'crane-data-management.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDwBmNhoaB4gnQdybQ_M8oqVmN1JVTx-8g',
-    appId: '1:116471709607:ios:a358035c516e85b10f0082',
-    messagingSenderId: '116471709607',
-    projectId: 'bahadar-crane-report-app',
-    storageBucket: 'bahadar-crane-report-app.firebasestorage.app',
+    apiKey: 'AIzaSyAS-1pLdxmc0hGeKas7mfJWiVrG-XfUDi0',
+    appId: '1:786775733802:ios:b367b4b13501d8667eb553',
+    messagingSenderId: '786775733802',
+    projectId: 'crane-data-management',
+    storageBucket: 'crane-data-management.firebasestorage.app',
     iosBundleId: 'com.example.extendCraneServices',
   );
 }

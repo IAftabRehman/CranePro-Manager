@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 import 'dart:developer';
 
@@ -82,4 +83,9 @@ final userRepositoryProvider = Provider((ref) => UserRepository());
 
 final approvedOperatorsProvider = StreamProvider<List<UserModel>>((ref) {
   return ref.watch(userRepositoryProvider).getApprovedOperatorsStream();
+});
+
+final userRoleProvider = FutureProvider<String>((ref) async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString('role') ?? 'operator';
 });

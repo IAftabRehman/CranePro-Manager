@@ -7,7 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:extend_crane_services/features/finance/data/repositories/finance_repository.dart';
 
 class EarningsReportPage extends ConsumerStatefulWidget {
-  const EarningsReportPage({super.key});
+  final bool isEmbedded;
+  const EarningsReportPage({super.key, this.isEmbedded = false});
 
   @override
   ConsumerState<EarningsReportPage> createState() => _EarningsReportPageState();
@@ -52,15 +53,17 @@ class _EarningsReportPageState extends ConsumerState<EarningsReportPage> {
     const String userId = '';
 
     return PremiumScaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Earnings & Analytics',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      appBar: widget.isEmbedded
+          ? null
+          : AppBar(
+              title: const Text(
+                'Earnings & Analytics',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              centerTitle: true,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+            ),
       body: SafeArea(
           child: Consumer(
                 builder: (context, ref, child) {
@@ -199,6 +202,9 @@ class EarningsPieChartCard extends StatelessWidget {
     final theme = Theme.of(context);
     final grossTotal = report.quotationIncome + report.directWorkIncome;
     final commissionPercent = grossTotal > 0 ? (report.partnerCommission / grossTotal) * 100 : 0.0;
+    final maintenancePercent = grossTotal > 0 ? (report.maintenanceExpenses / grossTotal) * 100 : 0.0;
+    
+    // Calculate remainder for Net Profit to ensure they reflect proportion of gross
     final netPercent = grossTotal > 0 ? (report.netProfit / grossTotal) * 100 : 100.0;
 
     final pieChart = AspectRatio(
@@ -222,6 +228,13 @@ class EarningsPieChartCard extends StatelessWidget {
               color: Colors.purple,
               titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
             ),
+            PieChartSectionData(
+              value: maintenancePercent,
+              title: '${maintenancePercent.toStringAsFixed(0)}%',
+              radius: 50,
+              color: Colors.redAccent,
+              titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
           ],
         ),
       ),
@@ -234,6 +247,8 @@ class EarningsPieChartCard extends StatelessWidget {
         _LegendItem(label: 'Net Profit', color: Colors.green),
         const SizedBox(height: 12),
         _LegendItem(label: 'Commission Paid', color: Colors.purple),
+        const SizedBox(height: 12),
+        _LegendItem(label: 'Maintenance', color: Colors.redAccent),
       ],
     );
 

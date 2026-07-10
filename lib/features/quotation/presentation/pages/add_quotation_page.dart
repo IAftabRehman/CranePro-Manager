@@ -19,7 +19,7 @@ class AddQuotationPage extends ConsumerStatefulWidget {
 
 class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
   final _clientController = TextEditingController();
-  final _advancePaidController = TextEditingController();
+
   final _commissionController = TextEditingController();
   final List<String> _terms = [];
   final List<QuotationServiceEntry> _entries = [];
@@ -30,7 +30,6 @@ class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
     if (widget.initialData != null) {
       final data = widget.initialData!;
       _clientController.text = data.clientName;
-      _advancePaidController.text = data.advancePaid.toString();
       _commissionController.text = data.commission.toString();
       _terms.addAll(data.terms);
       _entries.addAll(data.entries.map((e) => QuotationServiceEntry(
@@ -56,13 +55,12 @@ class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
   @override
   void dispose() {
     _clientController.dispose();
-    _advancePaidController.dispose();
     _commissionController.dispose();
     super.dispose();
   }
 
   double get _totalPrice => _entries.fold(0, (sum, item) => sum + item.price);
-  double get _advancePaid => double.tryParse(_advancePaidController.text) ?? 0.0;
+
 
   void _addEntry() {
     setState(() {
@@ -137,7 +135,7 @@ class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
       const String operatorId = 'operator';
 
       final total = _totalPrice;
-      final advance = _advancePaid;
+
 
       final data = QuotationModel(
         id: widget.initialData?.id ?? '', // Firestore will assign if empty
@@ -146,8 +144,7 @@ class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
         siteLocation: _entries.isNotEmpty ? _entries.first.location : '',
         serviceType: _entries.isNotEmpty ? _entries.first.serviceName : '',
         totalAmount: total,
-        advancePaid: advance,
-        balanceAmount: total - advance,
+        balanceAmount: total,
         commission: double.tryParse(_commissionController.text) ?? 0.0,
         createdAt: widget.initialData?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
@@ -278,15 +275,7 @@ class _AddQuotationPageState extends ConsumerState<AddQuotationPage> {
 
                           const SizedBox(height: 30),
                           const _SectionLabel('Payment Summary'),
-                           CraneInput(
-                            controller: _advancePaidController,
-                            hintText: 'Advance Paid (AED)',
-                            keyboardType: TextInputType.number,
-                            prefixIcon: const Icon(Icons.payments_outlined, size: 20),
-                            // Removed setState rebuild on every keystroke;
-                            // the total is recalculated on save via _totalPrice getter.
-                          ),
-                          const SizedBox(height: 20),
+
                           CraneInput(
                             controller: _commissionController,
                             hintText: 'Commission (AED)',

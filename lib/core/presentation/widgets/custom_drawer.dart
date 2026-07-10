@@ -8,9 +8,33 @@ import 'package:extend_crane_services/features/reports/presentation/pages/earnin
 import '../../../features/reports/presentation/pages/all_work_history_page.dart';
 
 
-class CustomDrawer extends StatelessWidget {
+import 'package:shared_preferences/shared_preferences.dart';
+
+class CustomDrawer extends StatefulWidget {
   final String activeRoute;
   const CustomDrawer({super.key, this.activeRoute = 'Dashboard'});
+
+  @override
+  State<CustomDrawer> createState() => _CustomDrawerState();
+}
+
+class _CustomDrawerState extends State<CustomDrawer> {
+  String _role = 'operator';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRole();
+  }
+
+  Future<void> _loadRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _role = prefs.getString('role') ?? 'operator';
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,12 +59,13 @@ class CustomDrawer extends StatelessWidget {
                 child: ListView(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   children: [
-                        _NavItem(icon: Icons.dashboard_outlined, title: 'Dashboard', theme: theme, activeRoute: activeRoute),
-                        _NavItem(icon: Icons.history_edu_outlined, title: 'Total Work History', theme: theme, activeRoute: activeRoute),
-                        _NavItem(icon: Icons.build_circle_outlined, title: 'Maintenance & Expenses', theme: theme, activeRoute: activeRoute),
-                        _NavItem(icon: Icons.bar_chart_outlined, title: 'Reports & Analytics', theme: theme, activeRoute: activeRoute),
-                        _NavItem(icon: Icons.person, title: 'Profile', theme: theme, activeRoute: activeRoute),
-                      ],
+                    _NavItem(icon: Icons.dashboard_outlined, title: 'Dashboard', theme: theme, activeRoute: widget.activeRoute),
+                    _NavItem(icon: Icons.history_edu_outlined, title: 'Total Work History', theme: theme, activeRoute: widget.activeRoute),
+                    _NavItem(icon: Icons.build_circle_outlined, title: 'Maintenance & Expenses', theme: theme, activeRoute: widget.activeRoute),
+                    _NavItem(icon: Icons.bar_chart_outlined, title: 'Reports & Analytics', theme: theme, activeRoute: widget.activeRoute),
+                    if (_role != 'viewer')
+                      _NavItem(icon: Icons.person, title: 'Profile', theme: theme, activeRoute: widget.activeRoute),
+                  ],
                 ),
               ),
 

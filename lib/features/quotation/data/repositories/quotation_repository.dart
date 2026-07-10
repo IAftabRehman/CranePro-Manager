@@ -182,6 +182,63 @@ class QuotationRepository {
     }
   }
 
+  /// NEW: Complete a quotation and set the paymentStatus ('received' or 'pending').
+  Future<void> completeWithPayment(String docId, String paymentStatus) async {
+    try {
+      final doc = await _firestore.collection('quotations').doc(docId).get();
+      if (!doc.exists) return;
+      final data = doc.data()!;
+      final oldStatus = (data['status'] ?? 'pending').toString().toLowerCase();
+      final commission =
+          (data['commission'] as num?)?.toDouble() ??
+          (data['totalAmount'] as num?)?.toDouble() ??
+          0.0;
+
+      final updates = <String, dynamic>{
+        'status': 'completed',
+        'paymentStatus': paymentStatus,
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      if (paymentStatus == 'received') {
+        updates['balanceAmount'] = 0.0;
+      }
+
+      await _firestore.collection('quotations').doc(docId).update(updates);
+
+      if (oldStatus != 'completed') {
+        await _firestore.collection('metadata').doc('financials').set({
+          'totalRevenue': FieldValue.increment(commission),
+        }, SetOptions(merge: true));
+      }
+    } catch (e, stack) {
+      FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Failed to complete quotation with payment');
+      rethrow;
+    }
+  }
+
+  /// NEW: Update only the paymentStatus field of a quotation.
+  Future<void> updatePaymentStatus(String docId, String paymentStatus) async {
+    try {
+      final updates = <String, dynamic>{
+        'paymentStatus': paymentStatus,
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      if (paymentStatus == 'received') {
+        final doc = await _firestore.collection('quotations').doc(docId).get();
+        if (doc.exists) {
+          updates['balanceAmount'] = 0.0;
+        }
+      }
+
+      await _firestore.collection('quotations').doc(docId).update(updates);
+    } catch (e, stack) {
+      FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Failed to update payment status');
+      rethrow;
+    }
+  }
+
   /// NEW: Deletes a quotation and deducts its value from financials if it was completed.
   Future<void> deleteQuotation(String docId) async {
     try {

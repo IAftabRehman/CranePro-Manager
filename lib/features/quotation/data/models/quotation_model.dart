@@ -50,10 +50,11 @@ class QuotationModel {
   final String siteLocation;
   final String serviceType;
   final double totalAmount;
-  final double advancePaid;
+
   final double balanceAmount;
   final double commission;
   final String status;
+  final String paymentStatus; // 'received', 'pending', 'cancelled', or ''
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime workDate;
@@ -73,10 +74,11 @@ class QuotationModel {
     required this.siteLocation,
     required this.serviceType,
     required this.totalAmount,
-    this.advancePaid = 0.0,
+
     required this.balanceAmount,
     this.commission = 0.0,
     this.status = 'pending',
+    this.paymentStatus = '',
     required this.createdAt,
     required this.updatedAt,
     required this.workDate,
@@ -96,10 +98,10 @@ class QuotationModel {
       'siteLocation': siteLocation,
       'serviceType': serviceType,
       'totalAmount': totalAmount,
-      'advancePaid': advancePaid,
-      'balanceAmount': totalAmount - advancePaid,
+      'balanceAmount': totalAmount,
       'commission': commission,
       'status': status,
+      'paymentStatus': paymentStatus,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
       'workDate': Timestamp.fromDate(workDate),
@@ -114,7 +116,7 @@ class QuotationModel {
 
   factory QuotationModel.fromMap(Map<String, dynamic> map, {String? docId}) {
     final double total = double.parse((map['totalAmount'] ?? 0.0).toString());
-    final double advance = double.parse((map['advancePaid'] ?? 0.0).toString());
+
     final double comm = double.parse((map['commission'] ?? 0.0).toString());
 
     return QuotationModel(
@@ -124,10 +126,11 @@ class QuotationModel {
       siteLocation: map['siteLocation'] ?? '',
       serviceType: map['serviceType'] ?? '',
       totalAmount: total,
-      advancePaid: advance,
-      balanceAmount: total - advance,
+
+      balanceAmount: total,
       commission: comm,
       status: map['status'] ?? 'pending',
+      paymentStatus: map['paymentStatus'] ?? '',
       createdAt: map['createdAt'] is Timestamp 
           ? (map['createdAt'] as Timestamp).toDate() 
           : DateTime.now(),
@@ -153,9 +156,10 @@ class QuotationModel {
     String? siteLocation,
     String? serviceType,
     double? totalAmount,
-    double? advancePaid,
+
     double? commission,
     String? status,
+    String? paymentStatus,
     DateTime? updatedAt,
     DateTime? workDate,
     bool? isMidnightUpdateRequired,
@@ -166,7 +170,7 @@ class QuotationModel {
     String? pdfUrl,
   }) {
     final double newTotal = totalAmount ?? this.totalAmount;
-    final double newAdvance = advancePaid ?? this.advancePaid;
+
 
     return QuotationModel(
       id: id,
@@ -175,10 +179,11 @@ class QuotationModel {
       siteLocation: siteLocation ?? this.siteLocation,
       serviceType: serviceType ?? this.serviceType,
       totalAmount: newTotal,
-      advancePaid: newAdvance,
-      balanceAmount: newTotal - newAdvance,
+
+      balanceAmount: newTotal,
       commission: commission ?? this.commission,
       status: status ?? this.status,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       workDate: workDate ?? this.workDate,
