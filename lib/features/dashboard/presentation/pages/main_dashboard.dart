@@ -78,18 +78,20 @@ class _MainDashboardState extends ConsumerState<MainDashboard>
             borderRadius: BorderRadius.circular(16),
             side: const BorderSide(color: Colors.white24),
           ),
-          title: const Row(
-            children: [
-              Icon(Icons.info_outline, color: Colors.amber, size: 24),
-              SizedBox(width: 8),
-              Text(
-                'Viewer Mode',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-            ],
+          title: Center(
+            child: const Row(
+              children: [
+                Icon(Icons.info_outline, color: Colors.amber, size: 24),
+                SizedBox(width: 8),
+                Text(
+                  'Viewer Mode',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
           ),
           content: const Text(
-            'You are logged in as a Viewer. You can only see the report details, work history, and analytics. Editing or adding new records is not allowed.',
+            'You are logged in as a Viewer. Access is limited to viewing report details, work history, and analytics.\nEditing or adding new records is not allowed.',
             style: TextStyle(color: Colors.white70, fontSize: 15, height: 1.4),
           ),
           actions: [

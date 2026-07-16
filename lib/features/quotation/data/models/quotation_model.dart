@@ -98,7 +98,7 @@ class QuotationModel {
       'siteLocation': siteLocation,
       'serviceType': serviceType,
       'totalAmount': totalAmount,
-      'balanceAmount': totalAmount,
+      'balanceAmount': balanceAmount,
       'commission': commission,
       'status': status,
       'paymentStatus': paymentStatus,
@@ -156,7 +156,7 @@ class QuotationModel {
     String? siteLocation,
     String? serviceType,
     double? totalAmount,
-
+    double? balanceAmount,
     double? commission,
     String? status,
     String? paymentStatus,
@@ -180,7 +180,7 @@ class QuotationModel {
       serviceType: serviceType ?? this.serviceType,
       totalAmount: newTotal,
 
-      balanceAmount: newTotal,
+      balanceAmount: balanceAmount ?? this.balanceAmount,
       commission: commission ?? this.commission,
       status: status ?? this.status,
       paymentStatus: paymentStatus ?? this.paymentStatus,

@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:extend_crane_services/core/themes/app_theme.dart';
 import 'package:extend_crane_services/core/utils/responsive.dart';
@@ -57,7 +58,7 @@ class RoleSelectionPage extends StatelessWidget {
                   title: 'Operator Side',
                   subtitle: 'Full access for authorized operators',
                   icon: Icons.admin_panel_settings_rounded,
-                  color: Colors.blueAccent,
+                  color: Colors.yellow,
                   onTap: () {
                     Navigator.push(
                       context,
@@ -68,7 +69,7 @@ class RoleSelectionPage extends StatelessWidget {
                   },
                 ),
                 
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
                 
                 // Viewer Side Button
                 _buildRoleButton(
@@ -76,7 +77,7 @@ class RoleSelectionPage extends StatelessWidget {
                   title: 'Viewer Side',
                   subtitle: 'Read-only access to view tasks and reports',
                   icon: Icons.visibility_rounded,
-                  color: Colors.tealAccent.shade400,
+                  color: Colors.deepOrange,
                   onTap: () {
                     Navigator.push(
                       context,
@@ -107,7 +108,7 @@ class RoleSelectionPage extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         highlightColor: color.withValues(alpha: 0.2),
         splashColor: color.withValues(alpha: 0.3),
         child: Container(
@@ -122,18 +123,14 @@ class RoleSelectionPage extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.2),
-                  shape: BoxShape.circle,
-                ),
+                padding: const EdgeInsets.all(10),
                 child: Icon(
                   icon,
                   color: color,
-                  size: 32,
+                  size: 30,
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,9 +154,10 @@ class RoleSelectionPage extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(width: 5),
               const Icon(
                 Icons.arrow_forward_ios_rounded,
-                color: Colors.white54,
+                color: Colors.white,
                 size: 20,
               ),
             ],

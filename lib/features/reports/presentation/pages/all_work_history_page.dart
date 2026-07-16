@@ -7,6 +7,8 @@ import 'package:extend_crane_services/features/quotation/data/repositories/quota
 import 'package:extend_crane_services/features/work_order/data/repositories/work_repository.dart';
 import 'package:extend_crane_services/features/quotation/presentation/pages/add_quotation_page.dart';
 import 'package:extend_crane_services/features/operations/presentation/widgets/direct_work_modal.dart';
+import 'package:extend_crane_services/features/quotation/data/models/quotation_model.dart';
+import 'package:extend_crane_services/features/work_order/data/models/work_order_model.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Data model
@@ -247,16 +249,16 @@ class AllWorkHistoryPage extends ConsumerWidget {
     const colEdit = 40.0;
     const colSno = 40.0;
     const colDate = 84.0;
-    const colClient = 110.0;
+    const colClient = 160.0;
     const colWork = 106.0;
-    const colLocation = 110.0;
+    const colLocation = 150.0;
     const colTotal = 90.0;
     const colComm = 88.0;
     const colOpBalance = 114.0;
     const colPending = 88.0;
     const colReceived = 88.0;
     const colStatus = 98.0;
-    const rowH = 54.0;
+    const rowH = 64.0;
     const headH = 44.0;
 
     const headStyle = TextStyle(
@@ -315,7 +317,7 @@ class AllWorkHistoryPage extends ConsumerWidget {
       width: w,
       height: rowH,
       alignment: align,
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
       decoration: BoxDecoration(
         border: Border(
           right: BorderSide(color: Colors.black),
@@ -324,9 +326,9 @@ class AllWorkHistoryPage extends ConsumerWidget {
       ),
       child: Text(
         t,
-        maxLines: 2,
+        maxLines: 4,
         overflow: TextOverflow.ellipsis,
-        textAlign: TextAlign.center,
+        textAlign: align == Alignment.centerLeft ? TextAlign.left : TextAlign.center,
         style: style ?? const TextStyle(color: Colors.white70, fontSize: 11),
       ),
     );
@@ -1105,18 +1107,68 @@ class _EditRecordSheetState extends State<_EditRecordSheet> {
     setState(() => _saving = true);
     try {
       final isQ = widget.item.type == 'Quotation';
-      // Update task status
+      
+      DateTime parsedDate;
+      try {
+        parsedDate = DateFormat('dd/MM/yyyy').parse(_dateCtrl.text.trim());
+      } catch (_) {
+        parsedDate = widget.item.date;
+      }
+
+      final newAmount = double.tryParse(_amountCtrl.text.trim()) ?? widget.item.price;
+      final newComm = double.tryParse(_commCtrl.text.trim()) ?? widget.item.commission;
+
+      // 1. Update general properties
       if (isQ) {
+        final q = widget.item.originalData as QuotationModel;
+        final updatedQuotation = q.copyWith(
+          workDate: parsedDate,
+          clientName: _clientCtrl.text.trim(),
+          serviceType: _workCtrl.text.trim(),
+          siteLocation: _locationCtrl.text.trim(),
+          totalAmount: newAmount,
+          commission: newComm,
+          balanceAmount: _paymentStatus == 'received' ? 0.0 : newAmount,
+        );
         await widget.widgetRef
             .read(quotationRepositoryProvider)
-            .updateQuotationStatus(widget.item.id, _status);
+            .updateQuotation(updatedQuotation);
       } else {
+        final w = widget.item.originalData as WorkOrderModel;
+        final updatedWorkOrder = WorkOrderModel(
+          id: w.id,
+          workOrderId: w.workOrderId,
+          operatorId: w.operatorId,
+          operatorName: w.operatorName,
+          clientName: _clientCtrl.text.trim(),
+          siteLocation: _locationCtrl.text.trim(),
+          status: w.status,
+          paymentStatus: w.paymentStatus,
+          totalPrice: newAmount,
+          workCommission: newComm,
+          netEarnings: newAmount - newComm,
+          createdAt: parsedDate,
+        );
         await widget.widgetRef
             .read(workRepositoryProvider)
-            .updateWorkOrderStatus(widget.item.id, _status);
+            .updateWorkOrder(updatedWorkOrder);
       }
-      // Update payment status if it was changed
-      if (_paymentStatus.isNotEmpty) {
+
+      // 2. Update task status if changed
+      if (widget.item.status != _status) {
+        if (isQ) {
+          await widget.widgetRef
+              .read(quotationRepositoryProvider)
+              .updateQuotationStatus(widget.item.id, _status);
+        } else {
+          await widget.widgetRef
+              .read(workRepositoryProvider)
+              .updateWorkOrderStatus(widget.item.id, _status);
+        }
+      }
+
+      // 3. Update payment status if changed
+      if (widget.item.paymentStatus != _paymentStatus) {
         if (isQ) {
           await widget.widgetRef
               .read(quotationRepositoryProvider)
@@ -1127,6 +1179,7 @@ class _EditRecordSheetState extends State<_EditRecordSheet> {
               .updatePaymentStatus(widget.item.id, _paymentStatus);
         }
       }
+
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1206,7 +1259,40 @@ class _EditRecordSheetState extends State<_EditRecordSheet> {
             ),
             const Divider(color: Colors.white12, height: 24),
 
-            _field('Date', _dateCtrl, Icons.calendar_today),
+            _field(
+              'Date',
+              _dateCtrl,
+              Icons.calendar_today,
+              readOnly: true,
+              onTap: () async {
+                DateTime initialDate = DateTime.now();
+                try {
+                  initialDate = DateFormat('dd/MM/yyyy').parse(_dateCtrl.text.trim());
+                } catch (_) {}
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: initialDate,
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime(2100),
+                  builder: (context, child) {
+                    return Theme(
+                      data: Theme.of(context).copyWith(
+                        colorScheme: Theme.of(context).colorScheme.copyWith(
+                          primary: Colors.amber,
+                          onPrimary: Colors.black,
+                        ),
+                      ),
+                      child: child!,
+                    );
+                  },
+                );
+                if (picked != null) {
+                  setState(() {
+                    _dateCtrl.text = DateFormat('dd/MM/yyyy').format(picked);
+                  });
+                }
+              },
+            ),
             _field('Client Name', _clientCtrl, Icons.person),
             _field('Work Details', _workCtrl, Icons.work_outline),
             _field('Location', _locationCtrl, Icons.location_on_outlined),
@@ -1333,6 +1419,8 @@ class _EditRecordSheetState extends State<_EditRecordSheet> {
     IconData icon, {
     TextInputType? inputType,
     ValueChanged<String>? onChanged,
+    bool readOnly = false,
+    VoidCallback? onTap,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -1348,6 +1436,8 @@ class _EditRecordSheetState extends State<_EditRecordSheet> {
             controller: ctrl,
             keyboardType: inputType,
             onChanged: onChanged,
+            readOnly: readOnly,
+            onTap: onTap,
             style: const TextStyle(color: Colors.white, fontSize: 14),
             decoration: InputDecoration(
               prefixIcon: Icon(icon, color: Colors.white38, size: 18),

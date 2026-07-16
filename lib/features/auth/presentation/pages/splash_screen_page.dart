@@ -83,7 +83,7 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
                       fit: BoxFit.contain,
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 20),
                   const Text(
                     'CranePro Manager',
                     style: TextStyle(
